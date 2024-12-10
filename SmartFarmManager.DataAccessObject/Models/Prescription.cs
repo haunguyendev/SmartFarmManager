@@ -18,6 +18,9 @@ public partial class Prescription : EntityBase
 
     public decimal? Price { get; set; }
 
+    public int? QuantityAnimal { get; set; }
+
+
     public virtual ICollection<HealthLog> HealthLogs { get; set; } = new List<HealthLog>();
 
     public virtual ICollection<PrescriptionMedication> PrescriptionMedications { get; set; } = new List<PrescriptionMedication>();

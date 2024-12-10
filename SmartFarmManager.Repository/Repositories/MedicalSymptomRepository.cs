@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace SmartFarmManager.Repository.Repositories
 {
-    public class CageRepository : RepositoryBaseAsync<Cage>, ICageRepository
+    public class MedicalSymptomRepository : RepositoryBaseAsync<MedicalSymptom>, IMedicalSymptomRepository
     {
-        public CageRepository(SmartFarmContext dbContext) : base(dbContext)
+        public MedicalSymptomRepository(SmartFarmContext dbContext) : base(dbContext)
         {
         }
     }

@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 
 namespace SmartFarmManager.Repository.Repositories
 {
-    public class CageRepository : RepositoryBaseAsync<Cage>, ICageRepository
+    public class PrescriptionRepository : RepositoryBaseAsync<Prescription>, IPrescriptionRepository
     {
-        public CageRepository(SmartFarmContext dbContext) : base(dbContext)
+        public PrescriptionRepository(SmartFarmContext dbContext) : base(dbContext)
         {
         }
+    
     }
 }
