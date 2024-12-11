@@ -1,4 +1,5 @@
 ﻿using SmartFarmManager.DataAccessObject.Models;
+using SmartFarmManager.Service.BusinessModels.Medication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,8 @@ namespace SmartFarmManager.Service.Interfaces
 {
     public interface IMedicationService
     {
-        Task<Medication> CreateMedicationAsync(Medication medication);
-        Task<IEnumerable<Medication>> GetAllMedicationsAsync();
+        Task<MedicationModel> CreateMedicationAsync(MedicationModel medication);
+        Task<IEnumerable<MedicationModel>> GetAllMedicationsAsync();
     }
 
 }
