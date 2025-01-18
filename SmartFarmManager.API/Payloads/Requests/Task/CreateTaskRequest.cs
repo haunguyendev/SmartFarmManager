@@ -1,4 +1,5 @@
-﻿using SmartFarmManager.Service.BusinessModels.Task;
+﻿using SmartFarmManager.API.Validation;
+using SmartFarmManager.Service.BusinessModels.Task;
 using System.ComponentModel.DataAnnotations;
 
 namespace SmartFarmManager.API.Payloads.Requests.Task
@@ -10,9 +11,6 @@ namespace SmartFarmManager.API.Payloads.Requests.Task
 
         [Required]
         public Guid CageId { get; set; }
-
-        [Required]
-        public Guid AssignedToUserId { get; set; }
 
         [Required]
         public Guid CreatedByUserId { get; set; }
@@ -27,14 +25,14 @@ namespace SmartFarmManager.API.Payloads.Requests.Task
 
         [Required]
         public DateTime DueDate { get; set; }
-        public int Session { get; set; }
+        [Required]
+        public List<int> Session { get; set; }
         public  CreateTaskModel MapToModel()
         {
             return new CreateTaskModel
             {
                 TaskTypeId = this.TaskTypeId,
                 CageId = this.CageId,
-                AssignedToUserId = this.AssignedToUserId,
                 CreatedByUserId = this.CreatedByUserId,
                 TaskName = this.TaskName,
                 Description =this.Description,

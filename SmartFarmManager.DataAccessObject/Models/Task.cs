@@ -13,7 +13,7 @@ public partial class Task : EntityBase
 
     public Guid AssignedToUserId { get; set; }
 
-    public Guid CreatedByUserId { get; set; }
+    public Guid? CreatedByUserId { get; set; }
 
     public string TaskName { get; set; }
 
@@ -29,6 +29,9 @@ public partial class Task : EntityBase
     public DateTime? CompletedAt { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+
+    public bool IsTreatmentTask { get; set; }
+    public Guid? PrescriptionId { get; set; }
 
     public virtual User AssignedToUser { get; set; }
 

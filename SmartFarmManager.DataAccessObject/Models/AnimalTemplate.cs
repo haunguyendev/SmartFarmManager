@@ -11,9 +11,7 @@ public partial class AnimalTemplate : EntityBase
     public string Name { get; set; }
 
     public string Species { get; set; }
-
-    public int? DefaultCapacity { get; set; }
-
+    public string Status { get; set; }
     public string Notes { get; set; }
 
     public virtual ICollection<FarmingBatch> FarmingBatches { get; set; } = new List<FarmingBatch>();

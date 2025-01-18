@@ -10,13 +10,13 @@ public partial class HealthLog : EntityBase
 
     public Guid PrescriptionId { get; set; }
 
-    public DateOnly? Date { get; set; }
+    public DateTime? Date { get; set; }
 
     public string Notes { get; set; }
 
     public string Photo { get; set; }
 
-    public int? TaskId { get; set; }
+    public Guid? TaskId { get; set; }
 
     public virtual Prescription Prescription { get; set; }
 }

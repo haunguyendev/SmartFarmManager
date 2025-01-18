@@ -19,20 +19,61 @@ namespace SmartFarmManager.API.Controllers
         {
             _taskService = taskService;
         }
+        [HttpPost("create-recurring-task")]
+        public async Task<IActionResult> CreateTaskRecurring([FromBody] CreateTaskRecurringRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Lỗi", errors.ToArray() }
+        }));
+            }
+
+            try
+            {
+                var model = request.MapToModel();
+                var result = await _taskService.CreateTaskRecurringAsync(model);
+
+                if (!result)
+                {
+                    return BadRequest(ApiResult<string>.Fail("Không thể tạo nhiệm vụ lặp lại. Vui lòng thử lại."));
+                }
+
+                return Ok(ApiResult<string>.Succeed("Nhiệm vụ lặp lại đã được tạo thành công!"));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<string>.Fail(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ApiResult<string>.Fail(ex.Message)); // Trả về lỗi Conflict nếu trùng lặp
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
 
         [HttpPost]
         public async Task<IActionResult> CreateTask([FromBody] CreateTaskRequest request)
         {
             if (!ModelState.IsValid)
             {
-                // Collect validation errors
+                // Thu thập lỗi xác thực
                 var errors = ModelState.Values.SelectMany(v => v.Errors)
                                                .Select(e => e.ErrorMessage)
                                                .ToList();
 
                 return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
         {
-            { "Errors", errors.ToArray() }
+            { "Lỗi", errors.ToArray() }
         }));
             }
 
@@ -42,21 +83,25 @@ namespace SmartFarmManager.API.Controllers
                 var result = await _taskService.CreateTaskAsync(taskModel);
                 if (!result)
                 {
-                    throw new Exception("Error while saving Task!");
+                    throw new Exception("Có lỗi xảy ra trong quá trình lưu nhiệm vụ!");
                 }
-               
 
-                return Ok(ApiResult<string>.Succeed("Create Task successfully!"));
+                return Ok(ApiResult<string>.Succeed("Tạo nhiệm vụ thành công!"));
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(ApiResult<string>.Fail(ex.Message));
             }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ApiResult<string>.Fail(ex.Message)); // Trả về lỗi trùng lặp
+            }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail("An unexpected error occurred."));
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
             }
         }
+
 
         [HttpPost("{taskId}/priority")]
         public async Task<IActionResult> UpdateTask(Guid taskId, [FromBody] UpdateTaskPriorityRequest request)
@@ -104,12 +149,12 @@ namespace SmartFarmManager.API.Controllers
 
 
         //change status of task by task id and status id
-        [HttpPut("{taskId}/status/{statusId}")]
-        public async Task<IActionResult> ChangeTaskStatus(Guid taskId, Guid statusId)
+        [HttpPut("{taskId}/status/{status}")]
+        public async Task<IActionResult> ChangeTaskStatus(Guid taskId, string status)
         {
             try
             {
-                var result = await _taskService.ChangeTaskStatusAsync(taskId, statusId);
+                var result = await _taskService.ChangeTaskStatusAsync(taskId, status);
                 if (!result)
                 {
                     throw new Exception("Error while changing Task status!");
@@ -123,7 +168,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail("An unexpected error occurred."));
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
             }
         }
         [HttpGet]
@@ -135,7 +180,7 @@ namespace SmartFarmManager.API.Controllers
                 var serviceFilter = new TaskFilterModel
                 {
                     
-                    TaskName = filterRequest.TaskName,
+                    KeySearch = filterRequest.KeySearch,
                     Status = filterRequest.Status,
                     TaskTypeId = filterRequest.TaskTypeId,
                     CageId = filterRequest.CageId,
@@ -183,6 +228,26 @@ namespace SmartFarmManager.API.Controllers
         //        return StatusCode(500, ApiResult<string>.Fail("An unexpected error occurred."));
         //    }
         //}
+        [HttpPost("generate-tasks")]
+        public async Task<IActionResult> GenerateTasksForToday()
+        {
+            try
+            {
+                var result = await _taskService.GenerateTreatmentTasksAsyncV2();
+
+                if (!result)
+                {
+                    return StatusCode(500, ApiResult<string>.Fail("Failed to generate tasks for today."));
+                }
+
+                return Ok(ApiResult<string>.Succeed("Tasks generated successfully for today."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
+
 
         [HttpGet("user-tasks-with-priority")]
         public async Task<IActionResult> GetUserTasksWithPriority([FromQuery] Guid userId, [FromQuery] Guid cageId, [FromQuery] DateTime? specificDate = null)
@@ -250,6 +315,20 @@ namespace SmartFarmManager.API.Controllers
                 return BadRequest(new { Error = ex.Message });
             }
         }
+        [HttpPost("update-task-status")]
+        public async Task<IActionResult> UpdateAllTaskStatuses()
+        {
+            try
+            {
+                await _taskService.UpdateEveningTaskStatusesAsync();
+                return Ok(ApiResult<string>.Succeed("Task statuses updated successfully."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
+
 
     }
 }

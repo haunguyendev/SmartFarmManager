@@ -19,8 +19,10 @@ public partial class GrowthStageTemplate : EntityBase
     public int? AgeEnd { get; set; }
 
     public string Notes { get; set; }
+    public Guid? SaleTypeId { get; set; }
 
     public virtual ICollection<FoodTemplate> FoodTemplates { get; set; } = new List<FoodTemplate>();
+    public ICollection<TaskDailyTemplate> TaskDailyTemplates { get; set; } = new List<TaskDailyTemplate>();
 
     public virtual AnimalTemplate Template { get; set; }
 }
