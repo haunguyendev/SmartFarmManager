@@ -17,20 +17,116 @@ namespace SmartFarmManager.Repository
         public IUserRepository Users { get;}
         public ITaskRepository Tasks { get;}
         public ITaskTypeRepository TaskTypes { get;}
-        public IStatusRepository Statuses { get; }
         public IStatusLogRepository StatusLogs { get; }
         public ICageRepository Cages { get; }
-
-        public UnitOfWork(SmartFarmContext context, IUserRepository users, ITaskTypeRepository taskTypes,ITaskRepository tasks, IStatusRepository statuses, IStatusLogRepository statusLogs, ICageRepository cages)
+        public ICageStaffRepository CageStaffs { get; }
+        public IMedicalSymptomRepository MedicalSymptom { get; }
+        public IPrescriptionRepository Prescription { get; }
+        public IMedicationRepository Medication { get; }
+        public IFarmingBatchRepository FarmingBatches { get; }
+        public IRoleRepository Roles { get; }
+        public IFarmRepository Farms { get; }
+        public IFarmAdminRepository FarmsAdmins { get; }
+        public IAnimalTemplateRepository AnimalTemplates { get; }
+        public IGrowthStageTemplateRepository GrowthStageTemplates { get; }
+        public ITaskDailyTemplateRepository TaskDailyTemplates { get; }
+        public IFoodTemplateRepository FoodTemplates { get; }
+        public IVaccineTemplateRepository VaccineTemplates { get; }
+        public IGrowthStageRepository GrowthStages { get; }
+        public IVaccineRepository Vaccines { get; }
+        public ITaskDailyRepository TaskDailies { get; }
+        public IHealthLogRepository HealthLogs { get; }
+        public IPictureRepository Pictures { get; }
+        public IPrescriptionMedicationRepository PrescriptionMedications { get; }
+        public IVaccineScheduleLogRepository VaccineScheduleLogs { get; }
+        public IDailyFoodUsageLogRepository DailyFoodUsageLogs { get; }
+        public IVaccineScheduleRepository VaccineSchedules { get; }
+        public ILeaveRequestRepository LeaveRequests { get; }
+        public ISaleTypeRepository SaleTypes { get; }
+        public IMedicalSymptomDetailRepository MedicalSymptomDetails { get; }
+        public ISymptomRepository Symptoms { get; }
+        public IDiseaseRepositoy Diseases { get; }
+        public IStandardPrescriptionRepository StandardPrescriptions { get; }
+        public IFoodStackRepository FoodStacks { get; }
+        public INotificationRepository Notifications { get; }
+        public INotificationTypeRepository NotificationsTypes { get; }
+        public UnitOfWork(SmartFarmContext context, IUserRepository users,
+            ITaskTypeRepository taskTypes,
+            ITaskRepository tasks,
+            IStatusLogRepository statusLogs,
+            ICageRepository cages,
+            ICageStaffRepository cageStaffs,
+            IMedicationRepository medications,
+            IMedicalSymptomRepository medicalSymptoms,
+            IPrescriptionRepository prescriptions,
+            IFarmingBatchRepository farmingBatchs,
+            IRoleRepository roles, 
+            IFarmRepository farms, 
+            IFarmAdminRepository farmAdmins,
+            IAnimalTemplateRepository animalTemplates,
+            IGrowthStageTemplateRepository growthStageTemplates,
+            ITaskDailyTemplateRepository taskDailyTemplates,
+            IFoodTemplateRepository foodTemplates,
+            IGrowthStageRepository growthStages,
+            IVaccineTemplateRepository vaccineTemplates,
+            IVaccineRepository vaccines,
+            IHealthLogRepository healthLogs,
+            IPictureRepository pictures,
+            IPrescriptionMedicationRepository prescriptionMedications,
+            IDailyFoodUsageLogRepository dailyFoodUsageLogs,
+            IVaccineScheduleLogRepository vaccineScheduleLogs,
+            IVaccineScheduleRepository vaccineSchedules,
+            ITaskDailyRepository taskDailies,
+            ILeaveRequestRepository leaveRequests,
+            ISaleTypeRepository saleTypes,
+            IMedicalSymptomDetailRepository medicalSymptomDetails,
+            ISymptomRepository symptoms,
+            IDiseaseRepositoy diseases,
+            IStandardPrescriptionRepository standardPrescriptions,
+            IFoodStackRepository foodStacks,
+            INotificationRepository notifications,
+            INotificationTypeRepository notificationTypes)
         {
             _context = context;
             Users = users;
             TaskTypes = taskTypes;
             Tasks = tasks;
-            Statuses = statuses;
             StatusLogs = statusLogs;
             Cages = cages;
+            CageStaffs = cageStaffs;
+            Medication = medications;
+            MedicalSymptom = medicalSymptoms;
+            Prescription = prescriptions;
+            FarmingBatches = farmingBatchs;
+            Roles = roles;
+            Farms = farms;
+            FarmsAdmins = farmAdmins;
+            AnimalTemplates = animalTemplates;
+            GrowthStageTemplates = growthStageTemplates;
+            TaskDailyTemplates = taskDailyTemplates;
+            FoodTemplates = foodTemplates;
+            GrowthStages = growthStages;
+            VaccineTemplates = vaccineTemplates;
+            Vaccines= vaccines;
+            VaccineSchedules= vaccineSchedules;
+            HealthLogs = healthLogs;
+            Pictures = pictures;
+            PrescriptionMedications = prescriptionMedications;
+            DailyFoodUsageLogs = dailyFoodUsageLogs;
+            VaccineScheduleLogs = vaccineScheduleLogs;
+            VaccineSchedules = vaccineSchedules;
+            TaskDailies = taskDailies;
+            LeaveRequests=leaveRequests;
+            SaleTypes = saleTypes;
+            MedicalSymptomDetails = medicalSymptomDetails;
+            Symptoms = symptoms;
+            Diseases = diseases;
+            StandardPrescriptions = standardPrescriptions;
+            FoodStacks = foodStacks;
+            Notifications = notifications;
+            NotificationsTypes = notificationTypes;
         }
+         
 
         public void Dispose()
         {

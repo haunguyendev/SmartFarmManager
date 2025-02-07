@@ -13,16 +13,16 @@ public partial class FarmingBatch : EntityBase
     public Guid CageId { get; set; }
 
     public string Name { get; set; }
-
-    public string Species { get; set; }
-
     public DateTime? StartDate { get; set; }
+    public DateTime? CompleteAt { get; set; }
+    public DateTime? EndDate { get; set; }
+    public string Status { get; set; }
 
     public int CleaningFrequency { get; set; }
+    public int AffectedQuantity { get; set; } = 0;
 
     public int? Quantity { get; set; }
-
-    public int FarmId { get; set; }
+    public Guid FarmId { get; set; }
 
     public virtual ICollection<AnimalSale> AnimalSales { get; set; } = new List<AnimalSale>();
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
 namespace SmartFarmManager.DataAccessObject.Models;
 
@@ -19,30 +20,38 @@ public partial class SmartFarmContext : DbContext
     {
     }
 
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //{
+    //    if (!optionsBuilder.IsConfigured)
+    //    {
+    //        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+    //        IConfigurationRoot configuration = new ConfigurationBuilder()
+    //            .SetBasePath(Directory.GetCurrentDirectory())
+    //            .AddJsonFile("appsettings.json")
+    //            .Build();
+
+    //        string connectionString;
+
+    //        if (environment == "Development")
+    //        {
+    //            connectionString = configuration.GetConnectionString("DefaultConnection");
+    //        }
+    //        else // Production
+    //        {
+    //            connectionString = configuration.GetConnectionString("ProductConnection");
+    //        }
+
+    //        optionsBuilder.UseSqlServer(connectionString);
+    //    }
+    //}
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (!optionsBuilder.IsConfigured)
-        {
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            IConfigurationRoot configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .Build();
 
-            string connectionString;
+        optionsBuilder.UseSqlServer("Server=89.40.1.82,5053;Database=Farm;User Id=sa;Password=YourStronggg@Passw0rd;Encrypt=True;TrustServerCertificate=True;");
+           // optionsBuilder.UseSqlServer("Server=103.48.193.165,5053;Database=Farm3;User Id=sa;Password=YourStronggg@Passw0rd;Encrypt=True;TrustServerCertificate=True;");
 
-            if (environment == "Development")
-            {
-                connectionString = configuration.GetConnectionString("DefaultConnection");
-            }
-            else // Production
-            {
-                connectionString = configuration.GetConnectionString("ProductConnection");
-            }
-
-            optionsBuilder.UseSqlServer(connectionString);
-        }
     }
 
     public virtual DbSet<AnimalSale> AnimalSales { get; set; }
@@ -115,7 +124,6 @@ public partial class SmartFarmContext : DbContext
 
     public virtual DbSet<SensorType> SensorTypes { get; set; }
 
-    public virtual DbSet<Status> Statuses { get; set; }
 
     public virtual DbSet<StatusLog> StatusLogs { get; set; }
 
@@ -140,23 +148,268 @@ public partial class SmartFarmContext : DbContext
     public virtual DbSet<VaccineTemplate> VaccineTemplates { get; set; }
 
     public virtual DbSet<WaterLog> WaterLogs { get; set; }
+    public virtual DbSet<TaskDaily> TaskDailies { get; set; }
+    public virtual DbSet<EggHarvest> EggHarvests { get; set; }
+    public virtual DbSet<SaleType> SaleTypes { get; set; }
+    public virtual DbSet<Symptom> Symptoms { get; set; }
+    public virtual DbSet<MedicalSymtomDetail> MedicalSymtomDetails { get; set; }
+    public virtual DbSet<Disease> Diseases { get; set; }
+    public virtual DbSet<StandardPrescription> StandardPrescriptions { get; set; }
+    public virtual  DbSet<ControlDevice> ControlDevices { get; set; }
+
+    public virtual DbSet<StandardPrescriptionMedication> StandardPrescriptionMedications { get; set; }
+    public virtual DbSet<MasterData> MasterData { get; set; }
+
+
+
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<CostingReport>(entity =>
+        {
+            entity.HasKey(e => e.Id); // Đặt Id làm khóa chính
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.ReportMonth)
+                .IsRequired(); // Tháng bắt buộc
+
+            entity.Property(e => e.ReportYear)
+                .IsRequired(); // Năm bắt buộc
+
+            entity.Property(e => e.CostType)
+                .HasMaxLength(50) // Tối đa 50 ký tự
+                .IsRequired(); // Loại chi phí bắt buộc
+
+            entity.Property(e => e.TotalQuantity)
+                .HasColumnType("decimal(10, 2)") // Định dạng decimal cho tổng số lượng
+                .IsRequired(); // Bắt buộc
+
+            entity.Property(e => e.TotalCost)
+                .HasColumnType("decimal(10, 2)") // Định dạng decimal cho tổng chi phí
+                .IsRequired(); // Bắt buộc
+
+            entity.Property(e => e.GeneratedAt)
+                .HasDefaultValueSql("GETDATE()") // Mặc định là thời gian hiện tại
+                .IsRequired(); // Bắt buộc
+
+            // Thiết lập quan hệ với bảng Farm
+            entity.HasOne(e => e.Farm)
+                .WithMany(f => f.CostingReports)
+                .HasForeignKey(e => e.FarmId)
+                .OnDelete(DeleteBehavior.Cascade); // Xóa Farm sẽ xóa các báo cáo liên quan
+        });
+
+        modelBuilder.Entity<MasterData>(entity =>
+        {
+
+            entity.HasKey(e => e.Id); // Đặt Id làm khóa chính
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CostType)
+                .HasMaxLength(50) // Tối đa 50 ký tự
+                .IsRequired(false); // Không bắt buộc
+
+            entity.Property(e => e.Unit)
+                .HasMaxLength(50) // Tối đa 50 ký tự
+                .IsRequired(false); // Không bắt buộc
+
+            entity.Property(e => e.UnitPrice)
+                .HasColumnType("decimal(10, 2)"); // Giá trị decimal với (10, 2)
+
+            entity.HasOne(e => e.Farm) // Thiết lập quan hệ với Farm
+                .WithMany(f => f.MasterData)
+                .HasForeignKey(e => e.FarmId)
+                .OnDelete(DeleteBehavior.Cascade); // Xóa cascade
+        });
+
+        modelBuilder.Entity<ControlDevice>(entity =>
+        {
+
+            entity.HasKey(e => e.Id); // Đặt Id làm khóa chính
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100); // Tên thiết bị, bắt buộc, tối đa 100 ký tự
+
+            entity.Property(e => e.Type)
+                .HasMaxLength(50); // Loại thiết bị, tối đa 50 ký tự
+
+            entity.Property(e => e.ControlCode)
+                .IsRequired()
+                .HasMaxLength(50); // Lệnh điều khiển, bắt buộc, tối đa 50 ký tự
+
+            entity.Property(e => e.Command)
+                .HasMaxLength(255); 
+
+
+            entity.HasOne(e => e.Cage) // Thiết lập quan hệ với bảng Cage
+                .WithMany(c => c.ControlDevices) // Một Cage có nhiều ControlDevice
+                .HasForeignKey(e => e.CageId) // Khóa ngoại là CageId
+                .OnDelete(DeleteBehavior.Cascade); // Xóa Cascade nếu Cage bị xóa
+        });
+        modelBuilder.Entity<Symptom>(entity =>
+        {
+
+            entity.HasKey(e => e.Id); // Khóa chính
+
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+
+            entity.Property(e => e.SymptomName)
+                .HasMaxLength(200)
+                .IsRequired(); // Triệu chứng không được để trống
+
+            // Thiết lập quan hệ với MedicalSymptomDetail
+            entity.HasMany(e => e.MedicalSymptomDetails)
+                  .WithOne(e => e.Symptom)
+                  .HasForeignKey(e => e.SymptomId)
+                  .OnDelete(DeleteBehavior.Cascade); // Xóa triệu chứng sẽ xóa liên kết
+        });
+        modelBuilder.Entity<MedicalSymtomDetail>(entity =>
+        {
+
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+
+            entity.HasOne(e => e.MedicalSymptom)
+                  .WithMany(ms => ms.MedicalSymptomDetails)
+                  .HasForeignKey(e => e.MedicalSymptomId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Symptom)
+                  .WithMany(s => s.MedicalSymptomDetails)
+                  .HasForeignKey(e => e.SymptomId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+    
+        modelBuilder.Entity<SaleType>(entity =>
+        {
+
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.StageTypeName)
+                  .HasMaxLength(100)
+                  .IsRequired();
+
+            entity.Property(e => e.Discription)
+                  .HasMaxLength(255);
+
+            // Quan hệ với AnimalSale
+            entity.HasMany(st => st.AnimalSales)
+                  .WithOne(asale => asale.SaleType)
+                  .HasForeignKey(asale => asale.SaleTypeId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EggHarvest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.DateCollected)
+                  .IsRequired();
+
+            entity.Property(e => e.EggCount)
+                  .IsRequired();
+
+            entity.Property(e => e.Notes)
+                  .HasMaxLength(255);
+
+            entity.HasOne(e => e.growthStage)
+                  .WithMany(g => g.EggHarvests)
+                  .HasForeignKey(e => e.GrowthStageId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // LeaveRequest Configuration
+        modelBuilder.Entity<LeaveRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Status)
+                  .HasMaxLength(50)
+                  .HasDefaultValue("Pending");
+
+            entity.Property(e => e.CreatedAt)
+                  .HasDefaultValueSql("GETDATE()");
+
+            entity.Property(e => e.Reason)
+                  .HasMaxLength(255);
+
+            entity.Property(e => e.Notes)
+                  .HasMaxLength(255);
+
+            // Foreign Key: StaffFarmId -> Users(UserId)
+            entity.HasOne(e => e.StaffFarm)
+                  .WithMany()
+                  .HasForeignKey(e => e.StaffFarmId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+
+        });
+
+
+
+        // TaskDaily
+        modelBuilder.Entity<TaskDaily>(entity =>
+        {
+            entity.ToTable("TaskDaily");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.TaskName)
+                  .HasMaxLength(50)
+                  .IsRequired();
+
+            entity.Property(e => e.Description)
+                  .HasMaxLength(255);
+
+            entity.Property(e => e.Session)
+                  .IsRequired();
+
+            entity.HasOne(e => e.GrowthStage)
+                  .WithMany()
+                  .HasForeignKey(e => e.GrowthStageId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // TaskDailyTemplate
+        modelBuilder.Entity<TaskDailyTemplate>(entity =>
+        {
+            entity.ToTable("TaskDailyTemplate");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.TaskName)
+                  .HasMaxLength(50)
+                  .IsRequired();
+
+            entity.Property(e => e.Description)
+                  .HasMaxLength(255);
+
+            entity.Property(e => e.Session)
+                  .IsRequired();
+
+            entity.HasOne(e => e.GrowthStageTemplate)
+                  .WithMany()
+                  .HasForeignKey(e => e.GrowthStageTemplateId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
         modelBuilder.Entity<AnimalSale>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__AnimalSa__1EE3C3FF9307295C");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.BuyerInfo).HasMaxLength(255);
             entity.Property(e => e.SaleDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+
 
             entity.HasOne(d => d.FarmingBatch).WithMany(p => p.AnimalSales)
                 .HasForeignKey(d => d.FarmingBatchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__AnimalSal__Farmi__160F4887");
+            entity.HasOne(e => e.SaleType)
+          .WithMany(st => st.AnimalSales)
+          .HasForeignKey(e => e.SaleTypeId)
+          .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AnimalTemplate>(entity =>
@@ -178,7 +431,6 @@ public partial class SmartFarmContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__Cages__792D9F9AACADDF50");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.AnimalType).HasMaxLength(255);
             entity.Property(e => e.BoardCode)
                 .IsRequired()
                 .HasMaxLength(50);
@@ -194,8 +446,8 @@ public partial class SmartFarmContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasDefaultValue("");
-            entity.HasOne(c=>c.Farm).WithMany(f=>f.Cages)
-            .HasForeignKey(c=>c.FarmId)
+            entity.HasOne(c => c.Farm).WithMany(f => f.Cages)
+            .HasForeignKey(c => c.FarmId)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("FK__Farm__CageI__2321213213");
         });
@@ -387,9 +639,7 @@ public partial class SmartFarmContext : DbContext
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.Name).HasMaxLength(100);
-            entity.Property(e => e.Species).HasMaxLength(50);
             entity.Property(e => e.StartDate)
-                .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
             entity.HasOne(d => d.Cage).WithMany(p => p.FarmingBatches)
@@ -412,7 +662,7 @@ public partial class SmartFarmContext : DbContext
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CostPerKg).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.CurrentStock).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.NameFood).HasMaxLength(100);
+            entity.Property(e => e.FoodType).HasMaxLength(100);
             entity.Property(e => e.Quantity).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.Farm).WithMany(p => p.FoodStacks)
@@ -426,10 +676,9 @@ public partial class SmartFarmContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__FoodTemp__58E25FB67BABBFBB");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.FoodName)
+            entity.Property(e => e.FoodType)
                 .IsRequired()
                 .HasMaxLength(100);
-            entity.Property(e => e.RecommendedWeightPerDay).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.WeightBasedOnBodyMass).HasColumnType("decimal(5, 2)");
 
             entity.HasOne(d => d.StageTemplate).WithMany(p => p.FoodTemplates)
@@ -450,7 +699,7 @@ public partial class SmartFarmContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
-            entity.Property(e => e.RecommendedWeightPerDay).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.RecommendedWeightPerSession).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.WeightAnimal).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.WeightBasedOnBodyMass).HasColumnType("decimal(5, 2)");
 
@@ -458,6 +707,10 @@ public partial class SmartFarmContext : DbContext
                 .HasForeignKey(d => d.FarmingBatchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__GrowthSta__Farmi__1AD3FDA4");
+            entity.HasMany(gs => gs.TaskDailies)
+                .WithOne(td => td.GrowthStage)
+                .HasForeignKey(td => td.GrowthStageId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<GrowthStageTemplate>(entity =>
@@ -473,6 +726,11 @@ public partial class SmartFarmContext : DbContext
                 .HasForeignKey(d => d.TemplateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__GrowthSta__Templ__59063A47");
+            entity.HasMany(gst => gst.TaskDailyTemplates)
+        .WithOne(tdt => tdt.GrowthStageTemplate)
+        .HasForeignKey(tdt => tdt.GrowthStageTemplateId)
+        .OnDelete(DeleteBehavior.Cascade);
+
         });
 
         modelBuilder.Entity<HealthLog>(entity =>
@@ -556,9 +814,9 @@ public partial class SmartFarmContext : DbContext
             entity.Property(e => e.Notes).HasMaxLength(255);
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .HasDefaultValue("Ðang di?u tr?");
-            entity.Property(e => e.Symptoms).HasMaxLength(200);
-            entity.Property(e => e.Treatment).HasMaxLength(100);
+                .HasDefaultValue("Pending");
+
+            
 
             entity.HasOne(d => d.FarmingBatch).WithMany(p => p.MedicalSymptoms)
                 .HasForeignKey(d => d.FarmingBatchId)
@@ -572,9 +830,24 @@ public partial class SmartFarmContext : DbContext
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.Name).HasMaxLength(100);
-            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PricePerDose).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.UsageInstructions).HasMaxLength(255);
+            entity.Property(e => e.UsageInstructions)
+                        .HasMaxLength(255) // Hướng dẫn sử dụng, tối đa 255 ký tự
+                        .IsRequired(false);
+
+            entity.Property(e => e.Price)
+                .HasColumnType("decimal(10, 2)"); // Giá của thuốc, định dạng decimal
+
+            entity.Property(e => e.DoseWeight)
+                .HasColumnType("int"); // Khối lượng liều (mg)
+
+            entity.Property(e => e.Weight)
+                .HasColumnType("int"); // Khối lượng thuốc (mg)
+
+            entity.Property(e => e.DoseQuantity)
+                .HasColumnType("int"); // Số lượng liều (mg)
+
+            entity.Property(e => e.PricePerDose)
+                .HasColumnType("decimal(10, 2)"); // Giá mỗi liều
         });
 
         modelBuilder.Entity<MqttConfig>(entity =>
@@ -645,13 +918,13 @@ public partial class SmartFarmContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__Prescrip__401308323ACA723E");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.CaseType).HasMaxLength(50);
             entity.Property(e => e.Notes).HasMaxLength(255);
             entity.Property(e => e.PrescribedDate).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+            
 
-            entity.HasOne(d => d.Record).WithMany(p => p.Prescriptions)
-                .HasForeignKey(d => d.RecordId)
+            entity.HasOne(d => d.MedicalSymtom).WithMany(p => p.Prescriptions)
+                .HasForeignKey(d => d.MedicalSymtomId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Prescript__Recor__40F9A68C");
         });
@@ -661,6 +934,7 @@ public partial class SmartFarmContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__Prescrip__CDB4BF945ED62D85");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Notes).HasMaxLength(255);
 
             entity.HasOne(d => d.Medication).WithMany(p => p.PrescriptionMedications)
                 .HasForeignKey(d => d.MedicationId)
@@ -743,8 +1017,9 @@ public partial class SmartFarmContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__SensorDa__14C88410F7C62D8F");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.Data).HasColumnType("decimal(18, 1)");
-
+            entity.Property(e => e.Data)
+         .IsRequired(false) // Không bắt buộc
+         .HasColumnType("nvarchar(max)"); 
             entity.HasOne(d => d.Sensor).WithMany(p => p.SensorDataLogs)
                 .HasForeignKey(d => d.SensorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -771,15 +1046,6 @@ public partial class SmartFarmContext : DbContext
                 .HasDefaultValue("");
         });
 
-        modelBuilder.Entity<Status>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Statuses__C8EE2063A8C85F92");
-
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.StatusName)
-                .IsRequired()
-                .HasMaxLength(50);
-        });
 
         modelBuilder.Entity<StatusLog>(entity =>
         {
@@ -790,10 +1056,6 @@ public partial class SmartFarmContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
-            entity.HasOne(d => d.Status).WithMany(p => p.StatusLogs)
-                .HasForeignKey(d => d.StatusId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__StatusLog__Statu__03F0984C");
 
             entity.HasOne(d => d.Task).WithMany(p => p.StatusLogs)
                 .HasForeignKey(d => d.TaskId)
@@ -926,12 +1188,10 @@ public partial class SmartFarmContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__Vaccines__45DC6889A12FCD5C");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.AgeEndDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.AgeStartDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+            entity.Property(e => e.AgeEnd)
+                .HasColumnType("int");
+            entity.Property(e => e.AgeStart)
+                .HasColumnType("int");
             entity.Property(e => e.Method).HasMaxLength(50);
             entity.Property(e => e.Name).HasMaxLength(100);
         });
@@ -994,6 +1254,36 @@ public partial class SmartFarmContext : DbContext
                 .HasForeignKey(d => d.FarmId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__WaterLogs__FarmI__5CA1C101");
+        });
+        modelBuilder.Entity<Disease>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(500);
+        });
+        modelBuilder.Entity<StandardPrescription>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.HasOne(e => e.Disease)
+                .WithMany(d => d.StandardPrescriptions)
+                .HasForeignKey(e => e.DiseaseId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(e => e.Notes).HasMaxLength(255);
+        });
+        modelBuilder.Entity<StandardPrescriptionMedication>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.HasOne(e => e.Prescription)
+                .WithMany(p => p.StandardPrescriptionMedications)
+                .HasForeignKey(e => e.PrescriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Medication)
+                .WithMany(m => m.StandardPrescriptionMedications)
+                .HasForeignKey(e => e.MedicationId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -10,6 +10,7 @@ namespace SmartFarmManager.Service.BusinessModels.Task
     {
         public Guid Id { get; set; }
         public Guid CageId { get; set; }
+        public string CageName { get; set; }
         public string TaskName { get; set; }
         public string Description { get; set; }
         public int PriorityNum { get; set; }
@@ -18,6 +19,8 @@ namespace SmartFarmManager.Service.BusinessModels.Task
         public int Session { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public bool IsTreatmentTask { get; set; }
+        public Guid? PrescriptionId { get; set; }
 
         public UserResponseModel AssignedToUser { get; set; }
 
@@ -44,8 +47,20 @@ namespace SmartFarmManager.Service.BusinessModels.Task
 
     public class StatusLogResponseModel
     {
-        public Guid StatusId { get; set; }
-        public string StatusName { get; set; } // Map từ bảng `Status`
+        public string Status { get; set; } 
         public DateTime? UpdatedAt { get; set; }
+    }
+    public class SessionTaskGroupModel
+    {
+        public string SessionName { get; set; } // VD: "Session 1"
+        public List<CageTaskGroupModel> Cages { get; set; }
+    }
+
+    // Model nhóm theo Cage
+    public class CageTaskGroupModel
+    {
+        public Guid CageId { get; set; }
+        public string CageName { get; set; } // Tên cage (nếu cần)
+        public List<TaskDetailModel> Tasks { get; set; }
     }
 }

@@ -9,7 +9,11 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="FirebaseAdmin" Version="3.1.0" />
     <PackageReference Include="MailKit" Version="4.8.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
+    <PackageReference Include="MQTTnet" Version="4.3.6.1152" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,7 +22,6 @@
 
   <ItemGroup>
     <Folder Include="BusinessModels\QueryParameters\" />
-    <Folder Include="Shared\" />
   </ItemGroup>
 
 </Project>

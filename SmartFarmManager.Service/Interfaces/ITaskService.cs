@@ -12,7 +12,7 @@ namespace SmartFarmManager.Service.Interfaces
     {
         Task<bool> CreateTaskAsync(CreateTaskModel model);
         Task<bool> UpdateTaskPriorityAsync(Guid taskId, UpdateTaskPriorityModel model);
-        Task<bool> ChangeTaskStatusAsync(Guid taskId, Guid statusId);
+        Task<bool> ChangeTaskStatusAsync(Guid taskId, string? status);
         Task<TaskDetailModel> GetTaskDetailAsync(Guid taskId);
         Task<List<TaskModel>> GetTasksAsync(TaskModel taskModel);
         Task<PagedResult<TaskDetailModel>> GetFilteredTasksAsync(TaskFilterModel filter);
@@ -22,5 +22,15 @@ namespace SmartFarmManager.Service.Interfaces
         Task<List<NextTaskModel>> GetNextTasksForCagesWithStatsAsync(Guid userId);
 
         Task<bool> UpdateTaskPrioritiesAsync(List<TaskPriorityUpdateModel> taskPriorityUpdateModels);
+        Task<List<SessionTaskGroupModel>> GetUserTasksAsync(Guid userId, DateTime? filterDate = null, Guid? cageId = null);
+        Task<bool> UpdateTaskAsync(TaskDetailUpdateModel model);
+        Task<bool> CreateTaskRecurringAsync(CreateTaskRecurringModel model);
+        Task<bool> GenerateTasksForTodayAsync();
+        Task<bool> UpdateAllTaskStatusesAsync();
+        Task<bool> GenerateTasksForFarmingBatchAsync(Guid farmingBatchId);
+        Task<bool> GenerateTasksForTomorrowAsync();
+        Task<bool> UpdateEveningTaskStatusesAsync();
+        Task<bool> GenerateTreatmentTasksAsync();
+        Task<bool> GenerateTreatmentTasksAsyncV2();
     }
 }

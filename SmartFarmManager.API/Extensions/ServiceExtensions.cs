@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Quartz;
 using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Repository;
 using SmartFarmManager.Repository.Interfaces;
@@ -10,9 +11,18 @@ using SmartFarmManager.Service.Interfaces;
 using SmartFarmManager.Service.Mapper;
 using SmartFarmManager.Service.Services;
 using SmartFarmManager.Service.Settings;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
+using Quartz;
+using Quartz.Spi;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Newtonsoft.Json;
+using SmartFarmManager.Service.Configuration;
+using SmartFarmManager.Service.MQTT;
+
 
 namespace SmartFarmManager.API.Extensions
 {
@@ -26,6 +36,8 @@ namespace SmartFarmManager.API.Extensions
                         x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                         x.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
                     }); // Ngăn không tuần tự hóa vòng lặp
+            
+
 
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
             services.AddMemoryCache();
@@ -44,7 +56,7 @@ namespace SmartFarmManager.API.Extensions
             {
                 Key = secretKey
             };
-
+            ConfigureFirebaseAdminSDK(configuration);
             services.Configure<JwtSettings>(options => { options.Key = jwtSettings.Key; });
             services.Configure<CookiePolicyOptions>(options =>
             {
@@ -69,6 +81,23 @@ namespace SmartFarmManager.API.Extensions
                         ValidateAudience = false,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true
+                    };
+                    // Để SignalR có thể lấy token từ query string
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+
+                            // Nếu đây là yêu cầu cho SignalR Hub
+                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/notification"))
+                            {
+                                context.Token = accessToken;
+                            }
+
+                            return System.Threading.Tasks.Task.CompletedTask;
+                        }
                     };
                 }).AddCookie();
 
@@ -102,8 +131,8 @@ namespace SmartFarmManager.API.Extensions
             services.AddCors(option =>
                option.AddPolicy("CORS", builder =>
                    builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()));
-            services.AddInfrastructureServices();
-
+            services.AddInfrastructureServices(configuration);
+            services.AddSignalR();
 
 
             services.ConfigureDbContext(configuration);
@@ -127,12 +156,14 @@ namespace SmartFarmManager.API.Extensions
             
             return services;
         }
-        private static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
+        private static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
 
             services.AddRepositories();
             services.AddApplicationServices();
             services.AddConfigurations();
+            services.AddQuartzServices();
+            services.AddMqttClientService(configuration);
 
             return services;
         }
@@ -144,23 +175,78 @@ namespace SmartFarmManager.API.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
             services.AddScoped<ITaskTypeRepository, TaskTypeRepository>();
-            services.AddScoped<IStatusRepository, StatusRepository>();
             services.AddScoped<IStatusLogRepository, StatusLogRepository>();
             services.AddScoped<ICageRepository, CageRepository>();
-            
-            
-
+            services.AddScoped<ICageStaffRepository, CageStaffRepository>();
+            services.AddScoped<IMedicalSymptomRepository, MedicalSymptomRepository>();
+            services.AddScoped<IMedicationRepository, MedicationRepository>();
+            services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+            services.AddScoped<IFarmingBatchRepository, FarmingBatchRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<IFarmRepository, FarmRepository>();
+            services.AddScoped<IFarmAdminRepository, FarmAdminRepository>();
+            services.AddScoped<IAnimalTemplateRepository, AnimalTemplateRepository>();
+            services.AddScoped<IGrowthStageTemplateRepository, GrowthStageTemplateRepository>();
+            services.AddScoped<ITaskDailyTemplateRepository, TaskDailyTemplateRepository>();
+            services.AddScoped<IFoodTemplateRepository, FoodTemplateRepository>();
+            services.AddScoped<IVaccineTemplateRepository, VaccineTemplateRepository>();
+            services.AddScoped<IGrowthStageRepository, GrowthStageRepository>();
+            services.AddScoped<IVaccineRepository, VaccineRepository>();
+            services.AddScoped<ITaskDailyRepository, TaskDailyRepository>();
+            services.AddScoped<IVaccineScheduleRepository, VaccineScheduleRepository>();
+            services.AddScoped<IHealthLogRepository, HealthLogRepository>();
+            services.AddScoped<IPictureRepository, PictureRepostory>();
+            services.AddScoped<IPrescriptionMedicationRepository, PrescriptionMedicationRepository>();
+            services.AddScoped<IDailyFoodUsageLogRepository, DailyFoodUsageLogRepository>();
+            services.AddScoped<IVaccineScheduleLogRepository, VaccineScheduleLogRepository>();
+            services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
+            services.AddScoped<ISaleTypeRepository, SaleTypeRepository>();
+            services.AddScoped<IMedicalSymptomDetailRepository, MedicalSymptomDetailRepository>();
+            services.AddScoped<ISymptomRepository, SymptomRepository>();
+            services.AddScoped<IDiseaseRepositoy, DiseaseRepository>();
+            services.AddScoped<IStandardPrescriptionRepository, StandardPrescriptionRepository>();
+            services.AddScoped<IFoodStackRepository, FoodStackRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<INotificationTypeRepository, NotifitcationTypeRepository>();
             return services;
         }
 
         private static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             // Đăng ký các service logic
+            
+
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<ICageService, CageService>();
             services.AddScoped<IStaffService, StaffService>();
+            services.AddScoped<IMedicationService, MedicationService>();
+            services.AddScoped<IMedicalSymptomService, MedicalSymptomService>();
+            services.AddScoped<IPrescriptionService, PrescriptionService>();
+            services.AddScoped<ITaskTypeService, TaskTypeService>();
+            services.AddScoped<IRoleService, RoleService>(); 
+            services.AddScoped<IFarmService, FarmService>();
+            services.AddScoped<INotificationService,NotificationUserService>();
+            services.AddScoped<NotificationService>();
+            services.AddScoped<IAnimalTemplateService, AnimalTemplateService>();
+            services.AddScoped<IGrowthStageTemplateService,GrowthStageTemplateService>();
+            services.AddScoped<ITaskDailyTemplateService, TaskDailyTemplateService>();
+            services.AddScoped<IFoodTemplateService, FoodTemplateService>();
+            services.AddScoped<IFarmingBatchService, FarmingBatchService>();
+            services.AddScoped<IHealthLogService, HealthLogService>();
+            services.AddScoped<IDailyFoodUsageLogService, DailyFoodUsageLogService>();
+            services.AddScoped<IVaccineScheduleLogService, VaccineScheduleLogService>();
+            services.AddScoped<IVaccineTemplateService, VaccineTemplateService>();
+            services.AddScoped<IGrowthStageService,GrowthStageService>();
+            services.AddScoped<IVaccineService, VaccineService>();
+            services.AddScoped<ISymptomService, SymptomService>();
+            services.AddScoped<IDiseaseService, DiseaseService>();
+            services.AddScoped<IStandardPrescriptionService, StandardPrescriptionService>();
+            services.AddScoped<ISaleTypeService, SaleTypeService>();
+            services.AddSingleton<SystemConfigurationService>();
+
+
             return services;
         }
 
@@ -168,10 +254,62 @@ namespace SmartFarmManager.API.Extensions
         {
             // Đăng ký các configuration (ví dụ: JWT settings, database settings)
             services.AddScoped<JwtSettings>();
+            services.AddSingleton<JwtSecurityTokenHandler>();
+            return services;
+        }
+        private static void AddMqttClientService(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<MqttClientSetting>(configuration.GetSection(MqttClientSetting.Section));
+
+         
+            services.AddSingleton<IMqttService, MqttService>();
+
+            
+        }
+
+
+        public static IServiceCollection AddQuartzServices(this IServiceCollection services)
+        {
+            // Cấu hình Quartz
+            services.AddQuartz(config =>
+            { 
+                SmartFarmManager.API.BackgroundJobs.QuartzConfigurations.QuartzScheduler.ConfigureJobs(config);
+            });
+
+            // Thêm Quartz Hosted Service
+            services.AddQuartzHostedService(options =>
+            {
+                options.WaitForJobsToComplete = true; // Đợi các job hoàn tất trước khi tắt ứng dụng
+            });
 
             return services;
         }
 
+        private static void ConfigureFirebaseAdminSDK(IConfiguration configuration)
+        {
+            var firebaseAdminSDK = new Dictionary<string, string>
+    {
+        { "type", configuration["CLOUDMESSAGE_TYPE"] },
+        { "project_id", configuration["CLOUDMESSAGE_PROJECT_ID"] },
+        { "private_key_id", configuration["CLOUDMESSAGE_PRIVATE_KEY_ID"] },
+        { "private_key", configuration["CLOUDMESSAGE_PRIVATE_KEY"]?.Replace("\\n", "\n") },
+        { "client_email", configuration["CLOUDMESSAGE_CLIENT_EMAIL"] },
+        { "client_id", configuration["CLOUDMESSAGE_CLIENT_ID"] },
+        { "auth_uri", configuration["CLOUDMESSAGE_AUTH_URI"] },
+        { "token_uri", configuration["CLOUDMESSAGE_TOKEN_URI"] },
+        { "auth_provider_x509_cert_url", configuration["CLOUDMESSAGE_AUTH_PROVIDER_X509_CERT_URL"] },
+        { "client_x509_cert_url", configuration["CLOUDMESSAGE_CLIENT_X509_CERT_URL"] },
+        { "universe_domain", configuration["CLOUDMESSAGE_UNIVERSE_DOMAIN"] }
+    };
 
+            var firebaseAdminSDKJson = JsonConvert.SerializeObject(firebaseAdminSDK);
+            var googleCredential = GoogleCredential.FromJson(firebaseAdminSDKJson);
+
+            FirebaseApp.Create(new AppOptions
+            {
+                Credential = googleCredential,
+                ProjectId = configuration["CLOUDMESSAGE_PROJECT_ID"]
+            });
+        }
     }
 }
