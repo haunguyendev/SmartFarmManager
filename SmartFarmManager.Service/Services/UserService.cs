@@ -212,7 +212,7 @@ namespace SmartFarmManager.Service.Services
             var startDate = date.ToDateTime(new TimeOnly(0, 0));
             var endDate = date.ToDateTime(new TimeOnly(23, 59, 59));
             //get user by cageId
-            var user = await _unitOfWork.CageStaffs.FindByCondition(c => c.CageId == cageId).FirstOrDefaultAsync();
+            var user = await _unitOfWork.CageStaffs.FindByCondition(c => c.CageId == cageId && c.StaffFarm.Role.RoleName == "Staff Farm").FirstOrDefaultAsync();
             // Kiểm tra trong bảng TemporaryCageAssignment
             var temporaryAssignment = await _unitOfWork.LeaveRequests.FindByCondition(
                 tca => tca.StaffFarmId == user.StaffFarmId &&
@@ -228,7 +228,7 @@ namespace SmartFarmManager.Service.Services
 
             // Nếu không tìm thấy trong TemporaryCageAssignment, lấy nhân viên chính từ CageStaff
             var cageStaff = await _unitOfWork.CageStaffs.FindByCondition(
-                cs => cs.CageId == cageId
+                cs => cs.CageId == cageId && cs.StaffFarm.Role.RoleName == "Staff Farm"
             ).FirstOrDefaultAsync();
 
             return cageStaff?.StaffFarmId;

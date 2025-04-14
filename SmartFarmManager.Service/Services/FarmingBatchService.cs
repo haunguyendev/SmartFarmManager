@@ -1145,7 +1145,7 @@ namespace SmartFarmManager.Service.Services
         {
             // 🔹 Lấy thông tin chuồng
             var cage = await _unitOfWork.Cages
-                .FindByCondition(c => c.Id == cageId)
+                .FindByCondition(c => c.Id == cageId && c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == "Staff Farm"))
                 .Include(c => c.CageStaffs)
                 .ThenInclude(cs => cs.StaffFarm)
                 .FirstOrDefaultAsync();

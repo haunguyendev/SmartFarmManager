@@ -113,7 +113,7 @@ namespace SmartFarmManager.Service.Services
 
             // Truy vấn CageStaffs, bao gồm StaffFarm và Cage
             var usersQuery = _unitOfWork.CageStaffs
-                                        .FindByCondition(cs => cageIds.Contains(cs.CageId))                                       
+                                        .FindByCondition(cs => cageIds.Contains(cs.CageId) && cs.StaffFarm.Role.RoleName == "Staff Farm")                                       
                                         .Include(cs => cs.StaffFarm)
                                         .ThenInclude(s=>s.Role)                                      
                                         .Include(cs => cs.Cage)

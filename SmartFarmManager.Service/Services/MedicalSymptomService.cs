@@ -702,7 +702,7 @@ namespace SmartFarmManager.Service.Services
                 if(firstTask != null)
                 {
                     var staffFarm = await _unitOfWork.Users
-                        .FindByCondition(u => u.CageStaffs.Any(cs => cs.CageId == cage.Id))
+                        .FindByCondition(u => u.CageStaffs.Any(cs => cs.CageId == cage.Id) && u.Role.RoleName == "Staff Farm")
                         .FirstOrDefaultAsync();
                     var notiType = await _unitOfWork.NotificationsTypes.FindByCondition(nt => nt.NotiTypeName == "Task").FirstOrDefaultAsync();
                     var notificationStaff = new DataAccessObject.Models.Notification

@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace SmartFarmManager.Service.Services
 {
@@ -37,15 +38,18 @@ namespace SmartFarmManager.Service.Services
                 .Include(c => c.CageStaffs)
                 .ThenInclude(cs => cs.StaffFarm)
                 .Include(c => c.FarmingBatches).ThenInclude(c => c.GrowthStages)
-                .Include(c=>c.CageStaffs)
-                .ThenInclude(cs=>cs.StaffFarm) 
+                .Include(c => c.CageStaffs)
+                .ThenInclude(cs => cs.StaffFarm)
+                .ThenInclude(sf => sf.Role)
                 .AsQueryable();
 
+            query = query.Where(c => c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == "Staff Farm"));
             // Áp dụng các bộ lọc
             if (!string.IsNullOrEmpty(request.PenCode))
             {
                 query = query.Where(c => c.PenCode.Contains(request.PenCode));
             }
+
 
             // Áp dụng bộ lọc Name
             if (!string.IsNullOrEmpty(request.Name))
@@ -59,7 +63,7 @@ namespace SmartFarmManager.Service.Services
                 query = query.Where(c =>
                     c.PenCode.Contains(request.SearchKey) ||
                     c.Name.Contains(request.SearchKey) ||
-                    c.Location.Contains(request.SearchKey)||
+                    c.Location.Contains(request.SearchKey) ||
                     c.CageStaffs.FirstOrDefault().StaffFarm.FullName.Contains(request.SearchKey));
             }
 
@@ -158,9 +162,12 @@ namespace SmartFarmManager.Service.Services
         public async Task<CageDetailModel> GetCageByIdAsync(Guid cageId)
         {
             // Lấy dữ liệu từ repository
-            var cage = await _unitOfWork.Cages.FindByCondition(x => x.Id == cageId, false, c => c.Farm).Include(c => c.CageStaffs)
-                .ThenInclude(cs => cs.StaffFarm).FirstOrDefaultAsync();
-
+            var cage = await _unitOfWork.Cages
+                .FindByCondition(x => x.Id == cageId && x.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == "Staff Farm"), false, c => c.Farm)
+                .Include(c => c.CageStaffs)
+                .ThenInclude(cs => cs.StaffFarm)
+                .ThenInclude(sf => sf.Role)
+                .FirstOrDefaultAsync();
             // Xử lý khi không tìm thấy cage
             if (cage == null || cage.IsDeleted)
             {

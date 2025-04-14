@@ -298,7 +298,7 @@ namespace SmartFarmManager.Service.Services
 
             _logger.LogInformation("📡 {AlertMessage}", alertMessage);
             var farmAdmins = await _unitOfWork.FarmsAdmins.FindByCondition(fa => fa.FarmId == farm.Id).Select(fm => fm.Admin).FirstOrDefaultAsync();
-            var cageStaff = await _unitOfWork.CageStaffs.FindByCondition(cs => cs.Cage.Id == cage.Id).Select(ct=>ct.StaffFarm).FirstOrDefaultAsync();
+            var cageStaff = await _unitOfWork.CageStaffs.FindByCondition(cs => cs.Cage.Id == cage.Id && cs.StaffFarm.Role.RoleName == "Staff Farm").Select(ct=>ct.StaffFarm).FirstOrDefaultAsync();
 
 
             var notiType = await _unitOfWork.NotificationsTypes.FindByCondition(x => x.NotiTypeName == "Alert").FirstOrDefaultAsync();

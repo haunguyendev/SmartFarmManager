@@ -147,7 +147,7 @@ namespace SmartFarmManager.Service.Services
             Guid? assignedUserId = null;
 
             var cageStaff = await _unitOfWork.CageStaffs
-                .FindByCondition(cs => cs.CageId == model.CageId)
+                .FindByCondition(cs => cs.CageId == model.CageId && cs.StaffFarm.Role.RoleName == "Staff Farm")
                 .Include(cs => cs.StaffFarm)
                 .FirstOrDefaultAsync();
 
@@ -1510,7 +1510,7 @@ namespace SmartFarmManager.Service.Services
         {
             // 1. Lấy thông tin nhân viên mặc định của chuồng
             var defaultStaff = await _unitOfWork.CageStaffs
-                .FindByCondition(cs => cs.CageId == cageId)
+                .FindByCondition(cs => cs.CageId == cageId && cs.StaffFarm.Role.RoleName == "Staff Farm")
                 .FirstOrDefaultAsync();
 
             if (defaultStaff == null)
