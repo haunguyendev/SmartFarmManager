@@ -1,4 +1,6 @@
-﻿using SmartFarmManager.Service.BusinessModels.Prescription;
+﻿using SmartFarmManager.Service.BusinessModels.Auth;
+using SmartFarmManager.Service.BusinessModels.Prescription;
+using SmartFarmManager.Service.BusinessModels.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,5 +30,6 @@ namespace SmartFarmManager.Service.BusinessModels.Cages
 
         // Associated data
         public List<PrescriptionResponseModel> Prescriptions { get; set; } = new List<PrescriptionResponseModel>();
+        public UserCreateModel? User { get; set; }
     }
 }

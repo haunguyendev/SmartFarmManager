@@ -9,6 +9,7 @@ using SmartFarmManager.Service.BusinessModels.GrowthStage;
 using SmartFarmManager.Service.BusinessModels.Prescription;
 using SmartFarmManager.Service.BusinessModels.Task;
 using SmartFarmManager.Service.BusinessModels.TaskDaily;
+using SmartFarmManager.Service.BusinessModels.Users;
 using SmartFarmManager.Service.BusinessModels.VaccineSchedule;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
@@ -291,9 +292,18 @@ namespace SmartFarmManager.Service.Services
         public async Task<CageIsolationResponseModel> GetPrescriptionsWithTasksAsync()
         {
             // Step 1: Retrieve the cage and its tasks
-            var cage = await _unitOfWork.Cages.FindByCondition(c => c.IsSolationCage == true).Include(c => c.Tasks).FirstOrDefaultAsync();
+            var cage = await _unitOfWork.Cages.FindByCondition(c => c.IsSolationCage == true)
+                .Include(c => c.Tasks)
+                .Include(c => c.CageStaffs)
+                    .ThenInclude(cs => cs.StaffFarm)
+                    .ThenInclude(sf => sf.Role)
+                .FirstOrDefaultAsync();
+
             if (cage == null) throw new KeyNotFoundException("Cage not found.");
             if (!cage.IsSolationCage) throw new InvalidOperationException("Cage is not an isolation cage.");
+
+            // Retrieve the first "Farm Staff" user from CageStaffs
+            var user = cage.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Staff Farm").FirstOrDefault();
 
             // Step 2: Filter tasks for the current day
             var today = DateTimeUtils.GetServerTimeInVietnamTime().Date;
@@ -306,8 +316,29 @@ namespace SmartFarmManager.Service.Services
                 .Distinct()
                 .ToList();
 
+            // If no prescriptions, return Cage with empty prescriptions list
+            var prescriptionsWithTasks = MapCageToResponse(cage, new List<PrescriptionResponseModel>());
             if (!distinctPrescriptionIds.Any())
-                return MapCageToResponse(cage, new List<PrescriptionResponseModel>());
+            {
+                // Add user information to the response before returning
+                if (user != null)
+                {
+                    prescriptionsWithTasks.User = new UserCreateModel
+                    {
+                        FullName = user.StaffFarm.FullName,
+                        Email = user.StaffFarm.Email,
+                        PhoneNumber = user.StaffFarm.PhoneNumber,
+                        Address = user.StaffFarm.Address,
+                        RoleId = user.StaffFarm.Role.Id
+                    };
+                }
+                else
+                {
+                    prescriptionsWithTasks.User = null; // Handle cases where no "Farm Staff" user exists
+                }
+
+                return prescriptionsWithTasks;
+            }
 
             // Step 4: Retrieve prescriptions using FindByCondition
             var prescriptions = await _unitOfWork.Prescription
@@ -323,7 +354,10 @@ namespace SmartFarmManager.Service.Services
                     .FindByCondition(t => t.PrescriptionId == prescription.Id && t.DueDate.HasValue && t.DueDate.Value.Date == today)
                     .OrderBy(t => t.Session) // Sort tasks by Session in ascending order
                     .ToListAsync();
-                var farmingBatchAnimal = await _unitOfWork.FarmingBatches.FindByCondition(fb => fb.Id == prescription.MedicalSymtom.FarmingBatchId).Include(fb => fb.Cage).FirstOrDefaultAsync();
+
+                var farmingBatchAnimal = await _unitOfWork.FarmingBatches.FindByCondition(fb => fb.Id == prescription.MedicalSymtom.FarmingBatchId)
+                    .Include(fb => fb.Cage)
+                    .FirstOrDefaultAsync();
 
                 prescriptionResponses.Add(new PrescriptionResponseModel
                 {
@@ -364,8 +398,28 @@ namespace SmartFarmManager.Service.Services
             }
 
             // Step 6: Return the CageResponseModel with prescriptions and tasks
-            return MapCageToResponse(cage, prescriptionResponses);
+            prescriptionsWithTasks.Prescriptions = prescriptionResponses;
+
+            // Add user information to the response before returning
+            if (user != null)
+            {
+                prescriptionsWithTasks.User = new UserCreateModel
+                {
+                    FullName = user.StaffFarm.FullName,
+                    Email = user.StaffFarm.Email,
+                    PhoneNumber = user.StaffFarm.PhoneNumber,
+                    Address = user.StaffFarm.Address,
+                    RoleId = user.StaffFarm.Role.Id
+                };
+            }
+            else
+            {
+                prescriptionsWithTasks.User = null; // Handle cases where no "Farm Staff" user exists
+            }
+
+            return prescriptionsWithTasks;
         }
+
 
         private CageIsolationResponseModel MapCageToResponse(Cage cage, List<PrescriptionResponseModel> prescriptions)
         {
