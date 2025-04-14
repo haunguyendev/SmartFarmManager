@@ -12,6 +12,7 @@ using SmartFarmManager.Service.BusinessModels.Medication;
 using SmartFarmManager.Service.BusinessModels.Picture;
 using SmartFarmManager.Service.BusinessModels.Prescription;
 using SmartFarmManager.Service.BusinessModels.PrescriptionMedication;
+using SmartFarmManager.Service.BusinessModels.Users;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
 using SmartFarmManager.Service.Shared;
@@ -94,6 +95,18 @@ namespace SmartFarmManager.Service.Services
                 .Include(fb => fb.MedicalSymptoms) // 🚀 Thêm để lấy bệnh (Disease)
                     .ThenInclude(ms => ms.Disease)
                 .ToListAsync();
+
+        //    var cageIds = symptoms
+        //.Select(ms => ms.FarmingBatch?.Cage?.Id)
+        //.Where(cageId => cageId != null)
+        //.Distinct()
+        //.ToList();
+
+        //    // Step 3: Query users based on Cage IDs
+        //    var usersInCages = await _unitOfWork.Users
+        //        .FindByCondition(u => u.CageStaffs.Any(cs => cageIds.Contains(cs.CageId)))
+        //        .ToListAsync();
+        var isolateCage = await _unitOfWork.Cages.FindByCondition(c => c.IsSolationCage == true).Include(c => c.CageStaffs).ThenInclude(cf => cf.StaffFarm).FirstOrDefaultAsync();
             return symptoms.Select(ms => new GetAllMedicalSymptomModel
             {
                 Id = ms.Id,
@@ -178,6 +191,14 @@ namespace SmartFarmManager.Service.Services
                     .Select(ms => ms.Diagnosis)
                     .FirstOrDefault()
             }).ToList() ?? new List<PrescriptionModel>(),
+                // 🔥 Include user information in response model (optional)
+                User =  new UserUpdateModel
+                {
+                    FullName = isolateCage.CageStaffs.FirstOrDefault().StaffFarm.FullName,
+                    Email = isolateCage.CageStaffs.FirstOrDefault().StaffFarm.Email,
+                    PhoneNumber = isolateCage.CageStaffs.FirstOrDefault().StaffFarm.PhoneNumber,
+                    Address = isolateCage.CageStaffs.FirstOrDefault().StaffFarm.Address
+                },
                 Symptoms = string.Join(", ", ms.MedicalSymptomDetails.Select(d => d.Symptom.SymptomName))
             });
         }

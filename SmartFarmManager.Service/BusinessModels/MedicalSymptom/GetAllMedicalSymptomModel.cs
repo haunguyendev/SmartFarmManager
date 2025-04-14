@@ -1,6 +1,7 @@
 ﻿using SmartFarmManager.Service.BusinessModels.MedicalSymptomDetail;
 using SmartFarmManager.Service.BusinessModels.Picture;
 using SmartFarmManager.Service.BusinessModels.Prescription;
+using SmartFarmManager.Service.BusinessModels.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,5 +39,7 @@ namespace SmartFarmManager.Service.BusinessModels.MedicalSymptom
         public PrescriptionModel? Prescriptions { get; set; }
 
         public List<PrescriptionModel?> PrescriptionsBefore { get; set; }
+
+        public UserUpdateModel? User { get; set; }
     }
 }
