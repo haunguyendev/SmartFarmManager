@@ -736,6 +736,12 @@ namespace SmartFarmManager.Service.Services
                 var hasAfternoonMedication = request.Prescriptions.Medications.Any(m => m.Afternoon > 0);
                 var hasEveningMedication = request.Prescriptions.Medications.Any(m => m.Evening > 0);
 
+                var checkCurrentSessionVsSmallestMedication = IsCurrentSessionValidForMedication(currentSession, request.Prescriptions.Medications);
+                if (!checkCurrentSessionVsSmallestMedication)
+                {
+                    newPrescription.EndDate = newPrescription.EndDate.Value.AddDays(-1);
+                }
+                await _unitOfWork.Prescription.UpdateAsync(newPrescription);
                 // Tạo danh sách TaskDaily và Task
                 var taskList = new List<DataAccessObject.Models.Task>();
                 var taskType = await _unitOfWork.TaskTypes.FindByCondition(t => t.TaskTypeName == "Cho uống thuốc").FirstOrDefaultAsync();
@@ -1160,7 +1166,36 @@ namespace SmartFarmManager.Service.Services
             }
         }
 
+        private int GetSmallestMedicationSession(IEnumerable<PrescriptionMedicationModel> medications)
+        {
+            var sessions = new List<int>();
 
+            // Check each session and add its corresponding session number if medication exists
+            if (medications.Any(m => m.Morning > 0))
+                sessions.Add(1); // Morning
+            if (medications.Any(m => m.Noon > 0))
+                sessions.Add(2); // Noon
+            if (medications.Any(m => m.Afternoon > 0))
+                sessions.Add(3); // Afternoon
+            if (medications.Any(m => m.Evening > 0))
+                sessions.Add(4); // Evening
+
+            // Return the smallest session number or -1 if no medication is defined
+            return sessions.Any() ? sessions.Min() : -1;
+        }
+
+        private bool IsCurrentSessionValidForMedication(int currentSession, IEnumerable<PrescriptionMedicationModel> medications)
+        {
+            // Get the smallest session for medication
+            int smallestSession = GetSmallestMedicationSession(medications);
+
+            // Return false if no valid session is defined for medication
+            if (smallestSession == -1)
+                return false;
+
+            // Compare current session with the smallest medication session
+            return currentSession >= smallestSession;
+        }
         public async Task<PagedResult<PrescriptionList>> GetPrescriptionsAsync(
     DateTime? startDate, DateTime? endDate, string? status, string? cageName, int pageNumber, int pageSize)
         {

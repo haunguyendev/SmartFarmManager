@@ -553,7 +553,7 @@ namespace SmartFarmManager.API.Controllers
                         var stageEndDate = stage.AgeEndDate.Value;
 
                         // Task "Cho ăn"
-                        List<int> sessionNumbers = stage.Name == "Gà con" ? new List<int> { 1, 2, 3, 4 } : new List<int> { 1, 2, 4 };
+                        List<int> sessionNumbers = stage.Name == "Gà con" ? new List<int> { 1, 2, 3, 4 } : new List<int> { 1, 2, 3, 4 };
                         var feedingTaskType = taskTypesTask.FirstOrDefault(t => t.TaskTypeName == "Cho ăn");
                         var dateNow = DateTimeUtils.GetServerTimeInVietnamTime();
                         if (dateNow.Date == stageEndDate.Date)

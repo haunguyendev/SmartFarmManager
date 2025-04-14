@@ -1800,7 +1800,7 @@ namespace SmartFarmManager.API.Controllers
 
                         TaskTypeId = taskType.Id,
                         CageId = Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387"),
-                        AssignedToUserId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), // Sẽ gán sau
+                        AssignedToUserId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), // Sẽ gán sau
                         CreatedByUserId = null,
                         TaskName = "Uống thuốc (Sáng)",
                         Description = $"Điều trị cho {prescriptionNewPrescriptionCage3.QuantityAnimal} con. Thuốc: {medicationDetails}.",
@@ -1824,7 +1824,7 @@ namespace SmartFarmManager.API.Controllers
                     {
                         TaskTypeId = taskType.Id,
                         CageId = Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387"),
-                        AssignedToUserId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), // Sẽ gán sau
+                        AssignedToUserId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), // Sẽ gán sau
                         CreatedByUserId = null,
                         TaskName = "Uống thuốc (Trưa)",
                         Description = $"Điều trị cho {prescriptionNewPrescriptionCage3.QuantityAnimal} con. Thuốc: {medicationDetails}.",
@@ -1847,7 +1847,7 @@ namespace SmartFarmManager.API.Controllers
                     {
                         TaskTypeId = taskType.Id,
                         CageId = Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387"),
-                        AssignedToUserId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), // Sẽ gán sau
+                        AssignedToUserId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), // Sẽ gán sau
                         CreatedByUserId = null,
                         TaskName = "Uống thuốc (Chiều)",
                         Description = $"Điều trị cho {prescriptionNewPrescriptionCage3.QuantityAnimal} con. Thuốc: {medicationDetails}.",
@@ -1870,7 +1870,7 @@ namespace SmartFarmManager.API.Controllers
                     {
                         TaskTypeId = taskType.Id,
                         CageId = Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387"),
-                        AssignedToUserId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), // Sẽ gán sau
+                        AssignedToUserId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), // Sẽ gán sau
                         CreatedByUserId = null,
                         TaskName = "Uống thuốc (Tối)",
                         Description = $"Điều trị cho {prescriptionNewPrescriptionCage3.QuantityAnimal} con. Thuốc: {medicationDetails}.",
@@ -1886,7 +1886,8 @@ namespace SmartFarmManager.API.Controllers
 
                 DateTime vietnamNow = DateTimeUtils.GetServerTimeInVietnamTime();
                 int currentSession = SessionTime.GetCurrentSession(vietnamNow.TimeOfDay);
-
+                _context.Tasks.AddRange(taskPrescriptionCage3);
+                _context.SaveChanges();
                 // Lấy danh sách task cần xử lý
                 var tasks = _context.Tasks
                     .Where(t => t.DueDate >= vietnamNow.Date) // Chỉ lấy task hôm nay trở đi
