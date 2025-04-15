@@ -2,6 +2,7 @@
 using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Repository.Interfaces;
 using SmartFarmManager.Service.BusinessModels;
+using SmartFarmManager.Service.BusinessModels.AnimalTemplate;
 using SmartFarmManager.Service.BusinessModels.Cages;
 using SmartFarmManager.Service.BusinessModels.DailyFoodUsageLog;
 using SmartFarmManager.Service.BusinessModels.FarmingBatch;
@@ -1355,6 +1356,72 @@ namespace SmartFarmManager.Service.Services
 
             return detailModel;
         }
+        public async Task<List<GroupFarmingBatchModel>> GetGroupedFarmingBatchesByUser(Guid userId)
+        {
+            // Lấy các CageId mà user này phụ trách
+            var cageIds = await _unitOfWork.CageStaffs
+                .FindByCondition(cs => cs.StaffFarmId == userId)
+                .Select(cs => cs.CageId)
+                .ToListAsync();
 
+            // Lấy các FarmingBatch thuộc các Cage đó
+            var farmingBatches = await _unitOfWork.FarmingBatches
+                .FindByCondition(fb => cageIds.Contains(fb.CageId))
+                .Include(fb => fb.Cage)
+                .Include(fb => fb.Template)
+                .ToListAsync();
+
+            // Map sang FarmingBatchModel
+            var farmingBatchModels = farmingBatches.Select(fb => new FarmingBatchModel
+            {
+                Id = fb.Id,
+                FarmingbatchCode = fb.FarmingBatchCode,
+                Name = fb.Name,
+                Species = fb.Template?.Species, // Nếu có
+                StartDate = fb.StartDate,
+                CompleteAt = fb.CompleteAt,
+                EstimatedTimeStart = fb.EstimatedTimeStart,
+                EndDate = fb.EndDate,
+                Status = fb.Status,
+                CleaningFrequency = fb.CleaningFrequency,
+                Quantity = fb.Quantity,
+                DeadQuantity = fb.DeadQuantity,
+                Cage = fb.Cage == null ? null : new CageModel
+                {
+                    Id = fb.Cage.Id,
+                    FarmId = fb.Cage.FarmId,
+                    Name = fb.Cage.Name,
+                    Area = fb.Cage.Area,
+                    Capacity = fb.Cage.Capacity,
+                    Location = fb.Cage.Location
+                },
+                Template = fb.Template == null ? null : new AnimalTemplateItemModel
+                {
+                    // Map các trường cần thiết của Template
+                    Id = fb.Template.Id,
+                    Name = fb.Template.Name,
+                    Species = fb.Template.Species
+                    // ... các trường khác nếu cần
+                }
+                // GrowthStageDetails nếu cần thì map thêm
+            }).ToList();
+
+            // Group theo Name và StartDate
+            var grouped = farmingBatchModels
+                .GroupBy(fb => new
+                {
+                    FarmingBatchName = fb.Name,
+                    DateStart = fb.StartDate.HasValue ? fb.StartDate.Value.Date : (DateTime?)null
+                })
+                .Select(g => new GroupFarmingBatchModel
+                {
+                    FarmingBatchName = g.Key.FarmingBatchName,
+                    DateStart = g.Key.DateStart,
+                    farmingBatchModels = g.ToList()
+                })
+                .ToList();
+
+            return grouped;
+        }
     }
 }

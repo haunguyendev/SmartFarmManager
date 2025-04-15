@@ -31,7 +31,7 @@ namespace SmartFarmManager.Service.Interfaces
         Task<FarmingBatchDetailModel> GetFarmingBatchDetailAsync(Guid farmingBatchId);
 
         Task<FarmingBatchModel> GetFarmingBatchByCageIdAndueDateTaskAsync(Guid cageId, DateTime dueDateTask);
-
+        Task<List<GroupFarmingBatchModel>> GetGroupedFarmingBatchesByUser(Guid userId);
 
     }
 }
