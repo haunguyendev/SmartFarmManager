@@ -246,11 +246,12 @@ namespace SmartFarmManager.API.Controllers
                     new Role { Id = Guid.Parse("70702de9-89bc-48e5-861e-f4c1a5ac01d8"), RoleName = "Staff" },
                     new Role { Id = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940"), RoleName = "Staff Farm" },
                     new Role { Id = Guid.Parse("b833e6cd-6c06-4daa-aa6e-b5ed5f64dda0"), RoleName = "Vet" },
-                    new Role { Id = Guid.Parse("E8C551C1-F509-4191-91CE-764370E86278"), RoleName = "GOD" }
+                    new Role { Id = Guid.Parse("E8C551C1-F509-4191-91CE-764370E86278"), RoleName = "GOD" },
+                    new Role {Id = Guid.NewGuid(), RoleName = "Customer" }
                 };
                 _context.Roles.AddRange(roles);
                 _context.SaveChanges();
-
+                var idRoleCus = _context.Roles.Where(r => r.RoleName == "Customer").FirstOrDefault();
                 var users = new List<User>
                 {
                     new User { Id = Guid.Parse("babc4332-d7d8-457b-af12-765a992c4314"), Username = "admin", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Admin User", Email = "admin@farm.com", PhoneNumber = "0123456789", Address = "Admin Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("3c1ef196-e428-4951-83e1-b640a08d3bfb") }, // Admin
@@ -261,7 +262,7 @@ namespace SmartFarmManager.API.Controllers
                     new User { Id = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), Username = "staff_farm_1", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff 1", Email = "stafffarm1@farm.com", PhoneNumber = "0987123456", Address = "Staff Farm Address 1", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff Farm 1
                     new User { Id = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), Username = "staff_farm_2", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff 2", Email = "stafffarm2@farm.com", PhoneNumber = "0978123456", Address = "Staff Farm Address 2", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff Farm 2
                     new User { Id = Guid.NewGuid(), Username = "GOD_farm", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "GOD", Email = "GOD@farm.com", PhoneNumber = "09781245634", Address = "GOD Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("E8C551C1-F509-4191-91CE-764370E86278") } // God
-                
+                    new User { Id = Guid.NewGuid(), Username = "Customer", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Customer", Email = "Cusstomer@farm.com", PhoneNumber = "09781245464", Address = "Customer Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = idRoleCus.Id } // God
                 };
 
                 _context.Users.AddRange(users);
@@ -349,7 +350,7 @@ namespace SmartFarmManager.API.Controllers
                 _context.Cages.AddRange(cages);
                 _context.SaveChanges();
 
-
+                var IdCus = _context.Users.Where(u => u.Role.RoleName == "Customer").FirstOrDefault();
                 var cageStaffEntries = new List<CageStaff>
                 {
                     new CageStaff { Id = Guid.NewGuid(), CageId = cages[0].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
@@ -358,6 +359,9 @@ namespace SmartFarmManager.API.Controllers
                     new CageStaff { Id = Guid.NewGuid(), CageId = cages[3].Id, StaffFarmId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), AssignedDate = DateTime.UtcNow },
                     new CageStaff { Id = Guid.NewGuid(), CageId = cages[4].Id, StaffFarmId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), AssignedDate = DateTime.UtcNow },
                     new CageStaff { Id = Guid.NewGuid(), CageId = cages[5].Id, StaffFarmId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), AssignedDate = DateTime.UtcNow }
+                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[0].Id, StaffFarmId = IdCus.Id, AssignedDate = DateTime.UtcNow },
+                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[1].Id, StaffFarmId = IdCus.Id, AssignedDate = DateTime.UtcNow },
+                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[2].Id, StaffFarmId = IdCus.Id, AssignedDate = DateTime.UtcNow },
                 };
 
                 _context.CageStaffs.AddRange(cageStaffEntries);
