@@ -907,7 +907,7 @@ namespace SmartFarmManager.Service.Services
         {
             var farmingBatch = await _unitOfWork.FarmingBatches
                 .FindAll()
-                .Where(fb => fb.Id == farmingBatchId && fb.Status == FarmingBatchStatusEnum.Completed)
+                .Where(fb => fb.Id == farmingBatchId)
                 .Include(fb => fb.Cage)
                 .Include(fb => fb.AnimalSales)
                     .ThenInclude(a => a.SaleType)
