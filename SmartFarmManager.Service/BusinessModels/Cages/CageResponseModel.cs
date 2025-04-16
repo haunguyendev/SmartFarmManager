@@ -22,7 +22,9 @@ namespace SmartFarmManager.Service.BusinessModels.Cages
         public DateTime CreatedDate { get; set; }
         public string CameraUrl { get; set; }
         public Guid StaffId { get; set; }
-        public string StaffName { get; set; }
+        public string? StaffName { get; set; }
+        public Guid? CustomerId { get; set; }
+        public string? CustomerName { get; set; }
         public bool IsSolationCage { get; set; }
 
         public FarmingBatchModel? FarmingBatch { get; set; }
