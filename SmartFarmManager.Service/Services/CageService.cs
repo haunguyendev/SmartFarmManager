@@ -36,15 +36,13 @@ namespace SmartFarmManager.Service.Services
         {
             // Lấy dữ liệu ban đầu từ UnitOfWork
             var query = _unitOfWork.Cages.FindAll(false, x => x.Farm)
-                .Include(c => c.CageStaffs)
-                .ThenInclude(cs => cs.StaffFarm)
                 .Include(c => c.FarmingBatches).ThenInclude(c => c.GrowthStages)
                 .Include(c => c.CageStaffs)
                 .ThenInclude(cs => cs.StaffFarm)
                 .ThenInclude(sf => sf.Role)
                 .AsQueryable();
-
-            query = query.Where(c => c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == "Staff Farm"));
+            if (!string.IsNullOrEmpty(request.RoleName)) { 
+            query = query.Where(c => c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == request.RoleName)); }
             // Áp dụng các bộ lọc
             if (!string.IsNullOrEmpty(request.PenCode))
             {
@@ -65,7 +63,7 @@ namespace SmartFarmManager.Service.Services
                     c.PenCode.Contains(request.SearchKey) ||
                     c.Name.Contains(request.SearchKey) ||
                     c.Location.Contains(request.SearchKey) ||
-                    c.CageStaffs.FirstOrDefault().StaffFarm.FullName.Contains(request.SearchKey));
+                    c.CageStaffs.Select(c=>c.StaffFarm.FullName).Contains(request.SearchKey));
             }
 
             if (request.HasFarmingBatch.HasValue)
@@ -84,6 +82,7 @@ namespace SmartFarmManager.Service.Services
             }
             // Đếm tổng số bản ghi (chạy trên SQL)
             var totalCount = await query.CountAsync();
+            var test = query.ToList();
 
             // Phân trang và chọn dữ liệu cần thiết (chạy trên SQL)
             var items = await query
@@ -102,8 +101,10 @@ namespace SmartFarmManager.Service.Services
                     BoardStatus = c.BoardStatus,
                     CreatedDate = c.CreatedDate,
                     CameraUrl = c.CameraUrl,
-                    StaffId = c.CageStaffs.FirstOrDefault().StaffFarmId,
-                    StaffName = c.CageStaffs.FirstOrDefault().StaffFarm.FullName,
+                    CustomerId=c.CageStaffs.Where(c=>c.StaffFarm.Role.RoleName == "Customer").Select(c=>c.StaffFarmId).FirstOrDefault(),
+                    CustomerName = c.CageStaffs.Where(cs => cs.StaffFarm.Role.RoleName == "Customer").Select(cs => cs.StaffFarm.FullName).FirstOrDefault(),
+                    StaffId = c.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Staff Farm").Select(c => c.StaffFarmId).FirstOrDefault(),
+                    StaffName = c.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Staff Farm").Select(cs => cs.StaffFarm.FullName).FirstOrDefault(),
                     IsSolationCage = c.IsSolationCage,
                     // Lấy thông tin FarmingBatch phù hợp
                     FarmingBatch = c.FarmingBatches

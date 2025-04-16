@@ -26,7 +26,7 @@ namespace SmartFarmManager.Service.BusinessModels.GrowthStage
 
         public decimal? RecommendedWeightPerSession { get; set; }
         public decimal? WeightBasedOnBodyMass { get; set; }
-        public List<TaskDailyModel> TaskDailies { get; set; }
-        public List<VaccineScheduleModel> VaccineSchedules { get; set; }
+        public List<TaskDailyModel>? TaskDailies { get; set; }
+        public List<VaccineScheduleModel>? VaccineSchedules { get; set; }
     }
 }
