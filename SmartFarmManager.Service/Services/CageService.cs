@@ -43,8 +43,8 @@ namespace SmartFarmManager.Service.Services
                 .ThenInclude(cs => cs.StaffFarm)
                 .ThenInclude(sf => sf.Role)
                 .AsQueryable();
-
-            query = query.Where(c => c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == "Staff Farm"));
+            if (!string.IsNullOrEmpty(request.RoleName)) { 
+            query = query.Where(c => c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == request.RoleName)); }
             // Áp dụng các bộ lọc
             if (!string.IsNullOrEmpty(request.PenCode))
             {

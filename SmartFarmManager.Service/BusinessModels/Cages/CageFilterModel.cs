@@ -12,6 +12,7 @@ namespace SmartFarmManager.Service.BusinessModels.Cages
         public string? PenCode { get; set; } // Lọc theo PenCode
         public string? Name { get; set; }  // Lọc theo Name của chuồng
         public string? SearchKey { get; set; }  // Trường tìm kiếm tổng hợp
+        public string? RoleName { get; set; }  // Lọc theo RoleName
         public bool? HasFarmingBatch { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 20;
