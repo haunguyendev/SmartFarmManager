@@ -542,7 +542,7 @@ namespace SmartFarmManager.API.Controllers
 
                     // Tìm nhân viên được phân công cho chuồng này
                     var assignedStaffs = _context.CageStaffs
-                        .Where(cs => cs.CageId == batch.CageId)
+                        .Where(cs => cs.CageId == batch.CageId && cs.StaffFarm.Role.RoleName == "Staff Farm")
                         .Select(cs => cs.StaffFarmId)
                         .ToList();
 
@@ -655,7 +655,7 @@ namespace SmartFarmManager.API.Controllers
                 var saleAnimalType = taskTypesTask.FirstOrDefault(t => t.TaskTypeName == "Bán vật nuôi");
                 // Tìm nhân viên được phân công cho chuồng này
                 var assignedStaffsSale = _context.CageStaffs
-                    .Where(cs => cs.CageId == cage3.Id)
+                    .Where(cs => cs.CageId == cage3.Id && cs.StaffFarm.Role.RoleName == "Staff Farm")
                     .Select(cs => cs.StaffFarmId)
                     .ToList();
 
