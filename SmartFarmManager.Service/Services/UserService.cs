@@ -193,7 +193,7 @@ namespace SmartFarmManager.Service.Services
                 PhoneNumber = f.PhoneNumber,
                 Email = f.Email
             }).ToList();
-            var result= new PaginatedList<FarmModel>(farmModels, totalCount, pageIndex, pageSize);
+            var result = new PaginatedList<FarmModel>(farmModels, totalCount, pageIndex, pageSize);
             return new PagedResult<FarmModel>()
             {
                 TotalItems = result.TotalCount,
@@ -275,7 +275,7 @@ namespace SmartFarmManager.Service.Services
                     throw new ArgumentException($"{role.RoleName} can only have one active account.");
             }
             var exitingEmail = await _unitOfWork.Users.FindByCondition(u => u.Email == request.Email).FirstOrDefaultAsync();
-            if(exitingEmail != null)
+            if (exitingEmail != null)
             {
                 throw new ArgumentException($"{request.Email} already exit.");
             }
@@ -621,7 +621,7 @@ namespace SmartFarmManager.Service.Services
             if (user == null)
                 throw new ArgumentException("Người dùng không tồn tại.");
 
-            if (user.Role.RoleName != "Staff Farm")
+            if (user.Role.RoleName != "Staff Farm" || user.Role.RoleName != "Customer")
                 throw new InvalidOperationException("Chỉ nhân viên trang trại mới được gán chuồng.");
 
             // 2. Lấy FarmConfig
@@ -632,8 +632,11 @@ namespace SmartFarmManager.Service.Services
             int maxCages = farmConfig.MaxCagesPerStaff;
             var distinctNewCageIds = newCageIds.Distinct().ToList();
 
-            if (distinctNewCageIds.Count > maxCages)
-                throw new InvalidOperationException($"Vượt quá số chuồng tối đa cho phép ({maxCages}). Đã chọn {distinctNewCageIds.Count} chuồng.");
+            if (user.Role.RoleName == "Staff Farm")
+            {
+                if (distinctNewCageIds.Count > maxCages)
+                    throw new InvalidOperationException($"Vượt quá số chuồng tối đa cho phép ({maxCages}). Đã chọn {distinctNewCageIds.Count} chuồng.");
+            }
 
             // 3. Xóa các chuồng cũ đã gán
             var oldAssignments = await _unitOfWork.CageStaffs
