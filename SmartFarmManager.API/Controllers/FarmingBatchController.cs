@@ -393,5 +393,34 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, ApiResult<string>.Fail("An unexpected error occurred. Please contact support."));
             }
         }
+
+        [HttpPost("{farmingBatchId}/growth-stages/{growthStageId}/dead-animals")]
+        public async Task<IActionResult> UpdateDeadAnimals(
+        Guid farmingBatchId,
+        Guid growthStageId,
+        [FromBody] UpdateDeadAnimalRequest request)
+        {
+            try
+            {
+                var result = await _farmingBatchService.UpdateDeadAnimalsAsync(
+                    farmingBatchId,
+                    growthStageId,
+                    request.DeadAnimal);
+
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Internal server error", Details = ex.Message });
+            }
+        }
     }
 }

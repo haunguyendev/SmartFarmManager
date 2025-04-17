@@ -1423,5 +1423,74 @@ namespace SmartFarmManager.Service.Services
 
             return grouped;
         }
+
+        public async Task<FarmingBatch> UpdateDeadAnimalsAsync(
+        Guid farmingBatchId,
+        Guid growthStageId,
+        int deadAnimal)
+        {
+            // Kiểm tra FarmingBatch tồn tại và đang active
+            var farmingBatch = await _unitOfWork.FarmingBatches
+                .FindByCondition(fb =>
+                    fb.Id == farmingBatchId &&
+                    fb.Status == FarmingBatchStatusEnum.Active) // Giả sử trạng thái active là "Active"
+                .Include(fb => fb.Cage)
+                .FirstOrDefaultAsync();
+
+            if (farmingBatch == null)
+                throw new KeyNotFoundException("FarmingBatch not found or inactive.");
+
+            // Kiểm tra GrowthStage thuộc FarmingBatch
+            var growthStage = await _unitOfWork.GrowthStages
+                .FindByCondition(gs =>
+                    gs.Id == growthStageId &&
+                    gs.FarmingBatchId == farmingBatchId &&
+                    gs.Status == GrowthStageStatusEnum.Active)
+                .FirstOrDefaultAsync();
+
+            if (growthStage == null)
+                throw new KeyNotFoundException("GrowthStage not found or inactive for this batch.");
+
+            // Kiểm tra số lượng chết không vượt quá tổng số lượng
+            if (deadAnimal > (farmingBatch.Quantity - farmingBatch.DeadQuantity) ||
+                deadAnimal > (growthStage.Quantity - growthStage.DeadQuantity))
+            {
+                throw new InvalidOperationException(
+                    "DeadAnimal cannot exceed remaining live animals.");
+            }
+
+            // Cập nhật số lượng chết
+            farmingBatch.DeadQuantity += deadAnimal;
+            growthStage.DeadQuantity += deadAnimal;
+
+            await _unitOfWork.FarmingBatches.UpdateAsync(farmingBatch);
+            await _unitOfWork.GrowthStages.UpdateAsync(growthStage);
+
+            // Lưu thay đổi
+            await _unitOfWork.CommitAsync();
+
+            var vetFarm = await _unitOfWork.Users
+                    .FindByCondition(u => u.Role.RoleName == "Vet")
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync();
+            var notiType = await _unitOfWork.NotificationsTypes
+                    .FindByCondition(nt => nt.NotiTypeName == "Alert")
+                    .FirstOrDefaultAsync();
+            var notificationVet = new DataAccessObject.Models.Notification
+            {
+                UserId = vetFarm.Id,
+                NotiTypeId = notiType.Id,
+                Content = $"Có gà chết ở {farmingBatch.Cage.Name} đã được gửi vào lúc {DateTimeUtils.GetServerTimeInVietnamTime()}.\r\nVui lòng kiểm tra và xử lý kịp thời để đảm bảo sức khỏe cho vật nuôi.",
+                Title = "Có gà chết",
+                CreatedAt = DateTimeUtils.GetServerTimeInVietnamTime(),
+                IsRead = false,
+                MedicalSymptomId = null,
+                CageId = farmingBatch.CageId
+            };
+            await _notificationService.SendNotification(vetFarm.DeviceId, "Có báo cáo triệu chứng mới", notificationVet);
+            await _unitOfWork.Notifications.CreateAsync(notificationVet);
+
+            return farmingBatch;
+        }
     }
 }
