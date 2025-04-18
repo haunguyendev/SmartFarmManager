@@ -430,6 +430,7 @@ public partial class SmartFarmContext : DbContext
             entity.Property(e => e.SaleDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.Weight).HasColumnType("decimal(10, 2)");
 
 
             entity.HasOne(d => d.FarmingBatch).WithMany(p => p.AnimalSales)
