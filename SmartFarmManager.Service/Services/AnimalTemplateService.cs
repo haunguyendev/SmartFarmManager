@@ -218,7 +218,12 @@ namespace SmartFarmManager.Service.Services
         public async Task<PagedResult<AnimalTemplateItemModel>> GetFilteredAnimalTemplatesAsync(AnimalTemplateFilterModel filter)
         {
             // Query cơ bản
-            var query = _unitOfWork.AnimalTemplates.FindAll(false).AsQueryable();
+            var query = _unitOfWork.AnimalTemplates.FindAll(false)
+                .Include(t => t.GrowthStageTemplates)
+                    .ThenInclude(gst => gst.FoodTemplates)
+                .Include(t => t.GrowthStageTemplates)
+                    .ThenInclude(gst => gst.TaskDailyTemplates) // ✅ Thêm dòng này
+                .Include(t => t.VaccineTemplates).AsQueryable();
 
             // Lọc các template có Status khác Deleted
             query = query.Where(t => t.IsDeleted==false);
@@ -254,7 +259,37 @@ namespace SmartFarmManager.Service.Services
                     Name = t.Name,
                     Species = t.Species,
                     Status = t.Status,
-                    Notes = t.Notes
+                    Notes = t.Notes,
+                    GrowthStageTemplates = t.GrowthStageTemplates.Select(gst => new GrowthStageTemplateModel
+                    {
+                        Id = gst.Id,
+                        StageName = gst.StageName,
+                        WeightAnimal = gst.WeightAnimal,
+                        AgeStart = gst.AgeStart,
+                        AgeEnd = gst.AgeEnd,
+                        Notes = gst.Notes,
+                        TaskDailyTemplates = gst.TaskDailyTemplates.Select(tdt => new TaskDailyTemplateModel // ✅ Map TaskDaily
+                        {
+                            Id = tdt.Id,
+                            TaskName = tdt.TaskName,
+                            Description = tdt.Description,
+                            Session = tdt.Session
+                        }).ToList(),
+                        FoodTemplates = gst.FoodTemplates.Select(ft => new FoodTemplateModel
+                        {
+                            Id = ft.Id,
+                            FoodType = ft.FoodType,
+                            WeightBasedOnBodyMass = ft.WeightBasedOnBodyMass
+                        }).ToList()
+                    }).ToList(),
+                    VaccineTemplates = t.VaccineTemplates.Select(vt => new VaccineTemplateModel
+                    {
+                        Id = vt.Id,
+                        VaccineName = vt.VaccineName,
+                        ApplicationMethod = vt.ApplicationMethod,
+                        ApplicationAge = vt.ApplicationAge,
+                        Session = vt.Session
+                    }).ToList()
                 })
                 .ToListAsync();
             var result = new PaginatedList<AnimalTemplateItemModel>(items,totalItems,filter.PageNumber,filter.PageSize);
