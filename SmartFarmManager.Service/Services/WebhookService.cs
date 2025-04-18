@@ -67,7 +67,8 @@ namespace SmartFarmManager.Service.Services
                     }
                     else
                     {
-                        //_logger.LogWarning("❌ Dữ liệu cảm biến không hợp lệ: {Data}", webhookRequest.Data);
+                        _logger.LogWarning("❌ Dữ liệu cảm biến không hợp lệ: {Data}", sensorData);
+                        throw new ArgumentException("Sensor data không hợp lệ.");
                     }
                     break;
 
@@ -97,11 +98,14 @@ namespace SmartFarmManager.Service.Services
                     else
                     {
                         _logger.LogWarning("❌ Dữ liệu cảm biến không hợp lệ: {Data}", jsonRequest);
+                        throw new ArgumentException("Sensor data không hợp lệ.");
                     }
                         break;
 
                 default:
+                    
                     _logger.LogWarning("❌ Datatype không hợp lệ: {Datatype}", dataType);
+                    throw new ArgumentException($"Datatype không hợp lệ: {dataType}");
                     break;
             }
 
@@ -115,7 +119,7 @@ namespace SmartFarmManager.Service.Services
             if (farm == null)
             {
                 _logger.LogWarning("❌ Không tìm thấy trang trại với mã: {FarmCode}", sensorData.FarmCode);
-                throw new InvalidOperationException($"Farm với FarmCode {sensorData.FarmCode} không hợp lệ.");
+                throw new Exception($"Farm với FarmCode {sensorData.FarmCode} không hợp lệ.");
             }
 
             foreach (var cage in sensorData.Cages)
@@ -124,7 +128,7 @@ namespace SmartFarmManager.Service.Services
                 if (existingCage == null)
                 {
                     _logger.LogWarning("❌ Không tìm thấy chuồng với mã: {PenCode}", cage.PenCode);
-                    throw new InvalidOperationException($"Cage với PenCode {cage.PenCode} không hợp lệ.");
+                    throw new Exception($"Cage với PenCode {cage.PenCode} không hợp lệ.");
                 }
                 foreach (var node in cage.Nodes)
                 {
