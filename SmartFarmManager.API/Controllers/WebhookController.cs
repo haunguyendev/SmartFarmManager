@@ -37,12 +37,11 @@ namespace SmartFarmManager.API.Controllers
                 {
                     domain = Request.Headers["x-origin-domain"].ToString();
                 }
-                if (string.IsNullOrEmpty(domain))
-                {
-                    domain = Request.Host.Host;
-                }
+                //if (string.IsNullOrEmpty(domain))
+                //{
+                //    domain = Request.Host.Host;
+                //}
 
-                // Validate `x-api-key` và `domain` qua service
                 var isValid = await _webhookService.ValidateApiKeyAsync(apiKey, domain);
                 if (!isValid)
                 {

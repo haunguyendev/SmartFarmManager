@@ -1,4 +1,5 @@
 ﻿using SmartFarmManager.Service.BusinessModels.FarmingBatch;
+using SmartFarmManager.Service.BusinessModels.Sensor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace SmartFarmManager.Service.BusinessModels.Cages
         public Guid? CustomerId { get; set; }
         public string? CustomerName { get; set; }
         public bool IsSolationCage { get; set; }
+        public List<SensorGroupByNodeModel>? Sensors { get; set; } = new List<SensorGroupByNodeModel>();
 
         public FarmingBatchModel? FarmingBatch { get; set; }
     }
