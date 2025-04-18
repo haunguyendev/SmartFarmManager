@@ -1,4 +1,5 @@
-﻿using SmartFarmManager.Service.BusinessModels.DailyFoodUsageLog;
+﻿using SmartFarmManager.Service.BusinessModels.AnimalSale;
+using SmartFarmManager.Service.BusinessModels.DailyFoodUsageLog;
 using SmartFarmManager.Service.BusinessModels.GrowthStage;
 using SmartFarmManager.Service.BusinessModels.Prescription;
 using SmartFarmManager.Service.BusinessModels.Vaccine;
@@ -26,10 +27,12 @@ namespace SmartFarmManager.Service.BusinessModels.FarmingBatch
         public decimal NetProfit { get; set; }
         public int? QuantityAnimal { get; set; }
         public int DeadQuantity {  get; set; }
+        public decimal? FCR {  get; set; }
         public List<GrowthStageReportModel> GrowthStageReports { get; set; }
         public List<VaccineDetail> VaccineDetails { get; set; }
         public List<PrescriptionDetail> PrescriptionDetails { get; set; }
         public List<FoodUsageDetail> FoodUsageDetails { get; set; }
+        public List<AnimalMeatSaleModel> AnimalMeatSales { get; set; }
     }
 
 

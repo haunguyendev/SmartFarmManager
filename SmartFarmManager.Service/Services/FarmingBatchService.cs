@@ -2,6 +2,7 @@
 using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Repository.Interfaces;
 using SmartFarmManager.Service.BusinessModels;
+using SmartFarmManager.Service.BusinessModels.AnimalSale;
 using SmartFarmManager.Service.BusinessModels.AnimalTemplate;
 using SmartFarmManager.Service.BusinessModels.Cages;
 using SmartFarmManager.Service.BusinessModels.DailyFoodUsageLog;
@@ -926,6 +927,8 @@ namespace SmartFarmManager.Service.Services
                     .ThenInclude(ms => ms.Disease) // ✅ Thêm thông tin bệnh (Disease)
                 .Include(fb => fb.GrowthStages)
                     .ThenInclude(gs => gs.EggHarvests)
+                .Include(fb => fb.Template)
+                    .ThenInclude(t => t.GrowthStageTemplates)
                 .FirstOrDefaultAsync();
 
             if (farmingBatch == null)
@@ -938,7 +941,7 @@ namespace SmartFarmManager.Service.Services
 
             var totalMeatSales = farmingBatch.AnimalSales
                 .Where(sale => sale.SaleType.StageTypeName == "MeatSale")
-                .Sum(sale => sale.UnitPrice * sale.Quantity) ?? 0;
+                .Sum(sale => (decimal)sale.UnitPrice * sale.Weight) ?? 0;
 
             // Tổng chi phí thức ăn
             var totalFoodCost = farmingBatch.GrowthStages
@@ -959,6 +962,42 @@ namespace SmartFarmManager.Service.Services
             var totalEggsCollected = farmingBatch.GrowthStages
                 .SelectMany(gs => gs.EggHarvests)
                 .Sum(eh => eh.EggCount);
+
+
+            // Kiểm tra null để tránh lỗi
+            if (farmingBatch?.Template?.GrowthStageTemplates == null)
+                throw new InvalidOperationException("FarmingBatch template or growth stage templates not found.");
+
+            // Lấy WeightAnimal lớn nhất từ GrowthStageTemplates (loại bỏ giá trị null)
+            var maxWeightAnimal = farmingBatch.Template.GrowthStageTemplates
+                .Where(gst => gst.WeightAnimal.HasValue)
+                .Max(gst => gst.WeightAnimal) ?? 0;
+
+            // Lấy số lượng vật nuôi (mặc định 0 nếu null)
+            var quantity = farmingBatch.Quantity ?? 0;
+
+            // Tính tổng khối lượng dự kiến
+            var expectTotalWeight = maxWeightAnimal * quantity;
+
+            // ExpectTotalWeight đã được tính trước đó (ví dụ: decimal expectTotalWeight = ...)
+
+            var meatSales = farmingBatch.AnimalSales
+                .Where(sale => sale.SaleType.StageTypeName == "MeatSale")
+                .Select(sale => new AnimalMeatSaleModel
+                {
+                    Id = sale.Id,
+                    FarmingBatchId = sale.FarmingBatchId,
+                    SaleDate = sale.SaleDate,
+                    Total = sale.Total,
+                    UnitPrice = (decimal)sale.UnitPrice,
+                    Quantity = sale.Quantity,
+                    StaffId = sale.StaffId,
+                    SaleTypeId = sale.SaleTypeId,
+                    Weight = sale.Weight,
+                    SaleTypeName = sale.SaleType.StageTypeName,
+                    ExpectTotalWeight = expectTotalWeight
+                })
+                .ToList();
 
             // Chi tiết vaccine tiêm trong từng giai đoạn
             var vaccineDetails = farmingBatch.GrowthStages
@@ -1034,9 +1073,17 @@ namespace SmartFarmManager.Service.Services
                 .Select(group => new FoodUsageDetail
                 {
                     FoodType = group.Key,
-                    TotalWeightUsed = group.Sum(log => log.ActualWeight ?? 0)
+                    TotalWeightUsed = group.Sum(log => log.ActualWeight ?? 0),
+                    TotalCost = group.Sum(log =>
+            (log.ActualWeight ?? 0) * Convert.ToDecimal(log.UnitPrice) // Tính tổng chi phí
+        )
                 })
                 .ToList();
+
+            //sum food used
+            var totalWeightFoodUsed = foodUsageDetails.Sum(fud => fud.TotalWeightUsed);
+            //sum weightSales
+            var totalSumMeatSales = meatSales.Sum(ms => ms.Weight);
 
             // Lợi nhuận ròng
             var netProfit = ((decimal)totalEggSales + (decimal)totalMeatSales) - (totalFoodCost + (decimal)totalVaccineCost + totalMedicineCost);
@@ -1060,7 +1107,9 @@ namespace SmartFarmManager.Service.Services
                 VaccineDetails = vaccineDetails,
                 PrescriptionDetails = prescriptionDetails,
                 FoodUsageDetails = foodUsageDetails,
-                GrowthStageReports = growthStageReports
+                GrowthStageReports = growthStageReports,
+                AnimalMeatSales = meatSales,
+                FCR = totalWeightFoodUsed / totalSumMeatSales
             };
         }
         public async System.Threading.Tasks.Task CheckAndNotifyAdminForUpcomingFarmingBatchesAsync()
