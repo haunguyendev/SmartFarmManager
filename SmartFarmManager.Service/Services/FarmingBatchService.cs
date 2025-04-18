@@ -1074,9 +1074,12 @@ namespace SmartFarmManager.Service.Services
                 {
                     FoodType = group.Key,
                     TotalWeightUsed = group.Sum(log => log.ActualWeight ?? 0),
-                    TotalCost = group.Sum(log =>
-            (log.ActualWeight ?? 0) * Convert.ToDecimal(log.UnitPrice) // Tính tổng chi phí
-        )
+                    TotalCost = group.Sum(log => (log.ActualWeight ?? 0) * Convert.ToDecimal(log.UnitPrice)), // Tính tổng chi phí
+                    // Lấy tên các giai đoạn, loại bỏ trùng lặp và nối bằng dấu phẩy
+                    GrowStageNames = string.Join(", ", group
+            .Select(log => log.Stage?.Name ?? "Unknown") // Xử lý null
+            .Distinct()
+            .OrderBy(name => name))
                 })
                 .ToList();
 
