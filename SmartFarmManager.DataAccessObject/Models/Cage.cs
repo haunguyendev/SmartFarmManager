@@ -7,7 +7,7 @@ namespace SmartFarmManager.DataAccessObject.Models;
 
 public partial class Cage : EntityBase
 {
-    public string PenCode { get; set; } // ma chuong de lay data 
+    public string PenCode { get; set; }
     public Guid FarmId { get; set; }
     public string Name { get; set; }
 

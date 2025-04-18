@@ -34,14 +34,13 @@ namespace SmartFarmManager.API.Controllers
             var domain = Request.Headers["Origin"].ToString() ?? Request.Headers["Referer"].ToString();
             if (string.IsNullOrEmpty(domain))
             {
-                domain = Request.Headers["x-origin-domain"].ToString(); // Nếu không có Origin hoặc Referer, kiểm tra header tùy chỉnh
+                domain = Request.Headers["x-origin-domain"].ToString();
             }
             if (string.IsNullOrEmpty(domain))
             {
-                domain = Request.Host.Host; // Nếu vẫn không có, lấy host từ request
+                domain = Request.Host.Host; 
             }
 
-            // Chuẩn hóa domain
             if (!string.IsNullOrEmpty(domain))
             {
                 try
@@ -70,7 +69,6 @@ namespace SmartFarmManager.API.Controllers
             _logger.LogInformation("🔹 Datatype: {Datatype}", webhookRequest.Datatype);
             //_logger.LogInformation("🔹 Data: {Data}", System.Text.Json.JsonSerializer.Serialize(webhookRequest.Data));
 
-            // Xử lý dữ liệu (nếu cần)
             await _webhookService.HandleWebhookDataAsync(webhookRequest.Datatype, jsonData);
 
             return Ok("✅ Dữ liệu đã được nhận thành công!");
