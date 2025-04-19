@@ -1383,6 +1383,48 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, $"Lỗi khi nhập dữ liệu cảm biến: {ex.Message}");
             }
         }
+        [HttpPost("seed/masterdata")]
+        public IActionResult SeedMasterData()
+        {
+            try
+            {
+                // Kiểm tra nếu đã có dữ liệu MasterData thì không thêm nữa
+                if (_context.MasterData.Any())
+                {
+                    return BadRequest("Dữ liệu MasterData đã tồn tại trong hệ thống.");
+                }
+
+                // Danh sách MasterData mẫu
+                var masterDataList = new List<MasterData>
+        {
+            new MasterData
+            {
+                Id = Guid.NewGuid(),
+                CostType = "Điện",
+                Unit = "kWh",
+                UnitPrice = 2000,
+                FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4")
+            },
+            new MasterData
+            {
+                Id = Guid.NewGuid(),
+                CostType = "Nước",
+                Unit = "m3",
+                UnitPrice = 8500,
+                FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4")
+            }
+        };
+
+                _context.MasterData.AddRange(masterDataList);
+                _context.SaveChanges();
+
+                return Ok("✅ Dữ liệu MasterData đã được nhập vào thành công!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"❌ Lỗi khi nhập dữ liệu MasterData: {ex.Message}");
+            }
+        }
 
         private string GenerateFakeSensorData(SensorType sensorType)
         {
