@@ -121,6 +121,7 @@ namespace SmartFarmManager.Service.Services
                 IsEmergency = ms.IsEmergency,
                 QuantityInCage = ms.QuantityInCage,
                 CageAnimalName = ms.FarmingBatch.Cage.Name,
+                CageId = ms.FarmingBatch.Cage.Id,
                 Pictures = ms.Pictures.Select(p => new PictureModel
                 {
                     Id = p.Id,
