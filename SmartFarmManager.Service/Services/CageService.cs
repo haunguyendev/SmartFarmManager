@@ -7,6 +7,7 @@ using SmartFarmManager.Service.BusinessModels.Cages;
 using SmartFarmManager.Service.BusinessModels.FarmingBatch;
 using SmartFarmManager.Service.BusinessModels.GrowthStage;
 using SmartFarmManager.Service.BusinessModels.Prescription;
+using SmartFarmManager.Service.BusinessModels.Sensor;
 using SmartFarmManager.Service.BusinessModels.Task;
 using SmartFarmManager.Service.BusinessModels.TaskDaily;
 using SmartFarmManager.Service.BusinessModels.Users;
@@ -36,6 +37,7 @@ namespace SmartFarmManager.Service.Services
         {
             // Lấy dữ liệu ban đầu từ UnitOfWork
             var query = _unitOfWork.Cages.FindAll(false, x => x.Farm)
+                .Include(c => c.Sensors)
                 .Include(c => c.FarmingBatches).ThenInclude(c => c.GrowthStages)
                 .Include(c => c.CageStaffs)
                 .ThenInclude(cs => cs.StaffFarm)
@@ -106,6 +108,21 @@ namespace SmartFarmManager.Service.Services
                     StaffId = c.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Staff Farm").Select(c => c.StaffFarmId).FirstOrDefault(),
                     StaffName = c.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Staff Farm").Select(cs => cs.StaffFarm.FullName).FirstOrDefault(),
                     IsSolationCage = c.IsSolationCage,
+                    Sensors=c.Sensors.GroupBy(s => s.NodeId)
+                .Select(g => new SensorGroupByNodeModel
+                {
+                    NodeId = g.Key,
+                    Sensors = g.Select(s => new SensorModel
+                    {
+                        SensorId = s.Id,
+                        SensorCode = s.SensorCode,
+                        Name = s.Name,
+                        SensorTypeName = s.SensorType.Name,
+                        PinCode = s.PinCode,
+                        Status = s.Status
+                    }).ToList()
+                }).ToList(),
+
                     // Lấy thông tin FarmingBatch phù hợp
                     FarmingBatch = c.FarmingBatches
                 .Where(fb => fb.StartDate < DateTimeUtils.GetServerTimeInVietnamTime() && fb.CompleteAt == null && fb.Status == FarmingBatchStatusEnum.Active)

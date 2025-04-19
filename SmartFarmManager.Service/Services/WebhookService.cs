@@ -101,7 +101,7 @@ namespace SmartFarmManager.Service.Services
                         throw new ArgumentException("Sensor data không hợp lệ.");
                     }
                         break;
-
+                     
                 default:
                     
                     _logger.LogWarning("❌ Datatype không hợp lệ: {Datatype}", dataType);
