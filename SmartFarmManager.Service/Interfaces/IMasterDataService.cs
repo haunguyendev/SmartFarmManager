@@ -11,5 +11,6 @@ namespace SmartFarmManager.Service.Interfaces
     public interface IMasterDataService
     {
         Task<PagedResult<MasterDataItemModel>> GetMasterDataAsync(MasterDataFilterModel filter);
+        Task<bool> UpdateMasterDataAsync(Guid id, MasterDataUpdateModel model);
     }
 }

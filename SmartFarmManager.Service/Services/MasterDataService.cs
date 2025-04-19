@@ -71,5 +71,26 @@ namespace SmartFarmManager.Service.Services
                 HasPreviousPage = result.HasPreviousPage
             };
         }
+
+        public async Task<bool> UpdateMasterDataAsync(Guid id, MasterDataUpdateModel model)
+        {
+            var masterData = await _unitOfWork.MasterData
+                .FindByCondition(m => m.Id == id)
+                .FirstOrDefaultAsync();
+
+            if (masterData == null)
+            {
+                throw new KeyNotFoundException($"MasterData with ID {id} not found.");
+            }
+
+
+            masterData.Unit = model.Unit ?? masterData.Unit;
+            masterData.UnitPrice = model.UnitPrice ?? masterData.UnitPrice;
+
+            await _unitOfWork.MasterData.UpdateAsync(masterData);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
     }
 }
