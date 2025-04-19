@@ -45,6 +45,9 @@ namespace SmartFarmManager.API.Controllers
 
                 _context.TaskTypes.AddRange(taskTypes);
                 _context.SaveChanges();
+
+
+
                 // Kiểm tra nếu đã có dữ liệu thì không thêm nữa
                 if (_context.AnimalTemplates.Any())
                 {
@@ -147,15 +150,105 @@ namespace SmartFarmManager.API.Controllers
                 // 5. Thêm vào danh sách vaccine (Vaccine)
                 var vaccines = new List<Vaccine>
                 {
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Marek", Method = "Tiêm dưới da", Price = 500, AgeStart = 1, AgeEnd = 1},
-                    new Vaccine { Id = Guid.NewGuid(), Name = "ND IB H120 Lasota", Method = "Nhỏ mắt, nhỏ mũi", Price = 200, AgeStart = 3, AgeEnd = 5 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Đậu gà", Method = "Tiêm chủng dưới da cánh", Price = 300, AgeStart = 7, AgeEnd = 7 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Gumboro int", Method = "Nhỏ mắt", Price = 250, AgeStart = 7, AgeEnd = 7 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Gumboro plus", Method = "Pha nước uống", Price = 350, AgeStart = 1, AgeEnd = 14 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Cúm", Method = "Tiêm dưới da", Price = 400, AgeStart = 15, AgeEnd = 17 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "ND - HB1", Method = "Nhỏ mắt, nhỏ mũi", Price = 220, AgeStart = 21, AgeEnd = 21 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "ND - M", Method = "Tiêm dưới da", Price = 450, AgeStart = 50, AgeEnd = 50 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Avac-Clone Entero", Method = "Pha nước uống", Price = 380, AgeStart = 70, AgeEnd = 70 }
+                    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Marek",
+        Method = "Tiêm dưới da",
+        Price = 29000, // Giá trung bình/lọ
+        TotalDose = 200,
+        PricePerDose = 145, // 29.000 / 200
+        AgeStart = 1,
+        AgeEnd = 1
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "ND IB H120 Lasota",
+        Method = "Nhỏ mắt, nhỏ mũi",
+        Price = 26000, // Giá trung bình/lọ
+        TotalDose = 100,
+        PricePerDose = 260, // 26.000 / 100
+        AgeStart = 3,
+        AgeEnd = 5
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Đậu gà",
+        Method = "Tiêm chủng dưới da cánh",
+        Price = 26000,
+        TotalDose = 100,
+        PricePerDose = 260,
+        AgeStart = 7,
+        AgeEnd = 7
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Gumboro int",
+        Method = "Nhỏ mắt",
+        Price = 26750, // Trung bình 25.500 - 28.000
+        TotalDose = 100,
+        PricePerDose = 267.5,
+        AgeStart = 7,
+        AgeEnd = 7
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Gumboro plus",
+        Method = "Pha nước uống",
+        Price = 26750,
+        TotalDose = 100,
+        PricePerDose = 267.5,
+        AgeStart = 1,
+        AgeEnd = 14
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Cúm",
+        Method = "Tiêm dưới da",
+        Price = 220000, // Không có trong bảng giá, giữ nguyên
+        TotalDose = 500,
+        PricePerDose = 440,
+        AgeStart = 15,
+        AgeEnd = 17
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "ND - HB1",
+        Method = "Nhỏ mắt, nhỏ mũi",
+        Price = 25000,
+        TotalDose = 100,
+        PricePerDose = 250,
+        AgeStart = 21,
+        AgeEnd = 21
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "ND - M",
+        Method = "Tiêm dưới da",
+        Price = 25000,
+        TotalDose = 100,
+        PricePerDose = 250,
+        AgeStart = 50,
+        AgeEnd = 50
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Avac-Clone Entero",
+        Method = "Pha nước uống",
+        Price = 190000, // Không có trong bảng giá, giữ nguyên
+        TotalDose = 2000,
+        PricePerDose = 95,
+        AgeStart = 70,
+        AgeEnd = 70
+    }
                 };
 
                 _context.Vaccines.AddRange(vaccines);
@@ -298,6 +391,14 @@ namespace SmartFarmManager.API.Controllers
                 _context.Farms.Add(farm);
                 _context.SaveChanges();
 
+                var masterData = new List<MasterData>
+                {
+                    new MasterData { Id = Guid.NewGuid(), CostType = "Điện", Unit = "kWh", UnitPrice = 2000, FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4")},
+                    new MasterData { Id = Guid.NewGuid(), CostType = "Nước", Unit = "m3", UnitPrice = 8500, FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4")}
+                };
+
+                _context.MasterData.AddRange(masterData);
+                _context.SaveChanges();
                 var farmAdminEntry = new FarmAdmin
                 {
                     Id = Guid.NewGuid(),
@@ -508,7 +609,7 @@ namespace SmartFarmManager.API.Controllers
                                     Date = startDate.AddDays(vaccine.ApplicationAge ?? 0),
                                     Quantity = 200,
                                     ApplicationAge = vaccine.ApplicationAge,
-                                    ToltalPrice = 200 * (decimal)vaccineData.Price,
+                                    ToltalPrice = 200 * (decimal)vaccineData.PricePerDose,
                                     Session = vaccine.Session,
                                     Status = VaccineScheduleStatusEnum.Completed
                                 };
@@ -763,7 +864,7 @@ namespace SmartFarmManager.API.Controllers
                 _context.DailyFoodUsageLogs.AddRange(foodLogs);
                 _context.VaccineScheduleLogs.AddRange(vaccineLogs);
                 _context.SaveChanges();
-                
+
 
                 //update status log
                 DateTime vietnamNow = DateTimeUtils.GetServerTimeInVietnamTime();
@@ -1207,7 +1308,7 @@ namespace SmartFarmManager.API.Controllers
                 _context.SaveChanges();
 
                 //tạo đơn thuốc cho chuồng 3 với ngày ngày kết thúc bằng với ngày chậy data full demo
-                
+
 
                 return Ok("Dữ liệu đã được nhập vào thành công!");
             }

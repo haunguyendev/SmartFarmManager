@@ -951,7 +951,7 @@ namespace SmartFarmManager.Service.Services
             // Tổng chi phí vaccine
             var totalVaccineCost = farmingBatch.GrowthStages
                 .SelectMany(gs => gs.VaccineSchedules)
-                .Sum(vaccine => vaccine.Quantity * (vaccine.ToltalPrice ?? 0));
+                .Sum(vaccine => (vaccine.ToltalPrice ?? 0));
 
             // Tổng chi phí thuốc
             var totalMedicineCost = farmingBatch.MedicalSymptoms
@@ -1112,7 +1112,7 @@ namespace SmartFarmManager.Service.Services
                 FoodUsageDetails = foodUsageDetails,
                 GrowthStageReports = growthStageReports,
                 AnimalMeatSales = meatSales,
-                FCR = totalWeightFoodUsed / totalSumMeatSales
+                FCR = totalSumMeatSales == 0 ? 0 : totalWeightFoodUsed / totalSumMeatSales
             };
         }
         public async System.Threading.Tasks.Task CheckAndNotifyAdminForUpcomingFarmingBatchesAsync()
