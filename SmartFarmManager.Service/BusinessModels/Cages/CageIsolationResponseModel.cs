@@ -15,11 +15,11 @@ namespace SmartFarmManager.Service.BusinessModels.Cages
         public string PenCode { get; set; } // Mã chuồng để lấy data
         public Guid FarmId { get; set; }
         public string Name { get; set; }
-        public double Area { get; set; }
-        public string Location { get; set; }
-        public int Capacity { get; set; }
-        public string BoardCode { get; set; } // ??? 
-        public bool BoardStatus { get; set; }
+        public double? Area { get; set; }
+        public string? Location { get; set; }
+        public int? Capacity { get; set; }
+        public string? BoardCode { get; set; } // ??? 
+        public bool? BoardStatus { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
         public bool IsDeleted { get; set; }
