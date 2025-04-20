@@ -185,7 +185,7 @@ namespace SmartFarmManager.Service.Services
             if (farm == null)
             {
                 _logger.LogWarning("❌ Không tìm thấy farm với FarmCode: {FarmCode}", electricData.FarmCode);
-                throw new InvalidOperationException($"Farm với FarmCode {electricData.FarmCode} không hợp lệ.");
+                throw new InvalidOperationException($"Farm với FarmCode {electricData.FarmCode} không hợp lệ hoặc hệ thống không có nông trại với FarmCode {electricData.FarmCode} ");
             }
 
             var existingElectricLog = await _unitOfWork.ElectricityLogs

@@ -533,7 +533,16 @@ namespace SmartFarmManager.Service.Services
             }
             else if (newStatus == FarmingBatchStatusEnum.Completed)
             {
-                // **Chuyển trạng thái sang Completed**
+
+                var hasActivePrescription = farmingBatch.MedicalSymptoms
+        .SelectMany(ms => ms.Prescriptions)
+        .Any(p => p.Status == PrescriptionStatusEnum.Active);
+
+                if (hasActivePrescription)
+                {
+                    throw new InvalidOperationException("Không thể hoàn thành vụ nuôi vì còn đơn thuốc đang hoạt động.");
+                }
+
                 farmingBatch.Status = FarmingBatchStatusEnum.Completed;
                 farmingBatch.CompleteAt = DateTimeUtils.GetServerTimeInVietnamTime();
 

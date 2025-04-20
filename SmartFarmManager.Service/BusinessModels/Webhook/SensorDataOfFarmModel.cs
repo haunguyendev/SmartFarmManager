@@ -9,7 +9,7 @@ namespace SmartFarmManager.Service.BusinessModels.Webhook
     public class SensorDataOfFarmModel
     {
         public string FarmCode { get; set; }
-        public string Macaddress { get; set; }
+        public string GatewayId { get; set; }
         public List<CageModel> Cages { get; set; }
     }
 
