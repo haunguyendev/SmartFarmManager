@@ -38,6 +38,7 @@ namespace SmartFarmManager.Service.Services
             // Lấy dữ liệu ban đầu từ UnitOfWork
             var query = _unitOfWork.Cages.FindAll(false, x => x.Farm)
                 .Include(c => c.Sensors)
+                .ThenInclude(c => c.SensorType)
                 .Include(c => c.FarmingBatches).ThenInclude(c => c.GrowthStages)
                 .Include(c => c.CageStaffs)
                 .ThenInclude(cs => cs.StaffFarm)
@@ -119,7 +120,11 @@ namespace SmartFarmManager.Service.Services
                         Name = s.Name,
                         SensorTypeName = s.SensorType.Name,
                         PinCode = s.PinCode,
-                        Status = s.Status
+                        Status = s.Status,
+                        SensorTypeDescription = s.SensorType.Description,
+                        SensorTypeFieldName = s.SensorType.FieldName,
+                        SensorTypeUnit = s.SensorType.Unit,
+
                     }).ToList()
                 }).ToList(),
 

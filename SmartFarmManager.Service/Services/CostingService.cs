@@ -139,7 +139,6 @@ namespace SmartFarmManager.Service.Services
                 TotalCost = totalVaccineCost.Value
             });
 
-            // 5️⃣ Chi phí thuốc
             var prescriptionLogs = await _unitOfWork.Prescription
                 .FindByCondition(p => p.MedicalSymtom.FarmingBatch.FarmId == farmId && p.PrescribedDate.Value.Date == date)
                 .ToListAsync();

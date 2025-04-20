@@ -14,6 +14,9 @@ namespace SmartFarmManager.Service.BusinessModels.Sensor
         public string SensorTypeName { get; set; }  // Tên loại sensor
         public int PinCode { get; set; }  // Mã pin của sensor
         public bool Status { get; set; }  // Trạng thái của sensor
+        public string SensorTypeDescription { get; set; }  // Mô tả loại sensor
+        public string SensorTypeUnit { get; set; }  // Đơn vị đo lường của sensor
+        public string SensorTypeFieldName { get; set; }  // Tên trường dữ liệu của sensor
     }
 
 }

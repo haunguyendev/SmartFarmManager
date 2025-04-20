@@ -25,6 +25,7 @@ using SmartFarmManager.Service.Helpers;
 using Quartz.Impl;
 using SmartFarmManager.API.HostedServices;
 using SmartFarmManager.API.BackgroundJobs.QuartzConfigurations;
+using SmartFarmManager.Service.ExternalClient;
 
 
 namespace SmartFarmManager.API.Extensions
@@ -292,6 +293,10 @@ namespace SmartFarmManager.API.Extensions
             services.AddScoped<IWaterLogService, WaterLogService>();
             services.AddScoped<ISensorService, SensorService>();
             services.AddScoped<IFarmDashboardService,FarmDashboardService>();
+            services.AddScoped<IMasterDataService,MasterDataService>();
+            services.AddScoped<ISyncService, SyncService>();
+            services.AddScoped<ExternalFarmApiClient>();
+            services.AddSingleton<HttpClient>();
 
             return services;
         }

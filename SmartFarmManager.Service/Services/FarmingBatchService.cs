@@ -796,7 +796,7 @@ namespace SmartFarmManager.Service.Services
         {
             // Lấy danh sách Cage theo userId
             var cages = await _unitOfWork.Cages
-                .FindByCondition(c => c.CageStaffs.Any(cs => cs.StaffFarmId == userId) && !c.IsDeleted && c.BoardStatus)
+                .FindByCondition(c => c.CageStaffs.Any(cs => cs.StaffFarmId == userId) && !c.IsDeleted && c.BoardStatus.HasValue&&c.BoardStatus.Value)
                 .Include(c => c.FarmingBatches)
                 .ToListAsync();
 
