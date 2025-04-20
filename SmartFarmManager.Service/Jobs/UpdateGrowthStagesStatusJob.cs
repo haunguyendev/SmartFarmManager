@@ -20,7 +20,7 @@ namespace SmartFarmManager.Service.Jobs
         }
         public async Task Execute(IJobExecutionContext context)
         {
-            using (var scope = _serviceScopeFactory.CreateScope()) // Tạo scope mới để resolve dịch vụ
+            using (var scope = _serviceScopeFactory.CreateScope()) 
             {
                 var growthStageService = scope.ServiceProvider.GetRequiredService<IGrowthStageService>();
 

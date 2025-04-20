@@ -18,13 +18,13 @@ namespace SmartFarmManager.API.Controllers
             _syncService = syncService;
         }
 
-        [HttpPost("sync/farm/{farmCode}")]
-        public async Task<IActionResult> SyncFarm(string farmCode)
+        [HttpPost("farm/{farmId}")]
+        public async Task<IActionResult> SyncFarm(Guid farmId)
         {
 
             try 
             {
-                await _syncService.SyncFarmFromExternalAsync(farmCode);
+                await _syncService.SyncFarmFromExternalAsync(farmId);
                 return Ok(ApiResult<string>.Succeed("Đồng bộ thành công!"));
             }
             catch (UnauthorizedAccessException ex)

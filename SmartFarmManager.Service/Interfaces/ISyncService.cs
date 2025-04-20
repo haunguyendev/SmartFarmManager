@@ -8,7 +8,7 @@ namespace SmartFarmManager.Service.Interfaces
 {
     public interface ISyncService
     {
-        System.Threading.Tasks.Task SyncFarmFromExternalAsync(string farmCode);
+        System.Threading.Tasks.Task SyncFarmFromExternalAsync(Guid farmId);
     }
 
 }

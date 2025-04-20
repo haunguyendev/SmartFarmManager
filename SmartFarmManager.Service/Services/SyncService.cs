@@ -21,9 +21,15 @@ namespace SmartFarmManager.Service.Services
             _externalFarmApiClient = externalFarmApiClient;
         }
 
-        public async System.Threading.Tasks.Task SyncFarmFromExternalAsync(string farmCode)
+        public async System.Threading.Tasks.Task SyncFarmFromExternalAsync( Guid farmId)
         {
-            var externalFarm = await _externalFarmApiClient.GetFarmDataAsync(farmCode);
+            var farmExisting = await _unitOfWork.Farms.FindByCondition(x => x.Id == farmId).FirstOrDefaultAsync();
+            if(farmExisting == null)
+            {
+                throw new Exception($"FarmId: {farmId} không tồn tại!");
+            }
+
+            var externalFarm = await _externalFarmApiClient.GetFarmDataAsync(farmExisting.FarmCode);
             if (externalFarm == null)
                 throw new Exception("Không thể lấy dữ liệu từ API bên thứ ba.");
 

@@ -76,7 +76,6 @@ namespace SmartFarmManager.Service.Services
         {
             var costReports = new List<CostingReport>();
 
-            // 1️⃣ Chi phí điện
             var electricityLogs = await _unitOfWork.ElectricityLogs
                 .FindByCondition(e => e.FarmId == farmId && e.CreatedDate.Date == date)
                 .ToListAsync();
