@@ -534,13 +534,13 @@ namespace SmartFarmManager.Service.Services
             else if (newStatus == FarmingBatchStatusEnum.Completed)
             {
 
-                var activePrescriptions = await _unitOfWork.Prescription
-        .FindByCondition(p => p.CageId == farmingBatch.CageId && p.Status == PrescriptionStatusEnum.Active)
-        .AnyAsync();
+                var hasActivePrescription = farmingBatch.MedicalSymptoms
+        .SelectMany(ms => ms.Prescriptions)
+        .Any(p => p.Status == PrescriptionStatusEnum.Active);
 
-                if (activePrescriptions)
+                if (hasActivePrescription)
                 {
-                    throw new InvalidOperationException("Không thể hoàn thành vụ nuôi vì vẫn còn gà cách ly trong chuồng này.");
+                    throw new InvalidOperationException("Không thể hoàn thành vụ nuôi vì còn đơn thuốc đang hoạt động.");
                 }
 
                 farmingBatch.Status = FarmingBatchStatusEnum.Completed;
