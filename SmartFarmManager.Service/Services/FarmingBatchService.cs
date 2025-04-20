@@ -615,6 +615,7 @@ namespace SmartFarmManager.Service.Services
             var query = _unitOfWork.FarmingBatches.FindAll()
                 .Include(fb => fb.Cage) // Include related Cage
                 .Include(fb => fb.Template)
+                .Include(fb => fb.GrowthStages)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(keySearch))
@@ -676,6 +677,7 @@ namespace SmartFarmManager.Service.Services
                     EstimatedTimeStart = fb.EstimatedTimeStart,
                     CleaningFrequency = fb.CleaningFrequency,
                     Quantity = fb.Quantity,
+                    AffectQuantity = fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).AffectedQuantity,
                     Cage = fb.Cage == null ? null : new CageModel
                     {
                         Id = fb.Cage.Id,
