@@ -533,7 +533,16 @@ namespace SmartFarmManager.Service.Services
             }
             else if (newStatus == FarmingBatchStatusEnum.Completed)
             {
-                // **Chuyển trạng thái sang Completed**
+
+                var activePrescriptions = await _unitOfWork.Prescription
+        .FindByCondition(p => p.CageId == farmingBatch.CageId && p.Status == PrescriptionStatusEnum.Active)
+        .AnyAsync();
+
+                if (activePrescriptions)
+                {
+                    throw new InvalidOperationException("Không thể hoàn thành vụ nuôi vì vẫn còn gà cách ly trong chuồng này.");
+                }
+
                 farmingBatch.Status = FarmingBatchStatusEnum.Completed;
                 farmingBatch.CompleteAt = DateTimeUtils.GetServerTimeInVietnamTime();
 
