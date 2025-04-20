@@ -10,6 +10,8 @@ namespace SmartFarmManager.Service.BusinessModels.DailyFoodUsageLog
     {
         public string FoodType { get; set; }
         public decimal TotalWeightUsed { get; set; }
+        
+        public double UnitPrice { get; set; }
         public decimal TotalCost {  get; set; }
         public string GrowStageNames { get; set; }
     }
