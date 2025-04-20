@@ -60,6 +60,7 @@ namespace SmartFarmManager.Service.Services
                     Weight = request.Weight
                 };
                 await _unitOfWork.AnimalSales.CreateAsync(newAnimalSaleMeat);
+
                 var newAnimalSaleLogByTaskMeat = new AnimalSaleLogByTaskModel
                 {
                     GrowthStageId = request.GrowthStageId,
@@ -75,6 +76,9 @@ namespace SmartFarmManager.Service.Services
                     UnitPrice = request.UnitPrice,
                     Weight = request.Weight
                 };
+
+                growthStage.Quantity = growthStage.Quantity - request.Quantity;
+                await _unitOfWork.GrowthStages.UpdateAsync(growthStage);
 
                 var task = await _unitOfWork.Tasks.FindByCondition(t => t.Id == request.TaskId).FirstOrDefaultAsync();
                 if (task != null)

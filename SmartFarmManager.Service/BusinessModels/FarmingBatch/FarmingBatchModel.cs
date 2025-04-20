@@ -24,6 +24,7 @@ namespace SmartFarmManager.Service.BusinessModels.FarmingBatch
         public int CleaningFrequency { get; set; }
         public int? Quantity { get; set; }
         public int? DeadQuantity { get; set; }
+        public int? CurrentQuantity { get; set; }
         public GrowthStageDetailModel? GrowthStageDetails { get; set; }
         public CageModel? Cage { get; set; }
         public AnimalTemplateItemModel? Template { get; set; }

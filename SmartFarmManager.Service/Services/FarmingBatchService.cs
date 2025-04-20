@@ -678,6 +678,8 @@ namespace SmartFarmManager.Service.Services
                     CleaningFrequency = fb.CleaningFrequency,
                     Quantity = fb.Quantity,
                     AffectQuantity = fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).AffectedQuantity,
+                    CurrentQuantity = fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).Quantity,
+                    DeadQuantity = fb.DeadQuantity,
                     Cage = fb.Cage == null ? null : new CageModel
                     {
                         Id = fb.Cage.Id,
@@ -1085,6 +1087,8 @@ namespace SmartFarmManager.Service.Services
                 {
                     FoodType = group.Key,
                     TotalWeightUsed = group.Sum(log => log.ActualWeight ?? 0),
+                    //Lấy thông tin của đơn giá của food 
+                    UnitPrice = group.FirstOrDefault()?.UnitPrice ?? 0,
                     TotalCost = group.Sum(log => (log.ActualWeight ?? 0) * Convert.ToDecimal(log.UnitPrice)), // Tính tổng chi phí
                     // Lấy tên các giai đoạn, loại bỏ trùng lặp và nối bằng dấu phẩy
                     GrowStageNames = string.Join(", ", group
