@@ -79,6 +79,7 @@ namespace SmartFarmManager.API.Controllers
                 var response = new FarmResponse
                 {
                     Id = farmModel.Id,
+                    ExternalId = farmModel.ExternalId,
                     Name = farmModel.Name,
                     Address = farmModel.Address,
                     Area = farmModel.Area,
@@ -105,6 +106,7 @@ namespace SmartFarmManager.API.Controllers
                 {
                     Id = f.Id,
                     Name = f.Name,
+                    ExternalId = f.ExternalId,
                     FarmCode = f.FarmCode,
                     Address = f.Address,
                     Area = f.Area,
@@ -120,39 +122,43 @@ namespace SmartFarmManager.API.Controllers
             }
         }
 
-        [HttpPut("{id:guid}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateFarm(Guid id, [FromBody] UpdateFarmRequest request)
         {
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values
-                                        .SelectMany(v => v.Errors)
-                                        .Select(e => e.ErrorMessage)
-                                        .ToList();
-                return BadRequest(ApiResult<List<string>>.Error(errors));
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
             }
 
             try
             {
-                var updated = await _farmService.UpdateFarmAsync(id, new FarmModel
-                {
-                    Name = request.Name,
-                    Address = request.Address,
-                    Area =(double) request.Area,
-                    PhoneNumber = request.PhoneNumber,
-                    Email = request.Email
-                });
+                var model = request.MapToModel();
+                var result = await _farmService.UpdateFarmAsync(id, model);
 
-                if (!updated)
+                if (!result)
                 {
-                    return NotFound(ApiResult<string>.Fail("Farm not found."));
+                    throw new Exception("Error while updating Farm!");
                 }
 
-                return Ok(ApiResult<string>.Succeed("Farm successfully updated."));
+                return Ok(ApiResult<string>.Succeed("Farm updated successfully!"));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<string>.Fail(ex.Message));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<string>.Fail(ex.Message));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
             }
         }
 

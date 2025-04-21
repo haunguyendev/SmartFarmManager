@@ -9,6 +9,7 @@ namespace SmartFarmManager.Service.BusinessModels.Farm
     public class FarmModel
     {
         public Guid Id { get; set; }
+        public Guid ExternalId { get;set; }
         public string Name { get; set; }
         public string FarmCode { get; set; }
         public string Address { get; set; }

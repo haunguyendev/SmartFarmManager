@@ -324,6 +324,20 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, new { Message = $"An error occurred: {ex.Message}" });
             }
         }
+        [HttpPost("check-ending-farming-batches")]
+        public async Task<IActionResult> CheckAndNotifyAdminForEndingFarmingBatches()
+        {
+            try
+            {
+                await _farmingBatchService.CheckAndNotifyAdminForEndingFarmingBatchesAsync();
+
+                return Ok(new { Message = "Checked and notified admins about ending farming batches." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = $"An error occurred: {ex.Message}" });
+            }
+        }
 
         [HttpPut("{farmingBatchId}/update-start-date")]
         public async Task<IActionResult> UpdateStartDate(Guid farmingBatchId, DateTime newStartDate)

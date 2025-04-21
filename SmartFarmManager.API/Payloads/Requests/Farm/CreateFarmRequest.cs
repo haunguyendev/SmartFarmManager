@@ -1,4 +1,7 @@
-﻿namespace SmartFarmManager.API.Payloads.Requests.Farm
+﻿using SmartFarmManager.Service.BusinessModels.Farm;
+using System.ComponentModel.DataAnnotations;
+
+namespace SmartFarmManager.API.Payloads.Requests.Farm
 {
     public class CreateFarmRequest
     {
@@ -10,6 +13,28 @@
         public string? Email { get; set; }
     }
 
-    public class UpdateFarmRequest : CreateFarmRequest { }
+    public class UpdateFarmRequest
+    {
+        public Guid? ExternalId { get;set; }
+        public string? FarmCode { get; set; }
+        public string? Name { get; set; }
+        public string? Address { get; set; }
+        public string? PhoneNumber { get; set; }
+        [EmailAddress] public string? Email { get; set; }
+        public double? Area { get; set; }
+        public string? Macaddress { get; set; }
+
+        public FarmUpdateModel MapToModel() => new FarmUpdateModel
+        {
+            ExternalId=ExternalId,
+            FarmCode = FarmCode,
+            Name = Name,
+            Address = Address,
+            PhoneNumber = PhoneNumber,
+            Email = Email,
+            Area = Area,
+            Macaddress = Macaddress
+        };
+    }
 
 }

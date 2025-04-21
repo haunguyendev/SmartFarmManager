@@ -47,6 +47,7 @@ namespace SmartFarmManager.Service.Services
             return new FarmModel
             {
                 Id = farm.Id,
+                ExternalId =(Guid)farm.ExternalId,
                 Name = farm.Name,
                 Address = farm.Address,
                 Area = farm.Area,
@@ -71,20 +72,36 @@ namespace SmartFarmManager.Service.Services
             });
         }
 
-        public async Task<bool> UpdateFarmAsync(Guid id, FarmModel model)
+        public async Task<bool> UpdateFarmAsync(Guid id, FarmUpdateModel model)
         {
-            var farm = await _unitOfWork.Farms.GetByIdAsync(id);
-            if (farm == null) return false;
+            var farm = await _unitOfWork.Farms.FindByCondition(f => f.Id == id).FirstOrDefaultAsync();
 
-            farm.Name = model.Name;
-            farm.Address = model.Address;
-            farm.Area = model.Area;
-            farm.PhoneNumber = model.PhoneNumber;
-            farm.Email = model.Email;
-            farm.ModifiedDate = DateTimeUtils.GetServerTimeInVietnamTime();
+            if (farm == null)
+            {
+                throw new KeyNotFoundException($"Nông trại với {id} không tìm thấy.");
+            }
+
+            var farmWithSameCode = await _unitOfWork.Farms
+                .FindByCondition(f => f.FarmCode == model.FarmCode && f.Id != id)
+                .FirstOrDefaultAsync();
+
+            if (farmWithSameCode != null)
+            {
+                throw new ArgumentException($"Nông trại với '{model.FarmCode}' đã tồn tại");
+            }
+            farm.ExternalId = model.ExternalId??farm.ExternalId;
+            farm.FarmCode = model.FarmCode ?? farm.FarmCode;
+            farm.Name = model.Name ?? farm.Name;
+            farm.Address = model.Address ?? farm.Address;
+            farm.PhoneNumber = model.PhoneNumber ?? farm.PhoneNumber;
+            farm.Email = model.Email ?? farm.Email;
+            farm.Area = model.Area ?? farm.Area;
+            farm.Macaddress = model.Macaddress ?? farm.Macaddress;
+            farm.ModifiedDate = DateTime.UtcNow;
 
             await _unitOfWork.Farms.UpdateAsync(farm);
             await _unitOfWork.CommitAsync();
+
             return true;
         }
 
