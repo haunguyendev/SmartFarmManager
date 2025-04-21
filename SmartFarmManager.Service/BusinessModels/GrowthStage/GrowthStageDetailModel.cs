@@ -22,9 +22,11 @@ namespace SmartFarmManager.Service.BusinessModels.GrowthStage
         public DateTime? AgeEndDate { get; set; }
         public string Status { get; set; }
         public int? AffectQuantity { get; set; }
+        public int? DeadQuantity { get; set; }
+
         public decimal? RecommendedWeightPerSession { get; set; }
         public decimal? WeightBasedOnBodyMass { get; set; }
-        public List<TaskDailyModel> TaskDailies { get; set; }
-        public List<VaccineScheduleModel> VaccineSchedules { get; set; }
+        public List<TaskDailyModel>? TaskDailies { get; set; }
+        public List<VaccineScheduleModel>? VaccineSchedules { get; set; }
     }
 }

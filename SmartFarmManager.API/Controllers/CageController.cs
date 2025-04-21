@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SmartFarmManager.API.Common;
@@ -6,6 +7,7 @@ using SmartFarmManager.API.Payloads.Requests.Cages;
 using SmartFarmManager.API.Payloads.Responses.Cage;
 using SmartFarmManager.Service.BusinessModels;
 using SmartFarmManager.Service.BusinessModels.Cages;
+using SmartFarmManager.Service.BusinessModels.Prescription;
 using SmartFarmManager.Service.BusinessModels.Task;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
@@ -30,10 +32,23 @@ namespace SmartFarmManager.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] CageFilterPagingRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                // Collect validation errors
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
+            }
+
             try
             {
-                var cages = await _cageService.GetCagesAsync(request.MapToModel());
-                return Ok(ApiResult<PagedResult<CageResponseModel>>.Succeed(cages));
+                var result = await _cageService.GetCagesAsync(request.MapToModel());
+                return Ok(ApiResult<PagedResult<CageResponseModel>>.Succeed(result));
             }
             catch (Exception ex)
             {
@@ -177,6 +192,28 @@ namespace SmartFarmManager.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
+            }
+        }
+
+        [HttpGet("prescriptions/tasks")]
+        public async Task<IActionResult> GetTasksForCage()
+        {
+            try
+            {
+                var result = await _cageService.GetPrescriptionsWithTasksAsync();
+                return Ok(ApiResult<CageIsolationResponseModel>.Succeed(result)); ;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
             }
         }
     }

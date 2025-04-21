@@ -7,6 +7,7 @@ using SmartFarmManager.API.Payloads.Responses.Auth;
 using SmartFarmManager.API.Payloads.Responses.Farm;
 using SmartFarmManager.Service.BusinessModels;
 using SmartFarmManager.Service.BusinessModels.Auth;
+using SmartFarmManager.Service.BusinessModels.CostingReport;
 using SmartFarmManager.Service.BusinessModels.Farm;
 using SmartFarmManager.Service.BusinessModels.FoodTemplate;
 using SmartFarmManager.Service.Helpers;
@@ -47,7 +48,7 @@ namespace SmartFarmManager.API.Controllers
                 {
                     Name = request.Name,
                     Address = request.Address,
-                    Area = request.Area,
+                    Area = (double)request.Area,
                     PhoneNumber = request.PhoneNumber,
                     Email = request.Email
                 });
@@ -104,6 +105,7 @@ namespace SmartFarmManager.API.Controllers
                 {
                     Id = f.Id,
                     Name = f.Name,
+                    FarmCode = f.FarmCode,
                     Address = f.Address,
                     Area = f.Area,
                     PhoneNumber = f.PhoneNumber,
@@ -136,7 +138,7 @@ namespace SmartFarmManager.API.Controllers
                 {
                     Name = request.Name,
                     Address = request.Address,
-                    Area = request.Area,
+                    Area =(double) request.Area,
                     PhoneNumber = request.PhoneNumber,
                     Email = request.Email
                 });
@@ -193,6 +195,15 @@ namespace SmartFarmManager.API.Controllers
             }
         }
 
+        [HttpGet("{farmId}")]
+        public async Task<IActionResult> GetCostingReportsByFarm(
+        Guid farmId,
+        [FromQuery] int? month,
+        [FromQuery] int? year)
+        {
+            var reports = await _farmService.GetCostingReportsByFarmAsync(farmId, month, year);
+            return Ok(ApiResult<IEnumerable<CostingReportModel>>.Succeed(reports));
+        }
     }
 
 }

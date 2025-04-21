@@ -24,7 +24,7 @@ public partial class Sensor : EntityBase
 
     public DateTime? ModifiedDate { get; set; }
 
-    public bool IsDeleted { get; set; }
+    public bool IsDeleted { get; set; } = false;
 
     public DateTime? DeletedDate { get; set; }
 

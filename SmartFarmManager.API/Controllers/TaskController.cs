@@ -4,6 +4,7 @@ using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.Task;
 using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Service.BusinessModels;
+using SmartFarmManager.Service.BusinessModels.Log;
 using SmartFarmManager.Service.BusinessModels.Task;
 using SmartFarmManager.Service.Interfaces;
 
@@ -233,7 +234,7 @@ namespace SmartFarmManager.API.Controllers
         {
             try
             {
-                var result = await _taskService.GenerateTreatmentTasksAsyncV2();
+                var result = await _taskService.GenerateTasksForTomorrowAsync();
 
                 if (!result)
                 {
@@ -320,7 +321,7 @@ namespace SmartFarmManager.API.Controllers
         {
             try
             {
-                await _taskService.UpdateEveningTaskStatusesAsync();
+                await _taskService.UpdateAllTaskStatusesAsync();
                 return Ok(ApiResult<string>.Succeed("Task statuses updated successfully."));
             }
             catch (Exception ex)
@@ -329,6 +330,58 @@ namespace SmartFarmManager.API.Controllers
             }
         }
 
+        [HttpGet("tasks/count-by-status")]
+        public async Task<IActionResult> GetTaskCountByStatus([FromQuery] DateTime startDate,[FromQuery] DateTime endDate,[FromQuery] Guid? assignedToUserId = null,[FromQuery] Guid? farmId = null)
+        {
+            try
+            {
+                var taskCounts = await _taskService.GetTaskCountByStatusAsync(startDate, endDate, assignedToUserId, farmId);
+                return Ok(ApiResult<Dictionary<string, int>>.Succeed(taskCounts));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpPut("{taskId}/set-treatment")]
+        public async Task<IActionResult> MarkAsTreatmentTask(Guid taskId, [FromQuery]Guid medicalSymptomId)
+        {
+            var result = await _taskService.SetIsTreatmentTaskTrueAsync(taskId,medicalSymptomId);
+
+            if (!result)
+                return NotFound(ApiResult<object>.Fail("Task not found or update failed."));
+
+            return Ok(ApiResult<object>.Succeed("Task marked as treatment task successfully."));
+        }
+
+        [HttpGet("{taskId}/logs")]
+        public async Task<IActionResult> GetLogsByTaskId(Guid taskId)
+        {
+            try
+            {
+                var logs = await _taskService.GetLogsByTaskIdAsync(taskId);
+                return Ok(ApiResult<TaskLogResponse>.Succeed(logs));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail($"{ex.Message}"));
+            }
+        }
+
+        [HttpGet("{taskId}/weight-animal-log")]
+        public async Task<IActionResult> GetWeightAnimalLogByTaskId(Guid taskId)
+        {
+            try
+            {
+                var logs = await _taskService.GetWeightAnimalLogByTaskId(taskId);
+                return Ok(ApiResult<WeightAnimalLogModel>.Succeed(logs));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail($"{ex.Message}"));
+            }
+        }
 
     }
 }

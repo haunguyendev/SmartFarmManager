@@ -11,16 +11,14 @@ public partial class Cage : EntityBase
     public Guid FarmId { get; set; }
     public string Name { get; set; }
 
-    public double Area { get; set; }
+    public double? Area { get; set; }
 
-    public string Location { get; set; }
+    public string? Location { get; set; }
 
-    public int Capacity { get; set; }
+    public int? Capacity { get; set; }
+    public string? BoardCode { get; set; }
 
-
-    public string BoardCode { get; set; }
-
-    public bool BoardStatus { get; set; }
+    public bool? BoardStatus { get; set; }
 
     public DateTime CreatedDate { get; set; }
 
@@ -32,7 +30,7 @@ public partial class Cage : EntityBase
 
     public string CameraUrl { get; set; }
 
-    public int ChannelId { get; set; }
+    public int ChannelId { get; set; } // ??? 
     public bool IsSolationCage { get; set; } = false;
 
     public virtual ICollection<CageStaff> CageStaffs { get; set; } = new List<CageStaff>();

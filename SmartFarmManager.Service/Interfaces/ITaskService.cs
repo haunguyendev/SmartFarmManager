@@ -1,5 +1,7 @@
 ﻿using SmartFarmManager.Service.BusinessModels;
+using SmartFarmManager.Service.BusinessModels.Log;
 using SmartFarmManager.Service.BusinessModels.Task;
+using SmartFarmManager.Service.BusinessModels.VaccineSchedule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,5 +34,12 @@ namespace SmartFarmManager.Service.Interfaces
         Task<bool> UpdateEveningTaskStatusesAsync();
         Task<bool> GenerateTreatmentTasksAsync();
         Task<bool> GenerateTreatmentTasksAsyncV2();
+        Task<Dictionary<string, int>> GetTaskCountByStatusAsync(DateTime startDate, DateTime endDate, Guid? assignedToUserId = null, Guid? farmId = null);
+        Task<bool> RedoVaccineScheduleAsync(RedoVaccineScheduleRequest request);
+        Task<bool> SetIsTreatmentTaskTrueAsync(Guid taskId,Guid MedicalSymptomId);
+        Task<TaskLogResponse> GetLogsByTaskIdAsync(Guid taskId);
+        Task<WeightAnimalLogModel> GetWeightAnimalLogByTaskId(Guid taskId);
+
+
     }
 }

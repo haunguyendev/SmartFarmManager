@@ -50,6 +50,22 @@ namespace SmartFarmManager.Repository
         public IFoodStackRepository FoodStacks { get; }
         public INotificationRepository Notifications { get; }
         public INotificationTypeRepository NotificationsTypes { get; }
+        public ICostingReportsRepository CostingReports { get; }
+        public IElectricityLogsRepository ElectricityLogs { get; }
+        public IWaterLogsRepository WaterLogs { get; }
+
+        public IAnimalSalesRepository AnimalSales { get; }
+
+        public IMasterDataRepository MasterData { get; }
+        public IWhiteListDomainRepository WhiteListDomains{ get; }
+        public ISensorRepository Sensors { get; }
+        public ISensorTypeRepository SensorTypes { get; }
+        public ISensorDataLogRepository SensorDataLogs { get; }
+        public IStockLogRepository StockLogs { get; }
+        public IEggHarvestRepository EggHarvests { get; }
+        public IFarmConfigRepository FarmConfigs { get; }
+        public IStandardPrescriptionMedicationRepository StandardPrescriptionMedications { get; }
+
         public UnitOfWork(SmartFarmContext context, IUserRepository users,
             ITaskTypeRepository taskTypes,
             ITaskRepository tasks,
@@ -85,7 +101,20 @@ namespace SmartFarmManager.Repository
             IStandardPrescriptionRepository standardPrescriptions,
             IFoodStackRepository foodStacks,
             INotificationRepository notifications,
-            INotificationTypeRepository notificationTypes)
+            INotificationTypeRepository notificationTypes,
+            ICostingReportsRepository costingReports,
+            IElectricityLogsRepository electricityLogs,
+            IWaterLogsRepository waterLogs,
+            IAnimalSalesRepository animalSales,
+            IMasterDataRepository masterData,
+            IWhiteListDomainRepository whiteListDomains,
+            ISensorRepository sensors,
+            ISensorTypeRepository sensorTypes,
+            ISensorDataLogRepository sensorDataLogs,
+            IStockLogRepository stockLogs,
+            IEggHarvestRepository eggHarvests,
+            IFarmConfigRepository farmConfigs,
+            IStandardPrescriptionMedicationRepository standardPrescriptionMedications)
         {
             _context = context;
             Users = users;
@@ -125,6 +154,19 @@ namespace SmartFarmManager.Repository
             FoodStacks = foodStacks;
             Notifications = notifications;
             NotificationsTypes = notificationTypes;
+            CostingReports = costingReports;
+            ElectricityLogs = electricityLogs;
+            WaterLogs = waterLogs;
+            AnimalSales = animalSales;
+            MasterData = masterData;
+            WhiteListDomains = whiteListDomains;
+            Sensors = sensors;
+            SensorTypes = sensorTypes;
+            SensorDataLogs = sensorDataLogs;
+            StockLogs = stockLogs;
+            EggHarvests = eggHarvests;
+            FarmConfigs = farmConfigs;
+            StandardPrescriptionMedications = standardPrescriptionMedications;
         }
          
 

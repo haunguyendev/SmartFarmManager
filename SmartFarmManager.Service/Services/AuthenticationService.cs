@@ -35,7 +35,7 @@ namespace SmartFarmManager.Service.Services
 
         public async Task<LoginResult> Login(string username, string password)
         {
-            var user = await _unitOfWork.Users.FindByCondition(x=>x.Username==username,false,x=>x.Role).FirstOrDefaultAsync();
+            var user = await _unitOfWork.Users.FindByCondition(x => x.Username == username, false, x => x.Role).FirstOrDefaultAsync();
             if (user == null)
             {
                 throw new Exception("Username not found.");
@@ -52,6 +52,20 @@ namespace SmartFarmManager.Service.Services
             };
         }
 
+        public async System.Threading.Tasks.Task Logout(Guid userId)
+        {
+            var user = await _unitOfWork.Users.FindByCondition(u => u.Id == userId).FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                throw new Exception("User not found.");
+            }
+            user.DeviceId = null;
+
+            await _unitOfWork.Users.UpdateAsync(user);
+            await _unitOfWork.CommitAsync();
+        }
+
         public SecurityToken CreateJwtToken(User user)
         {
             var utcNow = DateTime.UtcNow;
@@ -62,6 +76,7 @@ namespace SmartFarmManager.Service.Services
         new(ClaimTypes.Role, user.Role.RoleName), //
         new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new(ClaimTypes.Name, user.FullName),
+        new("PhoneNumber", user.PhoneNumber)
     };
 
             var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
@@ -70,6 +85,7 @@ namespace SmartFarmManager.Service.Services
             {
                 Subject = new ClaimsIdentity(authClaims),
                 Expires = utcNow.Add(TimeSpan.FromMinutes(1)),
+
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };
 
@@ -78,6 +94,7 @@ namespace SmartFarmManager.Service.Services
 
             return token;
         }
+
 
         private SecurityToken CreateJwtRefreshToken(User user)
         {
@@ -89,6 +106,8 @@ namespace SmartFarmManager.Service.Services
         new(ClaimTypes.Role, user.Role.RoleName),
         new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new(ClaimTypes.Name, user.FullName),
+        new("PhoneNumber", user.PhoneNumber)
+
     };
 
             var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
@@ -141,7 +160,7 @@ namespace SmartFarmManager.Service.Services
                 ValidateIssuer = false,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateLifetime = true // Ignore expiration for validation
+                ValidateLifetime = false // Ignore expiration for validation
             };
 
             try
@@ -160,6 +179,44 @@ namespace SmartFarmManager.Service.Services
 
             return null;
         }
+
+        public bool ValidateToken(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return false;
+
+            var tokenHandler = new JwtSecurityTokenHandler();   
+            var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
+
+            try
+            {
+                var tokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateAudience = false,
+                    ValidateIssuer = false,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateLifetime = false, // Kiểm tra token hết hạn
+                    ClockSkew = TimeSpan.Zero // Không cho phép chênh lệch thời gianA
+                };
+
+                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
+
+                // Kiểm tra token có đúng kiểu JwtSecurityToken và sử dụng cùng thuật toán
+                if (securityToken is JwtSecurityToken jwtSecurityToken &&
+                    jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true; // Token hợp lệ
+                }
+
+                return false; // Token không hợp lệ
+            }
+            catch
+            {
+                return false; // Token không hợp lệ hoặc hết hạn
+            }
+        }
+
 
     }
 }

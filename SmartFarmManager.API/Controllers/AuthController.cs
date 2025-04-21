@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Google.Apis.Auth.OAuth2.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.Auth;
 using SmartFarmManager.API.Payloads.Responses.Auth;
+using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Service.BusinessModels.Auth;
 using SmartFarmManager.Service.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
@@ -57,6 +59,43 @@ namespace SmartFarmManager.API.Controllers
                 return BadRequest(ApiResult<string>.Fail(ex.Message));
             }
         }
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            Request.Headers.TryGetValue("Authorization", out var token);
+            token = token.ToString().Split()[1];
+            // Here goes your token validation logic
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return BadRequest(ApiResult<string>.Fail("Authorization header is missing or invalid."));
+            }
+            // Decode the JWT token
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            // Check if the token is expired
+            if (jwtToken.ValidTo < DateTime.UtcNow)
+            {
+                return BadRequest(ApiResult<string>.Fail("Token has expired."));
+            }
+
+            string id = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;          
+
+            try
+            {
+                // Gọi service Logout
+                await _authenticationService.Logout(Guid.Parse(id));
+
+                return Ok(ApiResult<string>.Succeed("User logged out successfully."));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResult<string>.Fail(ex.Message));
+            }
+        }
+
+
 
         // POST: api/auth/create
         //[Authorize(Roles = "Admin")]
@@ -126,7 +165,8 @@ namespace SmartFarmManager.API.Controllers
                     PhoneNumber = userProfile.PhoneNumber,
                     Address = userProfile.Address,
                     Role = userProfile.Role,
-                    CreatedAt = userProfile.CreatedAt
+                    CreatedAt = userProfile.CreatedAt,
+                    ImageUrl = userProfile.ImageUrl
                 };
 
                 return Ok(ApiResult<UserProfileResponse>.Succeed(response));
@@ -220,7 +260,7 @@ namespace SmartFarmManager.API.Controllers
         }
         [HttpPost("refresh")]
         [AllowAnonymous]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        public async Task<IActionResult> RefreshToken([FromBody] Payloads.Requests.Auth.RefreshTokenRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -255,6 +295,14 @@ namespace SmartFarmManager.API.Controllers
             }
         }
 
+        [HttpPost("verify-token")]
+        public IActionResult VerifyToken([FromBody] Payloads.Requests.Auth.TokenVerifyRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Token))
+                return BadRequest(ApiResult<object>.Fail("Token is required."));
 
+            bool isValid = _authenticationService.ValidateToken(request.Token);
+            return Ok(ApiResult<bool>.Succeed(isValid));
+        }
     }
 }

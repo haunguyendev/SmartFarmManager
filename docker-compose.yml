@@ -14,8 +14,11 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '1'
           memory: 1.5g
-
+        reservations:
+          cpus: '0.5'
+          memory: 1g
   backend:
     build:
       context: .
@@ -41,9 +44,20 @@ services:
       - CLOUDMESSAGE_AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
       - CLOUDMESSAGE_CLIENT_X509_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-3z8ou%40smartfarm-b1eb0.iam.gserviceaccount.com
       - CLOUDMESSAGE_UNIVERSE_DOMAIN=googleapis.com
-    depends_on:
-      - database
+      - MailSettings__Server=smtp.gmail.com
+      - MailSettings__Port=587
+      - MailSettings__SenderName=Farm
+      - MailSettings__SenderEmail=nguyentruongthinh17022003@gmail.com
+      - MailSettings__UserName=nguyentruongthinh17022003@gmail.com
+      - MailSettings__PassWord=ngsd qlcf yfli nbfw
     restart: unless-stopped
-
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2g
+        reservations:
+          cpus: '0.5'
+          memory: 1g
 volumes:
   sql_data:
