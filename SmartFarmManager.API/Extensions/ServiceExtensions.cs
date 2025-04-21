@@ -238,6 +238,7 @@ namespace SmartFarmManager.API.Extensions
             services.AddScoped<IEggHarvestRepository, EggHarvestRepository>();
             services.AddScoped<IFarmConfigRepository, FarmConfigRepository>();
             services.AddScoped<IStandardPrescriptionMedicationRepository, StandardPrescriptionMedicationRepository>();
+            services.AddScoped<IDeadPoultryLogRepository, DeadPoultryLogRepository>();
             return services;
         }
 

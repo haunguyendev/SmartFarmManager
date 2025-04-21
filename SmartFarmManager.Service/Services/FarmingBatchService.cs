@@ -6,6 +6,7 @@ using SmartFarmManager.Service.BusinessModels.AnimalSale;
 using SmartFarmManager.Service.BusinessModels.AnimalTemplate;
 using SmartFarmManager.Service.BusinessModels.Cages;
 using SmartFarmManager.Service.BusinessModels.DailyFoodUsageLog;
+using SmartFarmManager.Service.BusinessModels.DeadPoultryLog;
 using SmartFarmManager.Service.BusinessModels.FarmingBatch;
 using SmartFarmManager.Service.BusinessModels.GrowthStage;
 using SmartFarmManager.Service.BusinessModels.Prescription;
@@ -616,6 +617,7 @@ namespace SmartFarmManager.Service.Services
                 .Include(fb => fb.Cage) // Include related Cage
                 .Include(fb => fb.Template)
                 .Include(fb => fb.GrowthStages)
+                .Include(fb => fb.DeadPoultryLogs)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(keySearch))
@@ -697,9 +699,15 @@ namespace SmartFarmManager.Service.Services
                         Species = fb.Template.Species,
                         Status = fb.Template.Status,
                         Notes = fb.Template.Notes
-                    }
-                })
-    .ToListAsync();
+                    },
+                    deadPoultryLogModels = fb.DeadPoultryLogs == null ? null : fb.DeadPoultryLogs.Select(dp => new DeadPoultryLogModel
+                    {
+                        FarmingBatchId = dp.FarmingBatchId,
+                        Quantity = dp.Quantity,
+                        Date = dp.Date,
+                        Note = dp.Note,
+                    }).ToList()
+                }).ToListAsync();
 
             var resultPaging = new PaginatedList<FarmingBatchModel>(items, totalItems, pageNumber, pageSize);
             return new PagedResult<FarmingBatchModel>
@@ -942,6 +950,7 @@ namespace SmartFarmManager.Service.Services
                     .ThenInclude(gs => gs.EggHarvests)
                 .Include(fb => fb.Template)
                     .ThenInclude(t => t.GrowthStageTemplates)
+                .Include(fb => fb.DeadPoultryLogs)
                 .FirstOrDefaultAsync();
 
             if (farmingBatch == null)
@@ -1105,7 +1114,13 @@ namespace SmartFarmManager.Service.Services
 
             // Lợi nhuận ròng
             var netProfit = ((decimal)totalEggSales + (decimal)totalMeatSales) - (totalFoodCost + (decimal)totalVaccineCost + totalMedicineCost);
-
+            var deadPoultry = farmingBatch.DeadPoultryLogs.Select(dp => new DeadPoultryLogModel
+            {
+                FarmingBatchId = dp.FarmingBatchId,
+                Date = dp.Date,
+                Quantity = dp.Quantity,
+                Note = dp.Note
+            }).ToList();
             return new DetailedFarmingBatchReportResponse
             {
                 FarmingBatchId = farmingBatch.Id,
@@ -1127,7 +1142,8 @@ namespace SmartFarmManager.Service.Services
                 FoodUsageDetails = foodUsageDetails,
                 GrowthStageReports = growthStageReports,
                 AnimalMeatSales = meatSales,
-                FCR = totalSumMeatSales == 0 ? 0 : totalWeightFoodUsed / totalSumMeatSales
+                FCR = totalSumMeatSales == 0 ? 0 : totalWeightFoodUsed / totalSumMeatSales,
+                DeadPoultryLogModels = deadPoultry
             };
         }
         public async System.Threading.Tasks.Task CheckAndNotifyAdminForUpcomingFarmingBatchesAsync()
@@ -1494,7 +1510,8 @@ namespace SmartFarmManager.Service.Services
         public async Task<FarmingBatch> UpdateDeadAnimalsAsync(
         Guid farmingBatchId,
         Guid growthStageId,
-        int deadAnimal)
+        int deadAnimal,
+        string? note)
         {
             // Kiểm tra FarmingBatch tồn tại và đang active
             var farmingBatch = await _unitOfWork.FarmingBatches
@@ -1533,11 +1550,26 @@ namespace SmartFarmManager.Service.Services
             await _unitOfWork.FarmingBatches.UpdateAsync(farmingBatch);
             await _unitOfWork.GrowthStages.UpdateAsync(growthStage);
 
+            
+
+            var deadPoultryLog = new DeadPoultryLog
+            {
+                FarmingBatchId = farmingBatchId,
+                Date = DateTimeUtils.GetServerTimeInVietnamTime(),
+                Quantity = deadAnimal,
+                Note = note
+            };
+            await _unitOfWork.DeadPoultryLogs.CreateAsync(deadPoultryLog);
+
             // Lưu thay đổi
             await _unitOfWork.CommitAsync();
 
             var vetFarm = await _unitOfWork.Users
                     .FindByCondition(u => u.Role.RoleName == "Vet")
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync();
+            var adminFarm = await _unitOfWork.Users
+                    .FindByCondition(u => u.Role.RoleName == "Admin Farm")
                     .Include(u => u.Role)
                     .FirstOrDefaultAsync();
             var notiType = await _unitOfWork.NotificationsTypes
@@ -1556,6 +1588,40 @@ namespace SmartFarmManager.Service.Services
             };
             await _notificationService.SendNotification(vetFarm.DeviceId, "Có báo cáo triệu chứng mới", notificationVet);
             await _unitOfWork.Notifications.CreateAsync(notificationVet);
+
+            var notificationAdminFarm = new DataAccessObject.Models.Notification
+            {
+                UserId = adminFarm.Id,
+                NotiTypeId = notiType.Id,
+                Content = $"Có gà chết ở {farmingBatch.Cage.Name} đã được gửi vào lúc {DateTimeUtils.GetServerTimeInVietnamTime()}.\r\nVui lòng kiểm tra và xử lý kịp thời để đảm bảo sức khỏe cho vật nuôi.",
+                Title = "Có gà chết",
+                CreatedAt = DateTimeUtils.GetServerTimeInVietnamTime(),
+                IsRead = false,
+                MedicalSymptomId = null,
+                CageId = farmingBatch.CageId
+            };
+            await _notificationService.SendNotification(adminFarm.DeviceId, "Có báo cáo triệu chứng mới", notificationAdminFarm);
+            await _unitOfWork.Notifications.CreateAsync(notificationAdminFarm);
+            await _unitOfWork.CommitAsync();
+
+            var mailDataVet = new MailData
+            {
+                EmailToId = vetFarm.Email,
+                EmailToName = vetFarm.Email,
+                EmailSubject = "Phát hiện gà chết",
+                EmailBody = $"Có gà chết ở {farmingBatch.Cage.Name} đã được gửi vào lúc {DateTimeUtils.GetServerTimeInVietnamTime()}.Vui lòng kiểm tra và xử lý kịp thời để đảm bảo sức khỏe cho vật nuôi."
+            };
+
+            await _emailService.SendEmailAsync(mailDataVet);
+            var mailDataAdminFarm = new MailData
+            {
+                EmailToId = adminFarm.Email,
+                EmailToName = adminFarm.Email,
+                EmailSubject = "Phát hiện gà chết",
+                EmailBody = $"Có gà chết ở {farmingBatch.Cage.Name} đã được gửi vào lúc {DateTimeUtils.GetServerTimeInVietnamTime()}.Vui lòng kiểm tra và xử lý kịp thời để đảm bảo sức khỏe cho vật nuôi."
+            };
+
+            await _emailService.SendEmailAsync(mailDataAdminFarm);
 
             return farmingBatch;
         }

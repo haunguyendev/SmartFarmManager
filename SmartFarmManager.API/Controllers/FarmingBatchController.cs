@@ -405,7 +405,8 @@ namespace SmartFarmManager.API.Controllers
                 var result = await _farmingBatchService.UpdateDeadAnimalsAsync(
                     farmingBatchId,
                     growthStageId,
-                    request.DeadAnimal);
+                    request.DeadAnimal,
+                    request.Note);
 
                 return Ok(result);
             }

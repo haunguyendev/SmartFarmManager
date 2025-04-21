@@ -36,7 +36,8 @@ namespace SmartFarmManager.Service.Interfaces
         Task<FarmingBatch> UpdateDeadAnimalsAsync(
         Guid farmingBatchId,
         Guid growthStageId,
-        int deadAnimal);
+        int deadAnimal,
+        string? note);
 
     }
 }
