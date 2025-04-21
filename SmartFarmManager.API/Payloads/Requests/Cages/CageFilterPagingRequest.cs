@@ -8,6 +8,7 @@ namespace SmartFarmManager.API.Payloads.Requests.Cages
         public string? PenCode { get; set; } // Lọc theo PenCode
         public string? Name { get; set; }  // Lọc theo Name của chuồng
         public string? SearchKey { get; set; }  // Trường tìm kiếm tổng hợp
+        public string? RoleName { get; set; }  // Lọc theo RoleName
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 20;
         public bool? HasFarmingBatch { get; set; }
@@ -18,6 +19,7 @@ namespace SmartFarmManager.API.Payloads.Requests.Cages
             {
                 FarmId = FarmId,
                 PenCode = PenCode,
+                RoleName = RoleName,
                 Name = Name,
                 SearchKey = SearchKey,
                 PageNumber = PageNumber,

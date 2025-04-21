@@ -6,7 +6,11 @@ using SmartFarmManager.Service.BusinessModels;
 using SmartFarmManager.Service.BusinessModels.Cages;
 using SmartFarmManager.Service.BusinessModels.FarmingBatch;
 using SmartFarmManager.Service.BusinessModels.GrowthStage;
+using SmartFarmManager.Service.BusinessModels.Prescription;
+using SmartFarmManager.Service.BusinessModels.Sensor;
+using SmartFarmManager.Service.BusinessModels.Task;
 using SmartFarmManager.Service.BusinessModels.TaskDaily;
+using SmartFarmManager.Service.BusinessModels.Users;
 using SmartFarmManager.Service.BusinessModels.VaccineSchedule;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
@@ -16,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace SmartFarmManager.Service.Services
 {
@@ -32,18 +37,21 @@ namespace SmartFarmManager.Service.Services
         {
             // Lấy dữ liệu ban đầu từ UnitOfWork
             var query = _unitOfWork.Cages.FindAll(false, x => x.Farm)
+                .Include(c => c.Sensors)
+                .ThenInclude(c => c.SensorType)
+                .Include(c => c.FarmingBatches).ThenInclude(c => c.GrowthStages)
                 .Include(c => c.CageStaffs)
                 .ThenInclude(cs => cs.StaffFarm)
-                .Include(c => c.FarmingBatches).ThenInclude(c => c.GrowthStages)
-                .Include(c=>c.CageStaffs)
-                .ThenInclude(cs=>cs.StaffFarm) 
+                .ThenInclude(sf => sf.Role)
                 .AsQueryable();
-
+            if (!string.IsNullOrEmpty(request.RoleName)) { 
+            query = query.Where(c => c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == request.RoleName)); }
             // Áp dụng các bộ lọc
             if (!string.IsNullOrEmpty(request.PenCode))
             {
                 query = query.Where(c => c.PenCode.Contains(request.PenCode));
             }
+
 
             // Áp dụng bộ lọc Name
             if (!string.IsNullOrEmpty(request.Name))
@@ -57,8 +65,8 @@ namespace SmartFarmManager.Service.Services
                 query = query.Where(c =>
                     c.PenCode.Contains(request.SearchKey) ||
                     c.Name.Contains(request.SearchKey) ||
-                    c.Location.Contains(request.SearchKey)||
-                    c.CageStaffs.FirstOrDefault().StaffFarm.FullName.Contains(request.SearchKey));
+                    c.Location.Contains(request.SearchKey) ||
+                    c.CageStaffs.Select(c=>c.StaffFarm.FullName).Contains(request.SearchKey));
             }
 
             if (request.HasFarmingBatch.HasValue)
@@ -77,6 +85,7 @@ namespace SmartFarmManager.Service.Services
             }
             // Đếm tổng số bản ghi (chạy trên SQL)
             var totalCount = await query.CountAsync();
+            var test = query.ToList();
 
             // Phân trang và chọn dữ liệu cần thiết (chạy trên SQL)
             var items = await query
@@ -95,9 +104,30 @@ namespace SmartFarmManager.Service.Services
                     BoardStatus = c.BoardStatus,
                     CreatedDate = c.CreatedDate,
                     CameraUrl = c.CameraUrl,
-                    StaffId = c.CageStaffs.FirstOrDefault().StaffFarmId,
-                    StaffName = c.CageStaffs.FirstOrDefault().StaffFarm.FullName,
+                    CustomerId=c.CageStaffs.Where(c=>c.StaffFarm.Role.RoleName == "Customer").Select(c=>c.StaffFarmId).FirstOrDefault(),
+                    CustomerName = c.CageStaffs.Where(cs => cs.StaffFarm.Role.RoleName == "Customer").Select(cs => cs.StaffFarm.FullName).FirstOrDefault(),
+                    StaffId = c.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Staff Farm").Select(c => c.StaffFarmId).FirstOrDefault(),
+                    StaffName = c.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Staff Farm").Select(cs => cs.StaffFarm.FullName).FirstOrDefault(),
                     IsSolationCage = c.IsSolationCage,
+                    Sensors=c.Sensors.GroupBy(s => s.NodeId)
+                .Select(g => new SensorGroupByNodeModel
+                {
+                    NodeId = g.Key,
+                    Sensors = g.Select(s => new SensorModel
+                    {
+                        SensorId = s.Id,
+                        SensorCode = s.SensorCode,
+                        Name = s.Name,
+                        SensorTypeName = s.SensorType.Name,
+                        PinCode = s.PinCode,
+                        Status = s.Status,
+                        SensorTypeDescription = s.SensorType.Description,
+                        SensorTypeFieldName = s.SensorType.FieldName,
+                        SensorTypeUnit = s.SensorType.Unit,
+
+                    }).ToList()
+                }).ToList(),
+
                     // Lấy thông tin FarmingBatch phù hợp
                     FarmingBatch = c.FarmingBatches
                 .Where(fb => fb.StartDate < DateTimeUtils.GetServerTimeInVietnamTime() && fb.CompleteAt == null && fb.Status == FarmingBatchStatusEnum.Active)
@@ -156,9 +186,12 @@ namespace SmartFarmManager.Service.Services
         public async Task<CageDetailModel> GetCageByIdAsync(Guid cageId)
         {
             // Lấy dữ liệu từ repository
-            var cage = await _unitOfWork.Cages.FindByCondition(x => x.Id == cageId, false, c => c.Farm).Include(c => c.CageStaffs)
-                .ThenInclude(cs => cs.StaffFarm).FirstOrDefaultAsync();
-
+            var cage = await _unitOfWork.Cages
+                .FindByCondition(x => x.Id == cageId && x.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == "Staff Farm"), false, c => c.Farm)
+                .Include(c => c.CageStaffs)
+                .ThenInclude(cs => cs.StaffFarm)
+                .ThenInclude(sf => sf.Role)
+                .FirstOrDefaultAsync();
             // Xử lý khi không tìm thấy cage
             if (cage == null || cage.IsDeleted)
             {
@@ -278,7 +311,162 @@ namespace SmartFarmManager.Service.Services
             await _unitOfWork.CommitAsync();
             return true;
         }
-        
+
+        public async Task<CageIsolationResponseModel> GetPrescriptionsWithTasksAsync()
+        {
+            // Step 1: Retrieve the cage and its tasks
+            var cage = await _unitOfWork.Cages.FindByCondition(c => c.IsSolationCage == true)
+                .Include(c => c.Tasks)
+                .Include(c => c.CageStaffs)
+                    .ThenInclude(cs => cs.StaffFarm)
+                    .ThenInclude(sf => sf.Role)
+                .FirstOrDefaultAsync();
+
+            if (cage == null) throw new KeyNotFoundException("Cage not found.");
+            if (!cage.IsSolationCage) throw new InvalidOperationException("Cage is not an isolation cage.");
+
+            // Retrieve the first "Farm Staff" user from CageStaffs
+            var user = cage.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Staff Farm").FirstOrDefault();
+
+            // Step 2: Filter tasks for the current day
+            var today = DateTimeUtils.GetServerTimeInVietnamTime().Date;
+            var todayTasks = cage.Tasks.Where(t => t.DueDate.HasValue && t.DueDate.Value.Date == today).ToList();
+
+            // Step 3: Extract distinct Prescription IDs
+            var distinctPrescriptionIds = todayTasks
+                .Where(t => t.PrescriptionId.HasValue)
+                .Select(t => t.PrescriptionId.Value)
+                .Distinct()
+                .ToList();
+
+            // If no prescriptions, return Cage with empty prescriptions list
+            var prescriptionsWithTasks = MapCageToResponse(cage, new List<PrescriptionResponseModel>());
+            if (!distinctPrescriptionIds.Any())
+            {
+                // Add user information to the response before returning
+                if (user != null)
+                {
+                    prescriptionsWithTasks.User = new UserCreateModel
+                    {
+                        FullName = user.StaffFarm.FullName,
+                        Email = user.StaffFarm.Email,
+                        PhoneNumber = user.StaffFarm.PhoneNumber,
+                        Address = user.StaffFarm.Address,
+                        RoleId = user.StaffFarm.Role.Id
+                    };
+                }
+                else
+                {
+                    prescriptionsWithTasks.User = null; // Handle cases where no "Farm Staff" user exists
+                }
+
+                return prescriptionsWithTasks;
+            }
+
+            // Step 4: Retrieve prescriptions using FindByCondition
+            var prescriptions = await _unitOfWork.Prescription
+                .FindByCondition(p => distinctPrescriptionIds.Contains(p.Id))
+                .Include(p => p.MedicalSymtom)
+                .ToListAsync();
+
+            // Step 5: Iterate through prescriptions and filter tasks based on DueDate, then sort by Session
+            var prescriptionResponses = new List<PrescriptionResponseModel>();
+            foreach (var prescription in prescriptions)
+            {
+                var prescriptionTasks = await _unitOfWork.Tasks
+                    .FindByCondition(t => t.PrescriptionId == prescription.Id && t.DueDate.HasValue && t.DueDate.Value.Date == today)
+                    .OrderBy(t => t.Session) // Sort tasks by Session in ascending order
+                    .ToListAsync();
+
+                var farmingBatchAnimal = await _unitOfWork.FarmingBatches.FindByCondition(fb => fb.Id == prescription.MedicalSymtom.FarmingBatchId)
+                    .Include(fb => fb.Cage)
+                    .FirstOrDefaultAsync();
+
+                prescriptionResponses.Add(new PrescriptionResponseModel
+                {
+                    Id = prescription.Id,
+                    MedicalSymptomId = prescription.MedicalSymtomId,
+                    CageId = prescription.CageId,
+                    PrescribedDate = prescription.PrescribedDate,
+                    EndDate = prescription.EndDate,
+                    Notes = prescription.Notes,
+                    QuantityAnimal = prescription.QuantityAnimal,
+                    RemainingQuantity = prescription.RemainingQuantity,
+                    Status = prescription.Status,
+                    DaysToTake = prescription.DaysToTake,
+                    Price = prescription.Price,
+                    cageAnimal = farmingBatchAnimal.Cage.Name,
+                    Diagnosis = prescription.MedicalSymtom.Diagnosis,
+                    Tasks = prescriptionTasks.Select(t => new TaskResponseModel
+                    {
+                        Id = t.Id,
+                        TaskTypeId = t.TaskTypeId,
+                        CageId = t.CageId,
+                        AssignedToUserId = t.AssignedToUserId,
+                        CreatedByUserId = t.CreatedByUserId,
+                        TaskName = t.TaskName,
+                        PriorityNum = t.PriorityNum,
+                        Description = t.Description,
+                        DueDate = t.DueDate,
+                        Status = t.Status,
+                        Session = t.Session, // Sorted by Session
+                        IsWarning = t.IsWarning,
+                        MedicalSymptomId = t.MedicalSymptomId,
+                        CompletedAt = t.CompletedAt,
+                        CreatedAt = t.CreatedAt,
+                        IsTreatmentTask = t.IsTreatmentTask,
+                        PrescriptionId = t.PrescriptionId
+                    }).ToList()
+                });
+            }
+
+            // Step 6: Return the CageResponseModel with prescriptions and tasks
+            prescriptionsWithTasks.Prescriptions = prescriptionResponses;
+
+            // Add user information to the response before returning
+            if (user != null)
+            {
+                prescriptionsWithTasks.User = new UserCreateModel
+                {
+                    FullName = user.StaffFarm.FullName,
+                    Email = user.StaffFarm.Email,
+                    PhoneNumber = user.StaffFarm.PhoneNumber,
+                    Address = user.StaffFarm.Address,
+                    RoleId = user.StaffFarm.Role.Id
+                };
+            }
+            else
+            {
+                prescriptionsWithTasks.User = null; // Handle cases where no "Farm Staff" user exists
+            }
+
+            return prescriptionsWithTasks;
+        }
+
+
+        private CageIsolationResponseModel MapCageToResponse(Cage cage, List<PrescriptionResponseModel> prescriptions)
+        {
+            return new CageIsolationResponseModel
+            {
+                Id = cage.Id,
+                PenCode = cage.PenCode,
+                FarmId = cage.FarmId,
+                Name = cage.Name,
+                Area = cage.Area,
+                Location = cage.Location,
+                Capacity = cage.Capacity,
+                BoardCode = cage.BoardCode,
+                BoardStatus = cage.BoardStatus,
+                CreatedDate = cage.CreatedDate,
+                ModifiedDate = cage.ModifiedDate,
+                IsDeleted = cage.IsDeleted,
+                DeletedDate = cage.DeletedDate,
+                CameraUrl = cage.CameraUrl,
+                ChannelId = cage.ChannelId,
+                IsSolationCage = cage.IsSolationCage,
+                Prescriptions = prescriptions
+            };
+        }
 
     }
 }

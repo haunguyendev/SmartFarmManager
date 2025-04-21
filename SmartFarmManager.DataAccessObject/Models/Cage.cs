@@ -7,20 +7,18 @@ namespace SmartFarmManager.DataAccessObject.Models;
 
 public partial class Cage : EntityBase
 {
-    public string PenCode { get; set; } // ma chuong de lay data 
+    public string PenCode { get; set; }
     public Guid FarmId { get; set; }
     public string Name { get; set; }
 
-    public double Area { get; set; }
+    public double? Area { get; set; }
 
-    public string Location { get; set; }
+    public string? Location { get; set; }
 
-    public int Capacity { get; set; }
+    public int? Capacity { get; set; }
+    public string? BoardCode { get; set; }
 
-
-    public string BoardCode { get; set; } //??? 
-
-    public bool BoardStatus { get; set; }
+    public bool? BoardStatus { get; set; }
 
     public DateTime CreatedDate { get; set; }
 

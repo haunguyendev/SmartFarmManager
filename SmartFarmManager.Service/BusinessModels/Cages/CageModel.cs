@@ -11,9 +11,9 @@ namespace SmartFarmManager.Service.BusinessModels.Cages
         public Guid Id { get; set; }
         public Guid FarmId { get; set; }
         public string Name { get; set; }
-        public double Area { get; set; }
-        public int Capacity { get; set; }
-        public string Location { get; set; }
+        public double? Area { get; set; }
+        public int? Capacity { get; set; }
+        public string? Location { get; set; }
     }
 
 }

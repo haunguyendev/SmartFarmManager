@@ -12,6 +12,7 @@ using SmartFarmManager.Service.BusinessModels.Medication;
 using SmartFarmManager.Service.BusinessModels.Picture;
 using SmartFarmManager.Service.BusinessModels.Prescription;
 using SmartFarmManager.Service.BusinessModels.PrescriptionMedication;
+using SmartFarmManager.Service.BusinessModels.Users;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
 using SmartFarmManager.Service.Shared;
@@ -94,6 +95,18 @@ namespace SmartFarmManager.Service.Services
                 .Include(fb => fb.MedicalSymptoms) // 🚀 Thêm để lấy bệnh (Disease)
                     .ThenInclude(ms => ms.Disease)
                 .ToListAsync();
+
+        //    var cageIds = symptoms
+        //.Select(ms => ms.FarmingBatch?.Cage?.Id)
+        //.Where(cageId => cageId != null)
+        //.Distinct()
+        //.ToList();
+
+        //    // Step 3: Query users based on Cage IDs
+        //    var usersInCages = await _unitOfWork.Users
+        //        .FindByCondition(u => u.CageStaffs.Any(cs => cageIds.Contains(cs.CageId)))
+        //        .ToListAsync();
+        var isolateCage = await _unitOfWork.Cages.FindByCondition(c => c.IsSolationCage == true).Include(c => c.CageStaffs).ThenInclude(cf => cf.StaffFarm).FirstOrDefaultAsync();
             return symptoms.Select(ms => new GetAllMedicalSymptomModel
             {
                 Id = ms.Id,
@@ -108,6 +121,7 @@ namespace SmartFarmManager.Service.Services
                 IsEmergency = ms.IsEmergency,
                 QuantityInCage = ms.QuantityInCage,
                 CageAnimalName = ms.FarmingBatch.Cage.Name,
+                CageId = ms.FarmingBatch.Cage.Id,
                 Pictures = ms.Pictures.Select(p => new PictureModel
                 {
                     Id = p.Id,
@@ -178,6 +192,14 @@ namespace SmartFarmManager.Service.Services
                     .Select(ms => ms.Diagnosis)
                     .FirstOrDefault()
             }).ToList() ?? new List<PrescriptionModel>(),
+                // 🔥 Include user information in response model (optional)
+                User =  new UserUpdateModel
+                {
+                    FullName = isolateCage.CageStaffs.FirstOrDefault().StaffFarm.FullName,
+                    Email = isolateCage.CageStaffs.FirstOrDefault().StaffFarm.Email,
+                    PhoneNumber = isolateCage.CageStaffs.FirstOrDefault().StaffFarm.PhoneNumber,
+                    Address = isolateCage.CageStaffs.FirstOrDefault().StaffFarm.Address
+                },
                 Symptoms = string.Join(", ", ms.MedicalSymptomDetails.Select(d => d.Symptom.SymptomName))
             });
         }
@@ -288,6 +310,13 @@ namespace SmartFarmManager.Service.Services
                     var hasAfternoonMedication = updatedModel.Prescriptions.Medications.Any(m => m.Afternoon > 0);
                     var hasEveningMedication = updatedModel.Prescriptions.Medications.Any(m => m.Evening > 0);
 
+                    //check current session vs smallest medication session
+                    var checkCurrentSessionVsSmallestMedication = IsCurrentSessionValidForMedication(currentSession, updatedModel.Prescriptions.Medications);
+                    if (!checkCurrentSessionVsSmallestMedication)
+                    {
+                        newPrescription.EndDate = newPrescription.EndDate.Value.AddDays(-1);
+                    }
+                    await _unitOfWork.Prescription.UpdateAsync(newPrescription);
                     // Tạo danh sách TaskDaily và Task
                     var taskList = new List<DataAccessObject.Models.Task>();
                     var taskType = await _unitOfWork.TaskTypes.FindByCondition(t => t.TaskTypeName == "Cho uống thuốc").FirstOrDefaultAsync();
@@ -695,7 +724,7 @@ namespace SmartFarmManager.Service.Services
                 if(firstTask != null)
                 {
                     var staffFarm = await _unitOfWork.Users
-                        .FindByCondition(u => u.CageStaffs.Any(cs => cs.CageId == cage.Id))
+                        .FindByCondition(u => u.CageStaffs.Any(cs => cs.CageId == cage.Id) && u.Role.RoleName == "Staff Farm")
                         .FirstOrDefaultAsync();
                     var notiType = await _unitOfWork.NotificationsTypes.FindByCondition(nt => nt.NotiTypeName == "Task").FirstOrDefaultAsync();
                     var notificationStaff = new DataAccessObject.Models.Notification
@@ -722,6 +751,36 @@ namespace SmartFarmManager.Service.Services
             }
         }
 
+        private int GetSmallestMedicationSession(IEnumerable<PrescriptionMedicationModel> medications)
+        {
+            var sessions = new List<int>();
+
+            // Check each session and add its corresponding session number if medication exists
+            if (medications.Any(m => m.Morning > 0))
+                sessions.Add(1); // Morning
+            if (medications.Any(m => m.Noon > 0))
+                sessions.Add(2); // Noon
+            if (medications.Any(m => m.Afternoon > 0))
+                sessions.Add(3); // Afternoon
+            if (medications.Any(m => m.Evening > 0))
+                sessions.Add(4); // Evening
+
+            // Return the smallest session number or -1 if no medication is defined
+            return sessions.Any() ? sessions.Min() : -1;
+        }
+
+        private bool IsCurrentSessionValidForMedication(int currentSession, IEnumerable<PrescriptionMedicationModel> medications)
+        {
+            // Get the smallest session for medication
+            int smallestSession = GetSmallestMedicationSession(medications);
+
+            // Return false if no valid session is defined for medication
+            if (smallestSession == -1)
+                return false;
+
+            // Compare current session with the smallest medication session
+            return currentSession >= smallestSession;
+        }
         //public async Task<Guid?> CreateMedicalSymptomAsync(MedicalSymptomModel medicalSymptomModel)
         //{
         //    try

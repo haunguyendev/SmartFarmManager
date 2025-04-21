@@ -2,6 +2,8 @@
 using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Repository.Interfaces;
 using SmartFarmManager.Service.BusinessModels;
+using SmartFarmManager.Service.BusinessModels.AnimalSale;
+using SmartFarmManager.Service.BusinessModels.AnimalTemplate;
 using SmartFarmManager.Service.BusinessModels.Cages;
 using SmartFarmManager.Service.BusinessModels.DailyFoodUsageLog;
 using SmartFarmManager.Service.BusinessModels.FarmingBatch;
@@ -25,7 +27,7 @@ namespace SmartFarmManager.Service.Services
         private readonly INotificationService _notificationUserService;
         private readonly EmailService _emailService;
 
-        public FarmingBatchService(IUnitOfWork unitOfWork, ITaskService taskService, EmailService emailService,NotificationService notificationService, INotificationService notificationUserService)
+        public FarmingBatchService(IUnitOfWork unitOfWork, ITaskService taskService, EmailService emailService, NotificationService notificationService, INotificationService notificationUserService)
         {
             _unitOfWork = unitOfWork;
             _taskService = taskService;
@@ -64,7 +66,7 @@ namespace SmartFarmManager.Service.Services
             }
 
             var ageEndMax = animalTemplate.GrowthStageTemplates.Max(gst => gst.AgeEnd);
-            var estimatedTimeEnd = model.EstimatedTimeStart.Value.AddDays(ageEndMax ?? 0);  
+            var estimatedTimeEnd = model.EstimatedTimeStart.Value.AddDays(ageEndMax ?? 0);
 
             var existingBatch = await _unitOfWork.FarmingBatches
                 .FindByCondition(fb => fb.CageId == model.CageId &&
@@ -94,7 +96,7 @@ namespace SmartFarmManager.Service.Services
             try
             {
 
-               
+
 
                 var cage = await _unitOfWork.Cages.FindAsync(x => x.Id == model.CageId && !x.IsDeleted);
                 if (cage == null)
@@ -104,7 +106,7 @@ namespace SmartFarmManager.Service.Services
 
                 var farmingBatch = new FarmingBatch
                 {
-                    FarmingBatchCode = GenerateFarmingBatchCode(model.TemplateId,(DateTime)model.EstimatedTimeStart),
+                    FarmingBatchCode = GenerateFarmingBatchCode(model.TemplateId, (DateTime)model.EstimatedTimeStart),
                     TemplateId = model.TemplateId,
                     CageId = model.CageId,
                     Name = model.Name,
@@ -131,10 +133,10 @@ namespace SmartFarmManager.Service.Services
                         AgeEnd = template.AgeEnd,
                         FoodType = template.FoodTemplates.FirstOrDefault()?.FoodType,
                         Status = GrowthStageStatusEnum.Planning,
-                        Quantity=model.Quantity,
+                        Quantity = model.Quantity,
                         AgeStartDate = null, // Sẽ được cập nhật khi trạng thái chuyển sang Active
                         AgeEndDate = null,
-                        SaleTypeId= template.SaleTypeId,
+                        SaleTypeId = template.SaleTypeId,
                         RecommendedWeightPerSession = farmingBatch.Quantity * (template.WeightAnimal ?? 0) * (template.FoodTemplates.Sum(f => f.WeightBasedOnBodyMass) ?? 0),
                         WeightBasedOnBodyMass = template.FoodTemplates.Sum(f => f.WeightBasedOnBodyMass)
                     }).ToList();
@@ -187,7 +189,7 @@ namespace SmartFarmManager.Service.Services
                             VaccineId = vaccine.Id,
                             Quantity = farmingBatch.Quantity,
                             ApplicationAge = vaccineTemplate.ApplicationAge,
-                            Session=vaccineTemplate.Session,
+                            Session = vaccineTemplate.Session,
                             Status = VaccineScheduleStatusEnum.Upcoming,
                             Date = null // Ngày sẽ được cập nhật khi trạng thái chuyển sang Active
                         });
@@ -225,7 +227,7 @@ namespace SmartFarmManager.Service.Services
             }
             var ageEndMax = animalTemplate.GrowthStageTemplates.Max(gst => gst.AgeEnd);
             var estimatedTimeEnd = model.EstimatedTimeStart.Value.AddDays(ageEndMax ?? 0);
-            
+
             // Kiểm tra số lần tạo vụ nuôi trong chuồng cho từng chuồng
             foreach (var cageItem in model.FarmingBatchItems)
             {
@@ -240,7 +242,7 @@ namespace SmartFarmManager.Service.Services
                 }
 
 
-               
+
 
                 var existingBatch = await _unitOfWork.FarmingBatches
                     .FindByCondition(fb => fb.CageId == cageItem.CageId &&
@@ -270,7 +272,7 @@ namespace SmartFarmManager.Service.Services
 
             try
             {
-               
+
                 // Lặp qua tất cả các chuồng để tạo vụ nuôi cho từng chuồng
                 foreach (var cageItem in model.FarmingBatchItems)
                 {
@@ -531,7 +533,16 @@ namespace SmartFarmManager.Service.Services
             }
             else if (newStatus == FarmingBatchStatusEnum.Completed)
             {
-                // **Chuyển trạng thái sang Completed**
+
+                var hasActivePrescription = farmingBatch.MedicalSymptoms
+        .SelectMany(ms => ms.Prescriptions)
+        .Any(p => p.Status == PrescriptionStatusEnum.Active);
+
+                if (hasActivePrescription)
+                {
+                    throw new InvalidOperationException("Không thể hoàn thành vụ nuôi vì còn đơn thuốc đang hoạt động.");
+                }
+
                 farmingBatch.Status = FarmingBatchStatusEnum.Completed;
                 farmingBatch.CompleteAt = DateTimeUtils.GetServerTimeInVietnamTime();
 
@@ -599,17 +610,18 @@ namespace SmartFarmManager.Service.Services
         }
 
 
-        public async Task<PagedResult<FarmingBatchModel>> GetFarmingBatchesAsync(string? keySearch,Guid? farmId, string? cageName, string? name, string? species, DateTime? startDateFrom, DateTime? startDateTo, int pageNumber, int pageSize, Guid? cageId, bool? isCancel)
+        public async Task<PagedResult<FarmingBatchModel>> GetFarmingBatchesAsync(string? keySearch, Guid? farmId, string? cageName, string? name, string? species, DateTime? startDateFrom, DateTime? startDateTo, int pageNumber, int pageSize, Guid? cageId, bool? isCancel)
         {
             var query = _unitOfWork.FarmingBatches.FindAll()
                 .Include(fb => fb.Cage) // Include related Cage
                 .Include(fb => fb.Template)
+                .Include(fb => fb.GrowthStages)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(keySearch))
             {
                 query = query.Where(fb =>
-                    fb.Name.Contains(keySearch) ||                    
+                    fb.Name.Contains(keySearch) ||
                     fb.Status.Contains(keySearch)
                     || fb.Cage.Name.Contains(keySearch));
             }
@@ -656,15 +668,18 @@ namespace SmartFarmManager.Service.Services
                 .Select(fb => new FarmingBatchModel
                 {
                     Id = fb.Id,
-                    FarmingbatchCode=fb.FarmingBatchCode,
+                    FarmingbatchCode = fb.FarmingBatchCode,
                     Name = fb.Name,
                     StartDate = fb.StartDate,
                     CompleteAt = fb.CompleteAt,
                     Status = fb.Status,
-                    EndDate=fb.EndDate,
+                    EndDate = fb.EndDate,
                     EstimatedTimeStart = fb.EstimatedTimeStart,
                     CleaningFrequency = fb.CleaningFrequency,
                     Quantity = fb.Quantity,
+                    AffectQuantity = fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).AffectedQuantity,
+                    CurrentQuantity = fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).Quantity,
+                    DeadQuantity = fb.DeadQuantity,
                     Cage = fb.Cage == null ? null : new CageModel
                     {
                         Id = fb.Cage.Id,
@@ -729,11 +744,70 @@ namespace SmartFarmManager.Service.Services
             };
         }
 
+        public async Task<FarmingBatchModel> GetFarmingBatchByCageIdAndueDateTaskAsync(Guid cageId, DateTime dueDateTask)
+        {
+
+
+            // Tìm FarmingBatch theo CageId và các điều kiện
+            var farmingBatch = await _unitOfWork.FarmingBatches.FindByCondition(
+    fb =>
+        fb.CageId == cageId &&
+        fb.StartDate.HasValue &&
+        (fb.CompleteAt.HasValue || fb.EndDate.HasValue) &&
+        fb.StartDate.Value.Date <= dueDateTask.Date &&
+        (
+            (fb.CompleteAt.HasValue && fb.CompleteAt.Value.Date.AddDays(1) >= dueDateTask.Date) ||
+            (fb.EndDate.HasValue && fb.EndDate.Value.Date.AddDays(1) >= dueDateTask.Date)
+        ),
+    trackChanges: false
+).Include(fb => fb.GrowthStages).FirstOrDefaultAsync();
+
+            if (farmingBatch == null)
+                return null;
+
+            var growthStage = farmingBatch.GrowthStages.Where(gs => gs.AgeStartDate.HasValue && (gs.AgeStartDate.HasValue || gs.AgeEndDate.HasValue)
+                                                                    && gs.AgeStartDate.Value.Date <= dueDateTask.Date &&
+                                                                    (gs.AgeEndDate.HasValue && gs.AgeEndDate.Value.Date >= dueDateTask.Date)).FirstOrDefault();
+            if (growthStage == null)
+            {
+                growthStage = farmingBatch.GrowthStages.Where(gs => gs.AgeStartDate.HasValue && (gs.AgeStartDate.HasValue || gs.AgeEndDate.HasValue)
+                                                                    && gs.AgeStartDate.Value.Date <= dueDateTask.Date &&
+                                                                    (gs.AgeEndDate.HasValue && gs.AgeEndDate.Value.Date.AddDays(1) >= dueDateTask.Date)).FirstOrDefault();
+            }
+            return new FarmingBatchModel
+            {
+                Id = farmingBatch.Id,
+                Name = farmingBatch.Name,
+                StartDate = farmingBatch.StartDate,
+                CompleteAt = farmingBatch.CompleteAt,
+                Status = farmingBatch.Status,
+                CleaningFrequency = farmingBatch.CleaningFrequency,
+                Quantity = farmingBatch.Quantity,
+                DeadQuantity = farmingBatch?.DeadQuantity,
+                GrowthStageDetails = new GrowthStageDetailModel
+                {
+                    Id = growthStage.Id,
+                    Name = growthStage.Name,
+                    WeightAnimal = growthStage.WeightAnimal,
+                    Quantity = growthStage.Quantity,
+                    AgeStart = growthStage.AgeStart,
+                    AgeEnd = growthStage.AgeEnd,
+                    AgeStartDate = growthStage.AgeStartDate,
+                    AgeEndDate = growthStage.AgeEndDate,
+                    Status = growthStage.Status,
+                    AffectQuantity = growthStage.AffectedQuantity,
+                    DeadQuantity = growthStage.DeadQuantity,
+                    RecommendedWeightPerSession = growthStage.RecommendedWeightPerSession,
+                    WeightBasedOnBodyMass = growthStage.WeightBasedOnBodyMass,
+                }
+            };
+        }
+
         public async Task<List<FarmingBatchModel>> GetActiveFarmingBatchesByUserAsync(Guid userId)
         {
             // Lấy danh sách Cage theo userId
             var cages = await _unitOfWork.Cages
-                .FindByCondition(c => c.CageStaffs.Any(cs => cs.StaffFarmId == userId) && !c.IsDeleted && c.BoardStatus)
+                .FindByCondition(c => c.CageStaffs.Any(cs => cs.StaffFarmId == userId) && !c.IsDeleted && c.BoardStatus.HasValue&&c.BoardStatus.Value)
                 .Include(c => c.FarmingBatches)
                 .ToListAsync();
 
@@ -823,7 +897,7 @@ namespace SmartFarmManager.Service.Services
 
         public async System.Threading.Tasks.Task RunUpdateFarmingBatchesStatusAsync()
         {
-            var today =DateTimeUtils.GetServerTimeInVietnamTime().Date;
+            var today = DateTimeUtils.GetServerTimeInVietnamTime().Date;
             var farmingBatchesToUpdate = await _unitOfWork.FarmingBatches
                 .FindByCondition(fb => fb.Status == FarmingBatchStatusEnum.Planning && fb.StartDate.HasValue && fb.StartDate.Value.Date == today)
                 .ToListAsync();
@@ -848,7 +922,7 @@ namespace SmartFarmManager.Service.Services
         {
             var farmingBatch = await _unitOfWork.FarmingBatches
                 .FindAll()
-                .Where(fb => fb.Id == farmingBatchId && fb.Status == FarmingBatchStatusEnum.Completed)
+                .Where(fb => fb.Id == farmingBatchId)
                 .Include(fb => fb.Cage)
                 .Include(fb => fb.AnimalSales)
                     .ThenInclude(a => a.SaleType)
@@ -866,6 +940,8 @@ namespace SmartFarmManager.Service.Services
                     .ThenInclude(ms => ms.Disease) // ✅ Thêm thông tin bệnh (Disease)
                 .Include(fb => fb.GrowthStages)
                     .ThenInclude(gs => gs.EggHarvests)
+                .Include(fb => fb.Template)
+                    .ThenInclude(t => t.GrowthStageTemplates)
                 .FirstOrDefaultAsync();
 
             if (farmingBatch == null)
@@ -878,7 +954,7 @@ namespace SmartFarmManager.Service.Services
 
             var totalMeatSales = farmingBatch.AnimalSales
                 .Where(sale => sale.SaleType.StageTypeName == "MeatSale")
-                .Sum(sale => sale.UnitPrice * sale.Quantity) ?? 0;
+                .Sum(sale => (decimal)sale.UnitPrice * sale.Weight) ?? 0;
 
             // Tổng chi phí thức ăn
             var totalFoodCost = farmingBatch.GrowthStages
@@ -888,7 +964,7 @@ namespace SmartFarmManager.Service.Services
             // Tổng chi phí vaccine
             var totalVaccineCost = farmingBatch.GrowthStages
                 .SelectMany(gs => gs.VaccineSchedules)
-                .Sum(vaccine => vaccine.Quantity * (vaccine.ToltalPrice ?? 0));
+                .Sum(vaccine => (vaccine.ToltalPrice ?? 0));
 
             // Tổng chi phí thuốc
             var totalMedicineCost = farmingBatch.MedicalSymptoms
@@ -900,6 +976,42 @@ namespace SmartFarmManager.Service.Services
                 .SelectMany(gs => gs.EggHarvests)
                 .Sum(eh => eh.EggCount);
 
+
+            // Kiểm tra null để tránh lỗi
+            if (farmingBatch?.Template?.GrowthStageTemplates == null)
+                throw new InvalidOperationException("FarmingBatch template or growth stage templates not found.");
+
+            // Lấy WeightAnimal lớn nhất từ GrowthStageTemplates (loại bỏ giá trị null)
+            var maxWeightAnimal = farmingBatch.Template.GrowthStageTemplates
+                .Where(gst => gst.WeightAnimal.HasValue)
+                .Max(gst => gst.WeightAnimal) ?? 0;
+
+            // Lấy số lượng vật nuôi (mặc định 0 nếu null)
+            var quantity = farmingBatch.Quantity ?? 0;
+
+            // Tính tổng khối lượng dự kiến
+            var expectTotalWeight = maxWeightAnimal * quantity;
+
+            // ExpectTotalWeight đã được tính trước đó (ví dụ: decimal expectTotalWeight = ...)
+
+            var meatSales = farmingBatch.AnimalSales
+                .Where(sale => sale.SaleType.StageTypeName == "MeatSale")
+                .Select(sale => new AnimalMeatSaleModel
+                {
+                    Id = sale.Id,
+                    FarmingBatchId = sale.FarmingBatchId,
+                    SaleDate = sale.SaleDate,
+                    Total = sale.Total,
+                    UnitPrice = (decimal)sale.UnitPrice,
+                    Quantity = sale.Quantity,
+                    StaffId = sale.StaffId,
+                    SaleTypeId = sale.SaleTypeId,
+                    Weight = sale.Weight,
+                    SaleTypeName = sale.SaleType.StageTypeName,
+                    ExpectTotalWeight = expectTotalWeight
+                })
+                .ToList();
+
             // Chi tiết vaccine tiêm trong từng giai đoạn
             var vaccineDetails = farmingBatch.GrowthStages
                 .SelectMany(gs => gs.VaccineSchedules)
@@ -910,7 +1022,8 @@ namespace SmartFarmManager.Service.Services
                     TotalPrice = vs.ToltalPrice ?? 0,
                     DateAdministered = vs.Date
                 })
-                .ToList();
+                .OrderByDescending(vd => vd.DateAdministered).ToList();
+            farmingBatch.GrowthStages = farmingBatch.GrowthStages.OrderBy(gs => gs.AgeStart).ToList();
 
             var growthStageReports = farmingBatch.GrowthStages.Select(gs => new GrowthStageReportModel
             {
@@ -929,7 +1042,7 @@ namespace SmartFarmManager.Service.Services
                     Quantity = vs.Quantity,
                     TotalPrice = vs.ToltalPrice ?? 0,
                     DateAdministered = vs.Date
-                }).ToList(),
+                }).OrderByDescending(e => e.DateAdministered).ToList(),
 
                 Foods = gs.DailyFoodUsageLogs.GroupBy(f => f.Stage.FoodType).Select(group => new FoodUsageDetail
                 {
@@ -950,6 +1063,7 @@ namespace SmartFarmManager.Service.Services
                 Symptoms = ms.MedicalSymptomDetails.Select(d => d.Symptom.SymptomName).ToList()
             }).ToList()
             }).ToList();
+            farmingBatch.MedicalSymptoms = farmingBatch.MedicalSymptoms.OrderBy(ms => ms.CreateAt).ToList();
 
             // Chi tiết đơn thuốc trong quá trình nuôi
             var prescriptionDetails = farmingBatch.MedicalSymptoms
@@ -972,9 +1086,22 @@ namespace SmartFarmManager.Service.Services
                 .Select(group => new FoodUsageDetail
                 {
                     FoodType = group.Key,
-                    TotalWeightUsed = group.Sum(log => log.ActualWeight ?? 0)
+                    TotalWeightUsed = group.Sum(log => log.ActualWeight ?? 0),
+                    //Lấy thông tin của đơn giá của food 
+                    UnitPrice = group.FirstOrDefault()?.UnitPrice ?? 0,
+                    TotalCost = group.Sum(log => (log.ActualWeight ?? 0) * Convert.ToDecimal(log.UnitPrice)), // Tính tổng chi phí
+                    // Lấy tên các giai đoạn, loại bỏ trùng lặp và nối bằng dấu phẩy
+                    GrowStageNames = string.Join(", ", group
+            .Select(log => log.Stage?.Name ?? "Unknown") // Xử lý null
+            .Distinct()
+            .OrderBy(name => name))
                 })
                 .ToList();
+
+            //sum food used
+            var totalWeightFoodUsed = foodUsageDetails.Sum(fud => fud.TotalWeightUsed);
+            //sum weightSales
+            var totalSumMeatSales = meatSales.Sum(ms => ms.Weight);
 
             // Lợi nhuận ròng
             var netProfit = ((decimal)totalEggSales + (decimal)totalMeatSales) - (totalFoodCost + (decimal)totalVaccineCost + totalMedicineCost);
@@ -998,7 +1125,9 @@ namespace SmartFarmManager.Service.Services
                 VaccineDetails = vaccineDetails,
                 PrescriptionDetails = prescriptionDetails,
                 FoodUsageDetails = foodUsageDetails,
-                GrowthStageReports = growthStageReports
+                GrowthStageReports = growthStageReports,
+                AnimalMeatSales = meatSales,
+                FCR = totalSumMeatSales == 0 ? 0 : totalWeightFoodUsed / totalSumMeatSales
             };
         }
         public async System.Threading.Tasks.Task CheckAndNotifyAdminForUpcomingFarmingBatchesAsync()
@@ -1007,15 +1136,15 @@ namespace SmartFarmManager.Service.Services
             var today = DateTimeUtils.GetServerTimeInVietnamTime().Date;
             var twoDaysLater = today.AddDays(2);
 
-            var farmingBatches = await _unitOfWork.FarmingBatches           
-                .FindByCondition(fb=>fb.StartDate.HasValue &&
-                                     fb.StartDate.Value.Date >=today.Date &&
+            var farmingBatches = await _unitOfWork.FarmingBatches
+                .FindByCondition(fb => fb.StartDate.HasValue &&
+                                     fb.StartDate.Value.Date >= today.Date &&
                                      fb.StartDate.Value.Date <= twoDaysLater.Date &&
                                      fb.Status == FarmingBatchStatusEnum.Planning)
-                .Include(fb=>fb.Cage)
+                .Include(fb => fb.Cage)
                 .ToListAsync();
 
-            foreach(var farmingBatch in farmingBatches)
+            foreach (var farmingBatch in farmingBatches)
             {
                 var activeBatchExists = await _unitOfWork.FarmingBatches
                     .FindByCondition(fb => fb.CageId == farmingBatch.CageId && fb.Status == FarmingBatchStatusEnum.Active)
@@ -1038,7 +1167,7 @@ namespace SmartFarmManager.Service.Services
                         NotiTypeId = (Guid)notiType?.Id,
                         Content = $"Sắp tới có vụ nuôi {farmingBatch.Name} trong chuồng {farmingBatch.Cage.Name} bắt đầu vào ngày {farmingBatch.EstimatedTimeStart.Value.ToString("yyyy-MM-dd")}. Vui lòng xem xét và điều chỉnh lịch cho vụ nuôi nếu có xung đột.",
                         CreatedAt = DateTime.UtcNow,
-                        MedicalSymptomId = null,  
+                        MedicalSymptomId = null,
                         IsRead = false
                     };
                     await _notificationUserService.CreateNotificationAsync(notification);
@@ -1084,7 +1213,7 @@ namespace SmartFarmManager.Service.Services
         {
             // 🔹 Lấy thông tin chuồng
             var cage = await _unitOfWork.Cages
-                .FindByCondition(c => c.Id == cageId)
+                .FindByCondition(c => c.Id == cageId && c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == "Staff Farm"))
                 .Include(c => c.CageStaffs)
                 .ThenInclude(cs => cs.StaffFarm)
                 .FirstOrDefaultAsync();
@@ -1200,9 +1329,9 @@ namespace SmartFarmManager.Service.Services
             }
             var conflictingBatch = await _unitOfWork.FarmingBatches
                 .FindByCondition(fb => fb.CageId == farmingBatch.CageId &&
-                                        fb.Status == FarmingBatchStatusEnum.Active && 
+                                        fb.Status == FarmingBatchStatusEnum.Active &&
                                         fb.EstimatedTimeStart.HasValue &&
-                                        fb.EstimatedTimeStart.Value.Date == newStartDate.Date) 
+                                        fb.EstimatedTimeStart.Value.Date == newStartDate.Date)
                 .FirstOrDefaultAsync();
 
             if (conflictingBatch != null)
@@ -1226,10 +1355,10 @@ namespace SmartFarmManager.Service.Services
             var farmingBatch = await _unitOfWork.FarmingBatches
                 .FindByCondition(fb => fb.Id == farmingBatchId)
                 .Include(fb => fb.Cage)
-                .Include(fb=>fb.Template)
-                .Include(fb => fb.AnimalSales)  
-                .Include(fb => fb.GrowthStages) 
-                .Include(fb=>fb.MedicalSymptoms)
+                .Include(fb => fb.Template)
+                .Include(fb => fb.AnimalSales)
+                .Include(fb => fb.GrowthStages)
+                .Include(fb => fb.MedicalSymptoms)
                 .FirstOrDefaultAsync();
 
             if (farmingBatch == null)
@@ -1249,7 +1378,7 @@ namespace SmartFarmManager.Service.Services
                 CleaningFrequency = farmingBatch.CleaningFrequency,
                 CompleteAt = farmingBatch.CompleteAt,
                 DeadQuantity = farmingBatch.DeadQuantity,
-                EstimatedTimeStart=farmingBatch.EstimatedTimeStart,
+                EstimatedTimeStart = farmingBatch.EstimatedTimeStart,
                 FarmId = farmingBatch.FarmId,
                 FarmingBatchCode = farmingBatch.FarmingBatchCode,
                 Quantity = farmingBatch.Quantity,
@@ -1257,7 +1386,7 @@ namespace SmartFarmManager.Service.Services
                 AnimalSales = farmingBatch.AnimalSales.Select(asale => new AnimalSaleDetaiInFarmingBatchlModel
                 {
                     Id = asale.Id,
-                    SaleDate = (DateTime) asale.SaleDate,
+                    SaleDate = (DateTime)asale.SaleDate,
                     Quantity = asale.Quantity,
                     Total = asale.Total,
                     UnitPrice = (double)asale.UnitPrice
@@ -1265,19 +1394,27 @@ namespace SmartFarmManager.Service.Services
                 GrowthStages = farmingBatch.GrowthStages.Select(gs => new GrowthStageDetailInFarmingBactchModel
                 {
                     Id = gs.Id,
-                    Name = gs.Name,                 
+                    Name = gs.Name,
                     AgeStartDate = gs.AgeStartDate,
-                    AgeEndDate = gs.AgeEndDate
+                    AgeEndDate = gs.AgeEndDate,
+                    WeightAnimal = gs.WeightAnimal,
+                    Quantity = gs.Quantity,
+                    FoodType = gs.FoodType,
+                    Status = gs.Status,
+                    AffectQuantity = gs.AffectedQuantity,
+                    DeadQuantity = gs.DeadQuantity,
+                    RecommendedWeightPerSession = gs.RecommendedWeightPerSession,
+                    WeightBasedOnBodyMass = gs.WeightBasedOnBodyMass,
                 }).ToList(),
-                MedicalSymptoms=farmingBatch.MedicalSymptoms.Select(ms => new MedicalSymptomInFarmingBatchModel
+                MedicalSymptoms = farmingBatch.MedicalSymptoms.Select(ms => new MedicalSymptomInFarmingBatchModel
                 {
                     Id = ms.Id,
                     Diagnosis = ms.Diagnosis,
                     AffectedQuantity = ms.AffectedQuantity,
                     IsEmergency = ms.IsEmergency,
-                    Notes=ms.Notes,
+                    Notes = ms.Notes,
                     QuantityInCage = ms.QuantityInCage,
-                    Status= ms.Status
+                    Status = ms.Status
 
                 }).ToList()
 
@@ -1286,6 +1423,141 @@ namespace SmartFarmManager.Service.Services
 
             return detailModel;
         }
+        public async Task<List<GroupFarmingBatchModel>> GetGroupedFarmingBatchesByUser(Guid userId)
+        {
+            // Lấy các CageId mà user này phụ trách
+            var cageIds = await _unitOfWork.CageStaffs
+                .FindByCondition(cs => cs.StaffFarmId == userId)
+                .Select(cs => cs.CageId)
+                .ToListAsync();
 
+            // Lấy các FarmingBatch thuộc các Cage đó
+            var farmingBatches = await _unitOfWork.FarmingBatches
+                .FindByCondition(fb => cageIds.Contains(fb.CageId))
+                .Include(fb => fb.Cage)
+                .Include(fb => fb.Template)
+                .ToListAsync();
+
+            // Map sang FarmingBatchModel
+            var farmingBatchModels = farmingBatches.Select(fb => new FarmingBatchModel
+            {
+                Id = fb.Id,
+                FarmingbatchCode = fb.FarmingBatchCode,
+                Name = fb.Name,
+                Species = fb.Template?.Species, // Nếu có
+                StartDate = fb.StartDate,
+                CompleteAt = fb.CompleteAt,
+                EstimatedTimeStart = fb.EstimatedTimeStart,
+                EndDate = fb.EndDate,
+                Status = fb.Status,
+                CleaningFrequency = fb.CleaningFrequency,
+                Quantity = fb.Quantity,
+                DeadQuantity = fb.DeadQuantity,
+                Cage = fb.Cage == null ? null : new CageModel
+                {
+                    Id = fb.Cage.Id,
+                    FarmId = fb.Cage.FarmId,
+                    Name = fb.Cage.Name,
+                    Area = fb.Cage.Area,
+                    Capacity = fb.Cage.Capacity,
+                    Location = fb.Cage.Location
+                },
+                Template = fb.Template == null ? null : new AnimalTemplateItemModel
+                {
+                    // Map các trường cần thiết của Template
+                    Id = fb.Template.Id,
+                    Name = fb.Template.Name,
+                    Species = fb.Template.Species
+                    // ... các trường khác nếu cần
+                }
+                // GrowthStageDetails nếu cần thì map thêm
+            }).ToList();
+
+            // Group theo Name và StartDate
+            var grouped = farmingBatchModels
+                .GroupBy(fb => new
+                {
+                    FarmingBatchName = fb.Name,
+                    DateStart = fb.StartDate.HasValue ? fb.StartDate.Value.Date : (DateTime?)null
+                })
+                .Select(g => new GroupFarmingBatchModel
+                {
+                    FarmingBatchName = g.Key.FarmingBatchName,
+                    DateStart = g.Key.DateStart,
+                    farmingBatchModels = g.ToList()
+                })
+                .ToList();
+
+            return grouped;
+        }
+
+        public async Task<FarmingBatch> UpdateDeadAnimalsAsync(
+        Guid farmingBatchId,
+        Guid growthStageId,
+        int deadAnimal)
+        {
+            // Kiểm tra FarmingBatch tồn tại và đang active
+            var farmingBatch = await _unitOfWork.FarmingBatches
+                .FindByCondition(fb =>
+                    fb.Id == farmingBatchId &&
+                    fb.Status == FarmingBatchStatusEnum.Active) // Giả sử trạng thái active là "Active"
+                .Include(fb => fb.Cage)
+                .FirstOrDefaultAsync();
+
+            if (farmingBatch == null)
+                throw new KeyNotFoundException("FarmingBatch not found or inactive.");
+
+            // Kiểm tra GrowthStage thuộc FarmingBatch
+            var growthStage = await _unitOfWork.GrowthStages
+                .FindByCondition(gs =>
+                    gs.Id == growthStageId &&
+                    gs.FarmingBatchId == farmingBatchId &&
+                    gs.Status == GrowthStageStatusEnum.Active)
+                .FirstOrDefaultAsync();
+
+            if (growthStage == null)
+                throw new KeyNotFoundException("GrowthStage not found or inactive for this batch.");
+
+            // Kiểm tra số lượng chết không vượt quá tổng số lượng
+            if (deadAnimal > (farmingBatch.Quantity - farmingBatch.DeadQuantity) ||
+                deadAnimal > (growthStage.Quantity - growthStage.DeadQuantity))
+            {
+                throw new InvalidOperationException(
+                    "DeadAnimal cannot exceed remaining live animals.");
+            }
+
+            // Cập nhật số lượng chết
+            farmingBatch.DeadQuantity += deadAnimal;
+            growthStage.DeadQuantity += deadAnimal;
+
+            await _unitOfWork.FarmingBatches.UpdateAsync(farmingBatch);
+            await _unitOfWork.GrowthStages.UpdateAsync(growthStage);
+
+            // Lưu thay đổi
+            await _unitOfWork.CommitAsync();
+
+            var vetFarm = await _unitOfWork.Users
+                    .FindByCondition(u => u.Role.RoleName == "Vet")
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync();
+            var notiType = await _unitOfWork.NotificationsTypes
+                    .FindByCondition(nt => nt.NotiTypeName == "Alert")
+                    .FirstOrDefaultAsync();
+            var notificationVet = new DataAccessObject.Models.Notification
+            {
+                UserId = vetFarm.Id,
+                NotiTypeId = notiType.Id,
+                Content = $"Có gà chết ở {farmingBatch.Cage.Name} đã được gửi vào lúc {DateTimeUtils.GetServerTimeInVietnamTime()}.\r\nVui lòng kiểm tra và xử lý kịp thời để đảm bảo sức khỏe cho vật nuôi.",
+                Title = "Có gà chết",
+                CreatedAt = DateTimeUtils.GetServerTimeInVietnamTime(),
+                IsRead = false,
+                MedicalSymptomId = null,
+                CageId = farmingBatch.CageId
+            };
+            await _notificationService.SendNotification(vetFarm.DeviceId, "Có báo cáo triệu chứng mới", notificationVet);
+            await _unitOfWork.Notifications.CreateAsync(notificationVet);
+
+            return farmingBatch;
+        }
     }
 }

@@ -20,7 +20,7 @@ namespace SmartFarmManager.Service.Interfaces
         Task<List<FarmingBatchModel>> GetActiveFarmingBatchesByUserAsync(Guid userId);
         Task<FarmingBatchReportResponse> GetFarmingBatchReportAsync(Guid farmingBatchId);
         Task<DetailedFarmingBatchReportResponse> GetDetailedFarmingBatchReportAsync(Guid farmingBatchId);
-
+         
         Task<CageFarmingStageModel> GetCurrentFarmingStageWithCageAsync(Guid cageId);
         Task<bool> CreateFarmingBatchMultiCageAsync(CreateFarmingBatchMultiCageModel model);
 
@@ -30,6 +30,13 @@ namespace SmartFarmManager.Service.Interfaces
         Task<bool> UpdateStartDateAsync(Guid farmingBatchId, DateTime newStartDate);
         Task<FarmingBatchDetailModel> GetFarmingBatchDetailAsync(Guid farmingBatchId);
 
+        Task<FarmingBatchModel> GetFarmingBatchByCageIdAndueDateTaskAsync(Guid cageId, DateTime dueDateTask);
+        Task<List<GroupFarmingBatchModel>> GetGroupedFarmingBatchesByUser(Guid userId);
+
+        Task<FarmingBatch> UpdateDeadAnimalsAsync(
+        Guid farmingBatchId,
+        Guid growthStageId,
+        int deadAnimal);
 
     }
 }

@@ -17,6 +17,7 @@ public partial class AnimalSale : EntityBase
     public int Quantity { get; set; }
     public Guid StaffId { get; set; }   
     public Guid SaleTypeId { get; set; }
+    public decimal? Weight { get; set; }
 
 
     public virtual SaleType SaleType { get; set; }

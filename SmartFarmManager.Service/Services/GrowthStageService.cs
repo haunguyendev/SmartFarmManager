@@ -394,13 +394,10 @@ namespace SmartFarmManager.Service.Services
                         if (nextGrowthStage.Status == GrowthStageStatusEnum.Upcoming &&                 
                             nextGrowthStage.AgeStart == currentGrowthStage.AgeEnd+1)
                         {
-                            // Cập nhật trạng thái của giai đoạn tiếp theo thành Active
                             nextGrowthStage.Status = GrowthStageStatusEnum.Active;
-
-                            // Cập nhật Quantity và AffectedQuantity cho giai đoạn mới
                             nextGrowthStage.Quantity = currentGrowthStage.Quantity.GetValueOrDefault() - currentGrowthStage.DeadQuantity.GetValueOrDefault();
-                            nextGrowthStage.AffectedQuantity = 0;
-                            // Cập nhật giai đoạn phát triển tiếp theo
+                            nextGrowthStage.AffectedQuantity = currentGrowthStage.AffectedQuantity.GetValueOrDefault();
+                            currentGrowthStage.AffectedQuantity = 0;
                             await _unitOfWork.GrowthStages.UpdateAsync(nextGrowthStage);
                         }
                     }

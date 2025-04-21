@@ -67,7 +67,8 @@ namespace SmartFarmManager.Service.Services
                     }
                     else
                     {
-                        //_logger.LogWarning("❌ Dữ liệu cảm biến không hợp lệ: {Data}", webhookRequest.Data);
+                        _logger.LogWarning("❌ Dữ liệu cảm biến không hợp lệ: {Data}", sensorData);
+                        throw new ArgumentException("Sensor data không hợp lệ.");
                     }
                     break;
 
@@ -97,11 +98,14 @@ namespace SmartFarmManager.Service.Services
                     else
                     {
                         _logger.LogWarning("❌ Dữ liệu cảm biến không hợp lệ: {Data}", jsonRequest);
+                        throw new ArgumentException("Sensor data không hợp lệ.");
                     }
                         break;
-
+                     
                 default:
+                    
                     _logger.LogWarning("❌ Datatype không hợp lệ: {Datatype}", dataType);
+                    throw new ArgumentException($"Datatype không hợp lệ: {dataType}");
                     break;
             }
 
@@ -115,7 +119,7 @@ namespace SmartFarmManager.Service.Services
             if (farm == null)
             {
                 _logger.LogWarning("❌ Không tìm thấy trang trại với mã: {FarmCode}", sensorData.FarmCode);
-                throw new InvalidOperationException($"Farm với FarmCode {sensorData.FarmCode} không hợp lệ.");
+                throw new Exception($"Farm với FarmCode {sensorData.FarmCode} không hợp lệ.");
             }
 
             foreach (var cage in sensorData.Cages)
@@ -124,7 +128,7 @@ namespace SmartFarmManager.Service.Services
                 if (existingCage == null)
                 {
                     _logger.LogWarning("❌ Không tìm thấy chuồng với mã: {PenCode}", cage.PenCode);
-                    throw new InvalidOperationException($"Cage với PenCode {cage.PenCode} không hợp lệ.");
+                    throw new Exception($"Cage với PenCode {cage.PenCode} không hợp lệ.");
                 }
                 foreach (var node in cage.Nodes)
                 {
@@ -181,7 +185,7 @@ namespace SmartFarmManager.Service.Services
             if (farm == null)
             {
                 _logger.LogWarning("❌ Không tìm thấy farm với FarmCode: {FarmCode}", electricData.FarmCode);
-                throw new InvalidOperationException($"Farm với FarmCode {electricData.FarmCode} không hợp lệ.");
+                throw new InvalidOperationException($"Farm với FarmCode {electricData.FarmCode} không hợp lệ hoặc hệ thống không có nông trại với FarmCode {electricData.FarmCode} ");
             }
 
             var existingElectricLog = await _unitOfWork.ElectricityLogs
@@ -298,7 +302,7 @@ namespace SmartFarmManager.Service.Services
 
             _logger.LogInformation("📡 {AlertMessage}", alertMessage);
             var farmAdmins = await _unitOfWork.FarmsAdmins.FindByCondition(fa => fa.FarmId == farm.Id).Select(fm => fm.Admin).FirstOrDefaultAsync();
-            var cageStaff = await _unitOfWork.CageStaffs.FindByCondition(cs => cs.Cage.Id == cage.Id).Select(ct=>ct.StaffFarm).FirstOrDefaultAsync();
+            var cageStaff = await _unitOfWork.CageStaffs.FindByCondition(cs => cs.Cage.Id == cage.Id && cs.StaffFarm.Role.RoleName == "Staff Farm").Select(ct=>ct.StaffFarm).FirstOrDefaultAsync();
 
 
             var notiType = await _unitOfWork.NotificationsTypes.FindByCondition(x => x.NotiTypeName == "Alert").FirstOrDefaultAsync();

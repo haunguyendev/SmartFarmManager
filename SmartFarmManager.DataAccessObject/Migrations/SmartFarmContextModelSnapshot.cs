@@ -52,6 +52,9 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                     b.Property<double?>("UnitPrice")
                         .HasColumnType("float");
 
+                    b.Property<decimal?>("Weight")
+                        .HasColumnType("decimal(10, 2)");
+
                     b.HasKey("Id")
                         .HasName("PK__AnimalSa__1EE3C3FF9307295C");
 
@@ -102,7 +105,7 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("(newid())");
 
-                    b.Property<double>("Area")
+                    b.Property<double?>("Area")
                         .HasColumnType("float");
 
                     b.Property<string>("BoardCode")
@@ -110,7 +113,7 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<bool>("BoardStatus")
+                    b.Property<bool?>("BoardStatus")
                         .HasColumnType("bit");
 
                     b.Property<string>("CameraUrl")
@@ -120,7 +123,7 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasDefaultValue("");
 
-                    b.Property<int>("Capacity")
+                    b.Property<int?>("Capacity")
                         .HasColumnType("int");
 
                     b.Property<int>("ChannelId")

@@ -76,7 +76,6 @@ namespace SmartFarmManager.Service.Services
         {
             var costReports = new List<CostingReport>();
 
-            // 1️⃣ Chi phí điện
             var electricityLogs = await _unitOfWork.ElectricityLogs
                 .FindByCondition(e => e.FarmId == farmId && e.CreatedDate.Date == date)
                 .ToListAsync();
@@ -112,7 +111,6 @@ namespace SmartFarmManager.Service.Services
                 TotalCost = (decimal)waterUsage * waterPrice
             });
 
-            // 3️⃣ Chi phí thức ăn
             var foodLogs = await _unitOfWork.DailyFoodUsageLogs
                 .FindByCondition(f => f.Stage.FarmingBatch.FarmId == farmId && f.LogTime.Value.Date == date)
                 .ToListAsync();
@@ -140,7 +138,6 @@ namespace SmartFarmManager.Service.Services
                 TotalCost = totalVaccineCost.Value
             });
 
-            // 5️⃣ Chi phí thuốc
             var prescriptionLogs = await _unitOfWork.Prescription
                 .FindByCondition(p => p.MedicalSymtom.FarmingBatch.FarmId == farmId && p.PrescribedDate.Value.Date == date)
                 .ToListAsync();

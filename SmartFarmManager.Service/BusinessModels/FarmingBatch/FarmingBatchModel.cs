@@ -19,13 +19,14 @@ namespace SmartFarmManager.Service.BusinessModels.FarmingBatch
         public DateTime? CompleteAt { get; set; }
         public DateTime? EstimatedTimeStart { get; set; }
         public DateTime? EndDate { get; set; }
-
+        public int? AffectQuantity { get; set; }
         public string Status { get; set; }
         public int CleaningFrequency { get; set; }
         public int? Quantity { get; set; }
         public int? DeadQuantity { get; set; }
-        public GrowthStageDetailModel GrowthStageDetails { get; set; }
-        public CageModel Cage { get; set; }
-        public AnimalTemplateItemModel Template { get; set; }
+        public int? CurrentQuantity { get; set; }
+        public GrowthStageDetailModel? GrowthStageDetails { get; set; }
+        public CageModel? Cage { get; set; }
+        public AnimalTemplateItemModel? Template { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Repository.Interfaces;
 using SmartFarmManager.Service.BusinessModels.AnimalSale;
+using SmartFarmManager.Service.BusinessModels.Log;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
 using SmartFarmManager.Service.Shared;
@@ -36,54 +37,112 @@ namespace SmartFarmManager.Service.Services
             var staff = await _unitOfWork.Users
                 .FindByCondition(s => s.Id == request.StaffId)
                 .FirstOrDefaultAsync();
-            if (staff ==null )
+            if (staff == null)
             {
                 return false;
             }
             var typeSale = await _unitOfWork.SaleTypes
                 .FindByCondition(s => s.Id == request.SaleTypeId)
                 .FirstOrDefaultAsync();
-            var newAnimalSale = new AnimalSale
+
+            if (typeSale.StageTypeName == "MeatSale")
             {
-                Id = Guid.NewGuid(),
-                FarmingBatchId = growthStage.FarmingBatchId,
-                SaleDate = request.SaleDate,
-                Total = request.UnitPrice * request.Quantity,
-                UnitPrice = request.UnitPrice,
-                Quantity = request.Quantity,
-                StaffId = request.StaffId,
-                SaleTypeId = request.SaleTypeId
-            };
-            await _unitOfWork.AnimalSales.CreateAsync(newAnimalSale);
-            var newAnimalSaleLogByTask = new AnimalSaleLogByTaskModel
-            {
-                GrowthStageId = request.GrowthStageId,
-                GrowthStageName = growthStage.Name,
-                LogTime =DateTimeUtils.GetServerTimeInVietnamTime(),                
-                Quantity = request.Quantity,
-                SaleDate = request.SaleDate,
-                SaleTypeId = request.SaleTypeId,
-                SaleTypeName = typeSale.StageTypeName,
-                StaffId = request.StaffId,
-                StaffName=staff.FullName,
-                Total = request.UnitPrice * request.Quantity,
-                UnitPrice = request.UnitPrice               
-            };
-            var task = await _unitOfWork.Tasks.FindByCondition(t => t.Id == request.TaskId).FirstOrDefaultAsync();
-            if (task != null)
-            {
-                var statusLog = new StatusLog
+                var newAnimalSaleMeat = new AnimalSale
                 {
-                    TaskId = task.Id,
-                    UpdatedAt = DateTimeUtils.GetServerTimeInVietnamTime(),
-                    Status = TaskStatusEnum.Done,  
-                    Log = JsonConvert.SerializeObject(newAnimalSaleLogByTask)  
+                    Id = Guid.NewGuid(),
+                    FarmingBatchId = growthStage.FarmingBatchId,
+                    SaleDate = request.SaleDate,
+                    Total = request.UnitPrice * (double)request.Weight,
+                    UnitPrice = request.UnitPrice,
+                    Quantity = request.Quantity,
+                    StaffId = request.StaffId,
+                    SaleTypeId = request.SaleTypeId,
+                    Weight = request.Weight
+                };
+                await _unitOfWork.AnimalSales.CreateAsync(newAnimalSaleMeat);
+
+                var newAnimalSaleLogByTaskMeat = new AnimalSaleLogByTaskModel
+                {
+                    GrowthStageId = request.GrowthStageId,
+                    GrowthStageName = growthStage.Name,
+                    LogTime = DateTimeUtils.GetServerTimeInVietnamTime(),
+                    Quantity = request.Quantity,
+                    SaleDate = request.SaleDate,
+                    SaleTypeId = request.SaleTypeId,
+                    SaleTypeName = typeSale.StageTypeName,
+                    StaffId = request.StaffId,
+                    StaffName = staff.FullName,
+                    Total = request.UnitPrice * (double)request.Weight,
+                    UnitPrice = request.UnitPrice,
+                    Weight = request.Weight
                 };
 
-                await _unitOfWork.StatusLogs.CreateAsync(statusLog); 
+                growthStage.Quantity = growthStage.Quantity - request.Quantity;
+                await _unitOfWork.GrowthStages.UpdateAsync(growthStage);
+
+                var task = await _unitOfWork.Tasks.FindByCondition(t => t.Id == request.TaskId).FirstOrDefaultAsync();
+                if (task != null)
+                {
+                    var statusLog = new StatusLog
+                    {
+                        TaskId = task.Id,
+                        UpdatedAt = DateTimeUtils.GetServerTimeInVietnamTime(),
+                        Status = TaskStatusEnum.Done,
+                        Log = JsonConvert.SerializeObject(newAnimalSaleLogByTaskMeat)
+                    };
+
+                    await _unitOfWork.StatusLogs.CreateAsync(statusLog);
+                }
+                await _unitOfWork.CommitAsync();
+                return true;
             }
-            await _unitOfWork.CommitAsync();
-            return true;
+            else
+            {
+
+                var newAnimalSale = new AnimalSale
+                {
+                    Id = Guid.NewGuid(),
+                    FarmingBatchId = growthStage.FarmingBatchId,
+                    SaleDate = request.SaleDate,
+                    Total = request.UnitPrice * request.Quantity,
+                    UnitPrice = request.UnitPrice,
+                    Quantity = request.Quantity,
+                    StaffId = request.StaffId,
+                    SaleTypeId = request.SaleTypeId,
+                    Weight = request.Weight
+                };
+                await _unitOfWork.AnimalSales.CreateAsync(newAnimalSale);
+                var newAnimalSaleLogByTask = new AnimalSaleLogByTaskModel
+                {
+                    GrowthStageId = request.GrowthStageId,
+                    GrowthStageName = growthStage.Name,
+                    LogTime = DateTimeUtils.GetServerTimeInVietnamTime(),
+                    Quantity = request.Quantity,
+                    SaleDate = request.SaleDate,
+                    SaleTypeId = request.SaleTypeId,
+                    SaleTypeName = typeSale.StageTypeName,
+                    StaffId = request.StaffId,
+                    StaffName = staff.FullName,
+                    Total = request.UnitPrice * request.Quantity,
+                    UnitPrice = request.UnitPrice,
+                    Weight = request.Weight
+                };
+                var task = await _unitOfWork.Tasks.FindByCondition(t => t.Id == request.TaskId).FirstOrDefaultAsync();
+                if (task != null)
+                {
+                    var statusLog = new StatusLog
+                    {
+                        TaskId = task.Id,
+                        UpdatedAt = DateTimeUtils.GetServerTimeInVietnamTime(),
+                        Status = TaskStatusEnum.Done,
+                        Log = JsonConvert.SerializeObject(newAnimalSaleLogByTask)
+                    };
+
+                    await _unitOfWork.StatusLogs.CreateAsync(statusLog);
+                }
+                await _unitOfWork.CommitAsync();
+                return true;
+            }
         }
 
 
@@ -95,7 +154,7 @@ namespace SmartFarmManager.Service.Services
                 var task = await _unitOfWork.Tasks
                     .FindByCondition(t => t.Id == taskId)
                     .Include(t => t.StatusLogs)
-                    .Include(t=>t.TaskType)
+                    .Include(t => t.TaskType)
                     .FirstOrDefaultAsync();
 
                 if (task == null)
@@ -129,6 +188,7 @@ namespace SmartFarmManager.Service.Services
                 throw new Exception($"Lỗi khi lấy log từ task: {ex.Message}");
             }
         }
+
 
 
     }

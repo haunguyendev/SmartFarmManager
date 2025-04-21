@@ -63,6 +63,7 @@ namespace SmartFarmManager.Service.Services
             {
                 Id = f.Id,
                 Name = f.Name,
+                FarmCode = f.FarmCode,
                 Address = f.Address,
                 Area = f.Area,
                 PhoneNumber = f.PhoneNumber,

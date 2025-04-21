@@ -76,6 +76,7 @@ namespace SmartFarmManager.Service.Services
         new(ClaimTypes.Role, user.Role.RoleName), //
         new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new(ClaimTypes.Name, user.FullName),
+        new("PhoneNumber", user.PhoneNumber)
     };
 
             var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
@@ -105,6 +106,8 @@ namespace SmartFarmManager.Service.Services
         new(ClaimTypes.Role, user.Role.RoleName),
         new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new(ClaimTypes.Name, user.FullName),
+        new("PhoneNumber", user.PhoneNumber)
+
     };
 
             var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
@@ -157,7 +160,7 @@ namespace SmartFarmManager.Service.Services
                 ValidateIssuer = false,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateLifetime = true // Ignore expiration for validation
+                ValidateLifetime = false // Ignore expiration for validation
             };
 
             try

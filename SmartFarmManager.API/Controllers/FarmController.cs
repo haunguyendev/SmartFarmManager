@@ -48,7 +48,7 @@ namespace SmartFarmManager.API.Controllers
                 {
                     Name = request.Name,
                     Address = request.Address,
-                    Area = request.Area,
+                    Area = (double)request.Area,
                     PhoneNumber = request.PhoneNumber,
                     Email = request.Email
                 });
@@ -105,6 +105,7 @@ namespace SmartFarmManager.API.Controllers
                 {
                     Id = f.Id,
                     Name = f.Name,
+                    FarmCode = f.FarmCode,
                     Address = f.Address,
                     Area = f.Area,
                     PhoneNumber = f.PhoneNumber,
@@ -137,7 +138,7 @@ namespace SmartFarmManager.API.Controllers
                 {
                     Name = request.Name,
                     Address = request.Address,
-                    Area = request.Area,
+                    Area =(double) request.Area,
                     PhoneNumber = request.PhoneNumber,
                     Email = request.Email
                 });
