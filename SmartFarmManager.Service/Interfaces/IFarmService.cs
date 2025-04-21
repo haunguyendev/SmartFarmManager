@@ -17,5 +17,7 @@ namespace SmartFarmManager.Service.Interfaces
         Task<bool> UpdateFarmAsync(Guid id, FarmUpdateModel model);
             Task<bool> DeleteFarmAsync(Guid id);
             Task<IEnumerable<CostingReportModel>> GetCostingReportsByFarmAsync(Guid farmId, int? month, int? year);
+            
+            Task<bool> UpdateFarmExternalIdAsync(Guid id, Guid externalId);
     }
 }

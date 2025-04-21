@@ -15,6 +15,6 @@ namespace SmartFarmManager.Service.BusinessModels.Farm
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
         public double? Area { get; set; }
-        public string? Macaddress { get; set; }
+       
     }
 }

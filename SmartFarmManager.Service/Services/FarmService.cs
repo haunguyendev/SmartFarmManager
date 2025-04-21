@@ -55,6 +55,26 @@ namespace SmartFarmManager.Service.Services
                 Email = farm.Email
             };
         }
+        
+        public async Task<bool> UpdateFarmExternalIdAsync(Guid id, Guid externalId)
+        {
+            // Tìm trang trại theo id
+            var farm = await _unitOfWork.Farms.GetByIdAsync(id);
+            if (farm == null)
+            {
+                return false;
+            }
+
+            // Cập nhật ExternalId
+            farm.ExternalId = externalId;
+            farm.ModifiedDate = DateTimeUtils.GetServerTimeInVietnamTime();
+            
+            // Lưu thay đổi vào cơ sở dữ liệu
+            await _unitOfWork.Farms.UpdateAsync(farm);
+            await _unitOfWork.CommitAsync();
+            
+            return true;
+        }
 
         public async Task<IEnumerable<FarmModel>> GetAllFarmsAsync(string? search)
         {
@@ -97,7 +117,7 @@ namespace SmartFarmManager.Service.Services
             farm.PhoneNumber = model.PhoneNumber ?? farm.PhoneNumber;
             farm.Email = model.Email ?? farm.Email;
             farm.Area = model.Area ?? farm.Area;
-            farm.Macaddress = model.Macaddress ?? farm.Macaddress;
+          
             farm.ModifiedDate = DateTime.UtcNow;
 
             await _unitOfWork.Farms.UpdateAsync(farm);
@@ -105,6 +125,11 @@ namespace SmartFarmManager.Service.Services
 
             return true;
         }
+        
+        // Phương thức cần thêm vào lớp FarmService đã có sẵn
+// Đặt phương thức này trong lớp FarmService hiện có
+
+
 
         public async Task<bool> DeleteFarmAsync(Guid id)
         {
