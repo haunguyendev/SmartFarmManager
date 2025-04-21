@@ -83,7 +83,7 @@ namespace SmartFarmManager.Service.Services
             return farms.Select(f => new FarmModel
             {
                 Id = f.Id,
-                ExternalId = (Guid)f.ExternalId,
+                ExternalId = f.ExternalId ?? Guid.Empty,
                 Name = f.Name,
                 FarmCode = f.FarmCode,
                 Address = f.Address,

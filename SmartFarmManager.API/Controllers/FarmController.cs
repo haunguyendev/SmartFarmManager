@@ -96,6 +96,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
+        [HttpGet]
         public async Task<IActionResult> GetAllFarms([FromQuery] string? search)
         {
             try
@@ -118,7 +119,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail($"Đã xảy ra lỗi: {ex.Message}"));
+                return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
             }
         }
 
