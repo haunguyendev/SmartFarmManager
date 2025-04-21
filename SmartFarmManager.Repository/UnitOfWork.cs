@@ -65,6 +65,7 @@ namespace SmartFarmManager.Repository
         public IEggHarvestRepository EggHarvests { get; }
         public IFarmConfigRepository FarmConfigs { get; }
         public IStandardPrescriptionMedicationRepository StandardPrescriptionMedications { get; }
+        public IDeadPoultryLogRepository DeadPoultryLogs { get; }
 
         public UnitOfWork(SmartFarmContext context, IUserRepository users,
             ITaskTypeRepository taskTypes,
@@ -114,7 +115,8 @@ namespace SmartFarmManager.Repository
             IStockLogRepository stockLogs,
             IEggHarvestRepository eggHarvests,
             IFarmConfigRepository farmConfigs,
-            IStandardPrescriptionMedicationRepository standardPrescriptionMedications)
+            IStandardPrescriptionMedicationRepository standardPrescriptionMedications,
+            IDeadPoultryLogRepository deadPoultryLogs)
         {
             _context = context;
             Users = users;
@@ -167,6 +169,7 @@ namespace SmartFarmManager.Repository
             EggHarvests = eggHarvests;
             FarmConfigs = farmConfigs;
             StandardPrescriptionMedications = standardPrescriptionMedications;
+            DeadPoultryLogs = deadPoultryLogs;
         }
          
 

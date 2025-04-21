@@ -58,6 +58,7 @@ namespace SmartFarmManager.Repository.Interfaces
         IEggHarvestRepository EggHarvests { get; }
         IFarmConfigRepository FarmConfigs { get; }
         IStandardPrescriptionMedicationRepository StandardPrescriptionMedications { get; }
+        IDeadPoultryLogRepository DeadPoultryLogs { get; }
         Task<int> CommitAsync();
         System.Threading.Tasks.Task BeginTransactionAsync();
         System.Threading.Tasks.Task RollbackAsync();
