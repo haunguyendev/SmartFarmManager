@@ -298,6 +298,7 @@ namespace SmartFarmManager.API.Extensions
             services.AddScoped<ISyncService, SyncService>();
             services.AddScoped<ExternalFarmApiClient>();
             services.AddSingleton<HttpClient>();
+            services.AddScoped<IDeadPoultryLogService, DeadPoultryLogService>();
 
             return services;
         }
