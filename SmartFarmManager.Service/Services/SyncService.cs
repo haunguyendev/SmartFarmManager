@@ -23,7 +23,7 @@ namespace SmartFarmManager.Service.Services
 
         public async System.Threading.Tasks.Task SyncFarmFromExternalAsync( Guid farmId)
         {
-            var farmExisting = await _unitOfWork.Farms.FindByCondition(x => x.Id == farmId).FirstOrDefaultAsync();
+            var farmExisting = await _unitOfWork.Farms.FindByCondition(x => x.ExternalId == farmId).FirstOrDefaultAsync();
             if(farmExisting == null)
             {
                 throw new Exception($"FarmId: {farmId} không tồn tại!");
@@ -44,6 +44,7 @@ namespace SmartFarmManager.Service.Services
                 {
                     Id = Guid.NewGuid(),
                     FarmCode = externalFarm.FarmCode,
+                    ExternalId=externalFarm.Id,
                     CreatedDate = DateTime.UtcNow
                 };
                 await _unitOfWork.Farms.CreateAsync(farm);
@@ -72,6 +73,7 @@ namespace SmartFarmManager.Service.Services
                     cage = new Cage
                     {
                         Id = Guid.NewGuid(),
+                        ExternalId = pen.Id,
                         PenCode = pen.PenCode,
                         Name = pen.Name,
                         CameraUrl = pen.CameraUrl,
@@ -110,6 +112,7 @@ namespace SmartFarmManager.Service.Services
                         entity = new Sensor
                         {
                             Id = Guid.NewGuid(),
+                            ExternalId = sensor.Id,
                             SensorCode = sensor.SensorCode,
                             Name=sensor.Name,
                             NodeId = sensor.NodeId,

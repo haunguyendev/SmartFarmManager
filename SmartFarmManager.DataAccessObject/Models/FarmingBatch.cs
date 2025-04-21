@@ -31,6 +31,7 @@ public partial class FarmingBatch : EntityBase
     public virtual ICollection<GrowthStage> GrowthStages { get; set; } = new List<GrowthStage>();
 
     public virtual ICollection<MedicalSymptom> MedicalSymptoms { get; set; } = new List<MedicalSymptom>();
+    public virtual ICollection<DeadPoultryLog> DeadPoultryLogs { get; set; } = new List<DeadPoultryLog>();
 
     public virtual AnimalTemplate Template { get; set; }
 }

@@ -1580,6 +1580,7 @@ namespace SmartFarmManager.Service.Services
             try
             {
                 var today = DateTimeUtils.GetServerTimeInVietnamTime().Date;
+
                 var currentTime = DateTimeUtils.GetServerTimeInVietnamTime().TimeOfDay;
 
                 var currentSession = SessionTime.GetCurrentSession(currentTime);

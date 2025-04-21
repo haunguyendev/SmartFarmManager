@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartFarmManager.DataAccessObject.Models;
 
@@ -11,9 +12,11 @@ using SmartFarmManager.DataAccessObject.Models;
 namespace SmartFarmManager.DataAccessObject.Migrations
 {
     [DbContext(typeof(SmartFarmContext))]
-    partial class SmartFarmContextModelSnapshot : ModelSnapshot
+    [Migration("20250421133155_externalID")]
+    partial class externalID
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -412,33 +415,6 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                     b.HasIndex("StageId");
 
                     b.ToTable("DailyFoodUsageLogs");
-                });
-
-            modelBuilder.Entity("SmartFarmManager.DataAccessObject.Models.DeadPoultryLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasDefaultValueSql("(newid())");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("FarmingBatchId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FarmingBatchId");
-
-                    b.ToTable("DeadPoultryLogs");
                 });
 
             modelBuilder.Entity("SmartFarmManager.DataAccessObject.Models.Disease", b =>
@@ -2552,17 +2528,6 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                     b.Navigation("Stage");
                 });
 
-            modelBuilder.Entity("SmartFarmManager.DataAccessObject.Models.DeadPoultryLog", b =>
-                {
-                    b.HasOne("SmartFarmManager.DataAccessObject.Models.FarmingBatch", "FarmingBatch")
-                        .WithMany("DeadPoultryLogs")
-                        .HasForeignKey("FarmingBatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FarmingBatch");
-                });
-
             modelBuilder.Entity("SmartFarmManager.DataAccessObject.Models.EggHarvest", b =>
                 {
                     b.HasOne("SmartFarmManager.DataAccessObject.Models.GrowthStage", "growthStage")
@@ -3167,8 +3132,6 @@ namespace SmartFarmManager.DataAccessObject.Migrations
             modelBuilder.Entity("SmartFarmManager.DataAccessObject.Models.FarmingBatch", b =>
                 {
                     b.Navigation("AnimalSales");
-
-                    b.Navigation("DeadPoultryLogs");
 
                     b.Navigation("GrowthStages");
 

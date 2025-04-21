@@ -161,6 +161,9 @@ public partial class SmartFarmContext : DbContext
     public virtual DbSet<FarmConfig> FarmConfigs { get; set; }
 
     public virtual DbSet<TaskDailyTemplate>  TaskDailyTemplates { get; set; }
+    public virtual DbSet<DeadPoultryLog> DeadPoultryLogs { get; set; }
+
+
 
 
 
@@ -168,6 +171,27 @@ public partial class SmartFarmContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<DeadPoultryLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())");
+
+            entity.Property(e => e.Date)
+                .IsRequired();
+
+            entity.Property(e => e.Quantity)
+                .IsRequired();
+
+            entity.Property(e => e.Note)
+                .HasMaxLength(1000);
+
+            entity.HasOne(e => e.FarmingBatch)
+                .WithMany(fb => fb.DeadPoultryLogs)
+                .HasForeignKey(e => e.FarmingBatchId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<FarmConfig>(entity =>
         {

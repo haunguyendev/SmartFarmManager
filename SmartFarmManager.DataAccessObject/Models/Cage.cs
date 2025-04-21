@@ -7,6 +7,7 @@ namespace SmartFarmManager.DataAccessObject.Models;
 
 public partial class Cage : EntityBase
 {
+    public Guid? ExternalId { get; set; } // ID của chuồng trong hệ thống bên ngoài (nếu có
     public string PenCode { get; set; }
     public Guid FarmId { get; set; }
     public string Name { get; set; }
