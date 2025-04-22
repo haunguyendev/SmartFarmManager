@@ -1143,7 +1143,7 @@ namespace SmartFarmManager.Service.Services
                 GrowthStageReports = growthStageReports,
                 AnimalMeatSales = meatSales,
                 FCR = totalSumMeatSales == 0 ? 0 : totalWeightFoodUsed / totalSumMeatSales,
-                DeadPoultryLogModels = deadPoultry
+                DeadPoultryLogs = deadPoultry
             };
         }
         public async System.Threading.Tasks.Task CheckAndNotifyAdminForUpcomingFarmingBatchesAsync()
