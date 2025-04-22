@@ -35,7 +35,7 @@ namespace SmartFarmManager.Service.BusinessModels.FarmingBatch
         public List<FoodUsageDetail> FoodUsageDetails { get; set; }
         public List<AnimalMeatSaleModel> AnimalMeatSales { get; set; }
 
-        public List<DeadPoultryLogModel>? DeadPoultryLogModels { get; set; }
+        public List<DeadPoultryLogModel>? DeadPoultryLogs { get; set; }
     }
 
 

@@ -46,10 +46,10 @@ namespace SmartFarmManager.API.Controllers
 
                 if (!result)
                 {
-                    return BadRequest(ApiResult<string>.Fail("Failed to create farming batch. Please try again."));
+                    return BadRequest(ApiResult<string>.Fail("Tạo vụ nuôi thất bại. Vui lòng thử lại."));
                 }
 
-                return Ok(ApiResult<string>.Succeed("Farming batch created successfully!"));
+                return Ok(ApiResult<string>.Succeed("Tạo vụ nuôi thành công!"));
             }
             catch (ArgumentException ex)
             {
@@ -84,14 +84,14 @@ namespace SmartFarmManager.API.Controllers
 
                 if (result)
                 {
-                    return Ok(new { Message = "Farming batches for multiple cages created successfully." });
+                    return Ok(new { Message = "Tạo vụ nuôi cho nhiều chuồng thành công." });
                 }
 
-                return BadRequest(new { Message = "Failed to create farming batches." });
+                return BadRequest(new { Message = "Tạo vụ nuôi thất bại." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = $"An error occurred: {ex.Message}" });
+                return StatusCode(500, new { Message = $"Đã xảy ra lỗi: {ex.Message}" });
             }
         }
         [HttpPut("{id}/status")]
@@ -116,10 +116,10 @@ namespace SmartFarmManager.API.Controllers
 
                 if (!result)
                 {
-                    return BadRequest(ApiResult<string>.Fail("Failed to update farming batch status. Please try again."));
+                    return BadRequest(ApiResult<string>.Fail("Cập nhật trạng thái vụ nuôi thất bại. Vui lòng thử lại."));
                 }
 
-                return Ok(ApiResult<string>.Succeed("Farming batch status updated successfully!"));
+                return Ok(ApiResult<string>.Succeed("Cập nhật trạng thái vụ nuôi thành công!"));
             }
             catch (ArgumentException ex)
             {
@@ -131,7 +131,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail("An unexpected error occurred. Please contact support."));
+                return StatusCode(500, ApiResult<string>.Fail("Đã xảy ra lỗi không mong muốn. Vui lòng liên hệ bộ phận hỗ trợ."));
             }
         }
         [HttpPost("update-status-today")]
@@ -142,11 +142,11 @@ namespace SmartFarmManager.API.Controllers
                 // Gọi hàm kiểm tra và cập nhật trạng thái vụ nuôi có ngày bắt đầu là hôm nay
                 await _farmingBatchService.RunUpdateFarmingBatchesStatusAsync();
 
-                return Ok(new { Message = "Farming batches status updated successfully for today." });
+                return Ok(new { Message = "Cập nhật trạng thái vụ nuôi cho ngày hôm nay thành công." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = $"An error occurred: {ex.Message}" });
+                return StatusCode(500, new { Message = $"Đã xảy ra lỗi: {ex.Message}" });
             }
         }
 
@@ -183,7 +183,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail("An unexpected error occurred. Please contact support."));
+                return StatusCode(500, ApiResult<string>.Fail("Đã xảy ra lỗi không mong muốn. Vui lòng liên hệ bộ phận hỗ trợ."));
             }
         }
 
@@ -208,7 +208,7 @@ namespace SmartFarmManager.API.Controllers
                 var farmingBatch = await _farmingBatchService.GetActiveFarmingBatchByCageIdAsync(cageId);
 
                 if (farmingBatch == null)
-                    return NotFound(ApiResult<string>.Fail("No active farming batch found for the given CageId"));
+                    return NotFound(ApiResult<string>.Fail("Không tìm thấy vụ nuôi đang hoạt động cho chuồng này"));
 
                 return Ok(ApiResult<FarmingBatchModel>.Succeed(farmingBatch));
             }
@@ -222,7 +222,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail("An unexpected error occurred. Please contact support."));
+                return StatusCode(500, ApiResult<string>.Fail("Đã xảy ra lỗi không mong muốn. Vui lòng liên hệ bộ phận hỗ trợ."));
             }
         }
         [HttpGet("cage/{cageId:guid}/{dueDateTask:Datetime}")]
@@ -246,7 +246,7 @@ namespace SmartFarmManager.API.Controllers
                 var farmingBatch = await _farmingBatchService.GetFarmingBatchByCageIdAndueDateTaskAsync(cageId, dueDateTask);
 
                 if (farmingBatch == null)
-                    return NotFound(ApiResult<string>.Fail("No active farming batch found for the given CageId"));
+                    return NotFound(ApiResult<string>.Fail("Không tìm thấy vụ nuôi đang hoạt động cho chuồng này"));
 
                 return Ok(ApiResult<FarmingBatchModel>.Succeed(farmingBatch));
             }
@@ -260,7 +260,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail("An unexpected error occurred. Please contact support."));
+                return StatusCode(500, ApiResult<string>.Fail("Đã xảy ra lỗi không mong muốn. Vui lòng liên hệ bộ phận hỗ trợ."));
             }
         }
         [HttpGet("active-batches-by-user")]
@@ -275,7 +275,7 @@ namespace SmartFarmManager.API.Controllers
         {
             var report = await _farmingBatchService.GetFarmingBatchReportAsync(farmingBatchId);
             if (report == null)
-                return NotFound(ApiResult<object>.Fail("Farming batch not found."));
+                return NotFound(ApiResult<object>.Fail("Không tìm thấy vụ nuôi."));
 
             return Ok(ApiResult<FarmingBatchReportResponse>.Succeed(report));
         }
@@ -286,7 +286,7 @@ namespace SmartFarmManager.API.Controllers
         {
             var report = await _farmingBatchService.GetDetailedFarmingBatchReportAsync(farmingBatchId);
             if (report == null)
-                return NotFound(ApiResult<object>.Fail("Farming batch not found."));
+                return NotFound(ApiResult<object>.Fail("Không tìm thấy vụ nuôi."));
 
             return Ok(ApiResult<DetailedFarmingBatchReportResponse>.Succeed(report));
         }
@@ -299,13 +299,13 @@ namespace SmartFarmManager.API.Controllers
                 var result = await _farmingBatchService.GetCurrentFarmingStageWithCageAsync(cageId);
 
                 if (result == null)
-                    return NotFound(ApiResult<object>.Fail("No active farming batch found for this cage."));
+                    return NotFound(ApiResult<object>.Fail("Không tìm thấy vụ nuôi đang hoạt động cho chuồng này."));
 
                 return Ok(ApiResult<CageFarmingStageModel>.Succeed(result));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
+                return StatusCode(500, ApiResult<string>.Fail($"Đã xảy ra lỗi: {ex.Message}"));
             }
         }
 
@@ -317,11 +317,11 @@ namespace SmartFarmManager.API.Controllers
             {
                 await _farmingBatchService.CheckAndNotifyAdminForUpcomingFarmingBatchesAsync();
 
-                return Ok(new { Message = "Checked and notified admins about upcoming farming batches." });
+                return Ok(new { Message = "Đã kiểm tra và thông báo cho quản trị viên về các vụ nuôi sắp tới." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = $"An error occurred: {ex.Message}" });
+                return StatusCode(500, new { Message = $"Đã xảy ra lỗi: {ex.Message}" });
             }
         }
         [HttpPost("check-ending-farming-batches")]
@@ -331,11 +331,11 @@ namespace SmartFarmManager.API.Controllers
             {
                 await _farmingBatchService.CheckAndNotifyAdminForEndingFarmingBatchesAsync();
 
-                return Ok(new { Message = "Checked and notified admins about ending farming batches." });
+                return Ok(new { Message = "Đã kiểm tra và thông báo cho quản trị viên về các vụ nuôi sắp kết thúc." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = $"An error occurred: {ex.Message}" });
+                return StatusCode(500, new { Message = $"Đã xảy ra lỗi: {ex.Message}" });
             }
         }
 
@@ -345,7 +345,7 @@ namespace SmartFarmManager.API.Controllers
             try
             {
                 var result = await _farmingBatchService.UpdateStartDateAsync(farmingBatchId, newStartDate);
-                return Ok(new { Message = "Start date updated successfully." });
+                return Ok(new { Message = "Cập nhật ngày bắt đầu thành công." });
             }
             catch (Exception ex)
             {
@@ -367,7 +367,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
+                return StatusCode(500, ApiResult<string>.Fail($"Đã xảy ra lỗi: {ex.Message}"));
             }
         }
 
@@ -404,7 +404,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail("An unexpected error occurred. Please contact support."));
+                return StatusCode(500, ApiResult<string>.Fail("Đã xảy ra lỗi không mong muốn. Vui lòng liên hệ bộ phận hỗ trợ."));
             }
         }
 
@@ -434,7 +434,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Internal server error", Details = ex.Message });
+                return StatusCode(500, new { Message = "Lỗi máy chủ nội bộ", Details = ex.Message });
             }
         }
     }
