@@ -1,5 +1,6 @@
 ﻿using SmartFarmManager.Service.BusinessModels.AnimalTemplate;
 using SmartFarmManager.Service.BusinessModels.Cages;
+using SmartFarmManager.Service.BusinessModels.DeadPoultryLog;
 using SmartFarmManager.Service.BusinessModels.GrowthStage;
 using System;
 using System.Collections.Generic;
@@ -28,5 +29,7 @@ namespace SmartFarmManager.Service.BusinessModels.FarmingBatch
         public GrowthStageDetailModel? GrowthStageDetails { get; set; }
         public CageModel? Cage { get; set; }
         public AnimalTemplateItemModel? Template { get; set; }
+
+        public List<DeadPoultryLogModel>? deadPoultryLogModels { get; set; }
     }
 }

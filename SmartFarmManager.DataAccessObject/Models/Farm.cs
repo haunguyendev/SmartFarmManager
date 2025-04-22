@@ -7,7 +7,7 @@ namespace SmartFarmManager.DataAccessObject.Models;
 
 public partial class Farm : EntityBase
 {
-
+    public Guid? ExternalId { get; set; }
     public string FarmCode { get; set; }
 
     public string Name { get; set; }

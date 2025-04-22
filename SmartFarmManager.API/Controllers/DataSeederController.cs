@@ -23,7 +23,7 @@ namespace SmartFarmManager.API.Controllers
             _context = context;
         }
 
-        [HttpPost("seed/TempleteChicken")]
+        [HttpPost("seed/TemplateChicken")]
         public IActionResult SeedDataTempleteChicken()
         {
             try
@@ -47,6 +47,9 @@ namespace SmartFarmManager.API.Controllers
 
                 _context.TaskTypes.AddRange(taskTypes);
                 _context.SaveChanges();
+
+
+
                 // Kiểm tra nếu đã có dữ liệu thì không thêm nữa
                 if (_context.AnimalTemplates.Any())
                 {
@@ -149,15 +152,105 @@ namespace SmartFarmManager.API.Controllers
                 // 5. Thêm vào danh sách vaccine (Vaccine)
                 var vaccines = new List<Vaccine>
                 {
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Marek", Method = "Tiêm dưới da", Price = 500, AgeStart = 1, AgeEnd = 1},
-                    new Vaccine { Id = Guid.NewGuid(), Name = "ND IB H120 Lasota", Method = "Nhỏ mắt, nhỏ mũi", Price = 200, AgeStart = 3, AgeEnd = 5 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Đậu gà", Method = "Tiêm chủng dưới da cánh", Price = 300, AgeStart = 7, AgeEnd = 7 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Gumboro int", Method = "Nhỏ mắt", Price = 250, AgeStart = 7, AgeEnd = 7 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Gumboro plus", Method = "Pha nước uống", Price = 350, AgeStart = 1, AgeEnd = 14 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Cúm", Method = "Tiêm dưới da", Price = 400, AgeStart = 15, AgeEnd = 17 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "ND - HB1", Method = "Nhỏ mắt, nhỏ mũi", Price = 220, AgeStart = 21, AgeEnd = 21 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "ND - M", Method = "Tiêm dưới da", Price = 450, AgeStart = 50, AgeEnd = 50 },
-                    new Vaccine { Id = Guid.NewGuid(), Name = "Avac-Clone Entero", Method = "Pha nước uống", Price = 380, AgeStart = 70, AgeEnd = 70 }
+                    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Marek",
+        Method = "Tiêm dưới da",
+        Price = 29000, // Giá trung bình/lọ
+        TotalDose = 200,
+        PricePerDose = 145, // 29.000 / 200
+        AgeStart = 1,
+        AgeEnd = 1
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "ND IB H120 Lasota",
+        Method = "Nhỏ mắt, nhỏ mũi",
+        Price = 26000, // Giá trung bình/lọ
+        TotalDose = 100,
+        PricePerDose = 260, // 26.000 / 100
+        AgeStart = 3,
+        AgeEnd = 5
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Đậu gà",
+        Method = "Tiêm chủng dưới da cánh",
+        Price = 26000,
+        TotalDose = 100,
+        PricePerDose = 260,
+        AgeStart = 7,
+        AgeEnd = 7
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Gumboro int",
+        Method = "Nhỏ mắt",
+        Price = 26750, // Trung bình 25.500 - 28.000
+        TotalDose = 100,
+        PricePerDose = 267.5,
+        AgeStart = 7,
+        AgeEnd = 7
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Gumboro plus",
+        Method = "Pha nước uống",
+        Price = 26750,
+        TotalDose = 100,
+        PricePerDose = 267.5,
+        AgeStart = 1,
+        AgeEnd = 14
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Cúm",
+        Method = "Tiêm dưới da",
+        Price = 220000, // Không có trong bảng giá, giữ nguyên
+        TotalDose = 500,
+        PricePerDose = 440,
+        AgeStart = 15,
+        AgeEnd = 17
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "ND - HB1",
+        Method = "Nhỏ mắt, nhỏ mũi",
+        Price = 25000,
+        TotalDose = 100,
+        PricePerDose = 250,
+        AgeStart = 21,
+        AgeEnd = 21
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "ND - M",
+        Method = "Tiêm dưới da",
+        Price = 25000,
+        TotalDose = 100,
+        PricePerDose = 250,
+        AgeStart = 50,
+        AgeEnd = 50
+    },
+    new Vaccine
+    {
+        Id = Guid.NewGuid(),
+        Name = "Avac-Clone Entero",
+        Method = "Pha nước uống",
+        Price = 190000, // Không có trong bảng giá, giữ nguyên
+        TotalDose = 2000,
+        PricePerDose = 95,
+        AgeStart = 70,
+        AgeEnd = 70
+    }
                 };
 
                 _context.Vaccines.AddRange(vaccines);
@@ -248,21 +341,23 @@ namespace SmartFarmManager.API.Controllers
                     new Role { Id = Guid.Parse("70702de9-89bc-48e5-861e-f4c1a5ac01d8"), RoleName = "Staff" },
                     new Role { Id = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940"), RoleName = "Staff Farm" },
                     new Role { Id = Guid.Parse("b833e6cd-6c06-4daa-aa6e-b5ed5f64dda0"), RoleName = "Vet" },
-                    new Role { Id = Guid.Parse("E8C551C1-F509-4191-91CE-764370E86278"), RoleName = "GOD" }
+                    new Role { Id = Guid.Parse("E8C551C1-F509-4191-91CE-764370E86278"), RoleName = "GOD" },
+                    new Role {Id = Guid.NewGuid(), RoleName = "Customer" }
                 };
                 _context.Roles.AddRange(roles);
                 _context.SaveChanges();
-
+                var idRoleCus = _context.Roles.Where(r => r.RoleName == "Customer").FirstOrDefault();
                 var users = new List<User>
                 {
                     new User { Id = Guid.Parse("babc4332-d7d8-457b-af12-765a992c4314"), Username = "admin", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Admin User", Email = "admin@farm.com", PhoneNumber = "0123456789", Address = "Admin Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("3c1ef196-e428-4951-83e1-b640a08d3bfb") }, // Admin
-                    new User { Id = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), Username = "staff", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff", Email = "staff@farm.com", PhoneNumber = "0987654321", Address = "Staff Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("70702de9-89bc-48e5-861e-f4c1a5ac01d8") }, // Staff
+                    new User { Id = Guid.NewGuid(), Username = "staff", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff", Email = "staff@farm.com", PhoneNumber = "0987654321", Address = "Staff Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("70702de9-89bc-48e5-861e-f4c1a5ac01d8") }, // Staff
+                    new User { Id = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), Username = "staff_farm_3", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff 3", Email = "stafffarm3@farm.com", PhoneNumber = "0987654321", Address = "Staff Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff farm 3
                     new User { Id = Guid.Parse("ad28b5ad-e1f4-4bf8-b7de-00859235a3f8"), Username = "vet_farm", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Veterinary Doctor", Email = "vet@farm.com", PhoneNumber = "0123987654", Address = "Vet Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("b833e6cd-6c06-4daa-aa6e-b5ed5f64dda0") }, // Vet
                     new User { Id = Guid.Parse("a406f2a5-f7f7-4701-9c21-339b16c06f76"), Username = "admin_farm", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Admin", Email = "adminfarm@farm.com", PhoneNumber = "0123567890", Address = "Farm Admin Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("544865bf-c00d-4e6f-9d05-f32f9d9cc468") }, // Admin Farm
                     new User { Id = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), Username = "staff_farm_1", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff 1", Email = "stafffarm1@farm.com", PhoneNumber = "0987123456", Address = "Staff Farm Address 1", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff Farm 1
                     new User { Id = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), Username = "staff_farm_2", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff 2", Email = "stafffarm2@farm.com", PhoneNumber = "0978123456", Address = "Staff Farm Address 2", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff Farm 2
-                    new User { Id = Guid.NewGuid(), Username = "GOD_farm", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "GOD", Email = "GOD@farm.com", PhoneNumber = "09781245634", Address = "GOD Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("E8C551C1-F509-4191-91CE-764370E86278") } // God
-                
+                    new User { Id = Guid.NewGuid(), Username = "GOD_farm", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "GOD", Email = "GOD@farm.com", PhoneNumber = "09781245634", Address = "GOD Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("E8C551C1-F509-4191-91CE-764370E86278") }, // God
+                    new User { Id = Guid.NewGuid(), Username = "Customer", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Customer", Email = "Cusstomer@farm.com", PhoneNumber = "09781245464", Address = "Customer Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = idRoleCus.Id } // God
                 };
 
                 _context.Users.AddRange(users);
@@ -285,6 +380,7 @@ namespace SmartFarmManager.API.Controllers
                 {
                     Id = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"),
                     FarmCode = "FA001",
+                    ExternalId = Guid.Parse("622362a5-cdb6-41e7-f508-08dd1558346f"),
                     Name = "Trang trại gà",
                     Address = "123Abc",
                     PhoneNumber = "0734654304",
@@ -298,6 +394,14 @@ namespace SmartFarmManager.API.Controllers
                 _context.Farms.Add(farm);
                 _context.SaveChanges();
 
+                var masterData = new List<MasterData>
+                {
+                    new MasterData { Id = Guid.NewGuid(), CostType = "Điện", Unit = "kWh", UnitPrice = 2000, FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4")},
+                    new MasterData { Id = Guid.NewGuid(), CostType = "Nước", Unit = "m3", UnitPrice = 8500, FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4")}
+                };
+
+                _context.MasterData.AddRange(masterData);
+                _context.SaveChanges();
                 var farmAdminEntry = new FarmAdmin
                 {
                     Id = Guid.NewGuid(),
@@ -336,33 +440,36 @@ namespace SmartFarmManager.API.Controllers
                 _context.SaveChanges();
 
 
-                var cages = new List<Cage>
-                {
-                    new Cage { Id = Guid.Parse("f37f0727-435d-4d80-9c29-ae2f41b49c9d"), PenCode = "Pen_01", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 1", Area = 10, Location = "Location 1", Capacity = 500, BoardCode = "Board_01", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_1.example.com", ChannelId = 1, IsSolationCage = false },
-                    new Cage { Id = Guid.Parse("80b4c7dd-31d6-4169-9c51-9f4ff368fd41"), PenCode = "Pen_02", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 2", Area = 11.5, Location = "Location 2", Capacity = 1000, BoardCode = "Board_02", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_2.example.com", ChannelId = 2, IsSolationCage = false },
-                    new Cage { Id = Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387"), PenCode = "Pen_03", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 3", Area = 13, Location = "Location 3", Capacity = 1000, BoardCode = "Board_03", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_3.example.com", ChannelId = 3, IsSolationCage = false },
-                    new Cage { Id = Guid.Parse("35050ff8-7822-49d8-8d3d-b1bd51f11891"), PenCode = "Pen_04", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 4", Area = 14.5, Location = "Location 4", Capacity = 1000, BoardCode = "Board_04", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_4.example.com", ChannelId = 4, IsSolationCage = false },
-                    new Cage { Id = Guid.Parse("fcaceb35-b3a0-4e7e-b479-19059aa7006c"), PenCode = "Pen_05", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 5", Area = 16, Location = "Location 5", Capacity = 1000, BoardCode = "Board_05", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_5.example.com", ChannelId = 5, IsSolationCage = false },
-                    new Cage { Id = Guid.Parse("a8cb5774-62a5-41e7-b854-cc2cfd2d33e5"), PenCode = "Pen_06", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "[CCL] Khu vực cách ly", Area = 10, Location = "Location 6", Capacity = 500, BoardCode = "Board_06", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_6.example.com", ChannelId = 1, IsSolationCage = true },
+                //var cages = new List<Cage>
+                //{
+                //    new Cage { Id = Guid.Parse("f37f0727-435d-4d80-9c29-ae2f41b49c9d"), PenCode = "Pen_01", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 1", Area = 10, Location = "Location 1", Capacity = 500, BoardCode = "Board_01", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_1.example.com", ChannelId = 1, IsSolationCage = false },
+                //    new Cage { Id = Guid.Parse("80b4c7dd-31d6-4169-9c51-9f4ff368fd41"), PenCode = "Pen_02", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 2", Area = 11.5, Location = "Location 2", Capacity = 1000, BoardCode = "Board_02", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_2.example.com", ChannelId = 2, IsSolationCage = false },
+                //    new Cage { Id = Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387"), PenCode = "Pen_03", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 3", Area = 13, Location = "Location 3", Capacity = 1000, BoardCode = "Board_03", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_3.example.com", ChannelId = 3, IsSolationCage = false },
+                //    new Cage { Id = Guid.Parse("35050ff8-7822-49d8-8d3d-b1bd51f11891"), PenCode = "Pen_04", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 4", Area = 14.5, Location = "Location 4", Capacity = 1000, BoardCode = "Board_04", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_4.example.com", ChannelId = 4, IsSolationCage = false },
+                //    new Cage { Id = Guid.Parse("fcaceb35-b3a0-4e7e-b479-19059aa7006c"), PenCode = "Pen_05", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 5", Area = 16, Location = "Location 5", Capacity = 1000, BoardCode = "Board_05", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_5.example.com", ChannelId = 5, IsSolationCage = false },
+                //    new Cage { Id = Guid.Parse("a8cb5774-62a5-41e7-b854-cc2cfd2d33e5"), PenCode = "Pen_06", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "[CCL] Khu vực cách ly", Area = 10, Location = "Location 6", Capacity = 500, BoardCode = "Board_06", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_6.example.com", ChannelId = 1, IsSolationCage = true },
 
-                };
+                //};
 
-                _context.Cages.AddRange(cages);
-                _context.SaveChanges();
+                //_context.Cages.AddRange(cages);
+                //_context.SaveChanges();
 
+                //var IdCus = _context.Users.Where(u => u.Role.RoleName == "Customer").FirstOrDefault();
+                //var cageStaffEntries = new List<CageStaff>
+                //{
+                //    new CageStaff { Id = Guid.NewGuid(), CageId = cages[0].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
+                //    new CageStaff { Id = Guid.NewGuid(), CageId = cages[1].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
+                //    new CageStaff { Id = Guid.NewGuid(), CageId = cages[2].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
+                //    new CageStaff { Id = Guid.NewGuid(), CageId = cages[3].Id, StaffFarmId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), AssignedDate = DateTime.UtcNow },
+                //    new CageStaff { Id = Guid.NewGuid(), CageId = cages[4].Id, StaffFarmId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), AssignedDate = DateTime.UtcNow },
+                //    new CageStaff { Id = Guid.NewGuid(), CageId = cages[5].Id, StaffFarmId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), AssignedDate = DateTime.UtcNow },
+                //    new CageStaff { Id = Guid.NewGuid(), CageId = cages[0].Id, StaffFarmId = IdCus.Id, AssignedDate = DateTime.UtcNow },
+                //    new CageStaff { Id = Guid.NewGuid(), CageId = cages[1].Id, StaffFarmId = IdCus.Id, AssignedDate = DateTime.UtcNow },
+                //    new CageStaff { Id = Guid.NewGuid(), CageId = cages[2].Id, StaffFarmId = IdCus.Id, AssignedDate = DateTime.UtcNow },
+                //};
 
-                var cageStaffEntries = new List<CageStaff>
-                {
-                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[0].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
-                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[1].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
-                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[2].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
-                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[3].Id, StaffFarmId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), AssignedDate = DateTime.UtcNow },
-                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[4].Id, StaffFarmId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), AssignedDate = DateTime.UtcNow },
-                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[5].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow }
-                };
-
-                _context.CageStaffs.AddRange(cageStaffEntries);
-                _context.SaveChanges();
+                //_context.CageStaffs.AddRange(cageStaffEntries);
+                //_context.SaveChanges();
 
                 // Tạo bản ghi FarmConfig
                 var farmConfig = new FarmConfig
@@ -376,6 +483,236 @@ namespace SmartFarmManager.API.Controllers
                 };
                 _context.FarmConfigs.Add(farmConfig);
                 _context.SaveChanges();
+                //tạo standard
+                var medications = new List<Medication>
+                {
+                // ✅ Kháng sinh & Thuốc điều trị đặc hiệu
+                new Medication { Id = Guid.NewGuid(), Name = "Enrofloxacin", UsageInstructions = "Pha vào nước uống, dùng trong 5-7 ngày", Price = 50000, DoseWeight = 50, Weight = 500, DoseQuantity = 10, PricePerDose = 5000 },
+                new Medication { Id = Guid.NewGuid(), Name = "Doxycycline", UsageInstructions = "Trộn vào thức ăn hoặc nước uống, dùng trong 5-7 ngày", Price = 40000, DoseWeight = 100, Weight = 1000, DoseQuantity = 10, PricePerDose = 4000 },
+                new Medication { Id = Guid.NewGuid(), Name = "Tylosin", UsageInstructions = "Pha vào nước uống, dùng trong 5 ngày", Price = 60000, DoseWeight = 25, Weight = 250, DoseQuantity = 10, PricePerDose = 6000 },
+                new Medication { Id = Guid.NewGuid(), Name = "Oxytetracycline", UsageInstructions = "Tiêm bắp hoặc pha nước uống, dùng trong 5 ngày", Price = 55000, DoseWeight = 50, Weight = 500, DoseQuantity = 10, PricePerDose = 5500 },
+                new Medication { Id = Guid.NewGuid(), Name = "Amprolium", UsageInstructions = "Pha vào nước uống, dùng trong 5 ngày", Price = 30000, DoseWeight = 100, Weight = 500, DoseQuantity = 5, PricePerDose = 6000 },
+                new Medication { Id = Guid.NewGuid(), Name = "Toltrazuril", UsageInstructions = "Pha vào nước uống, dùng trong 2 ngày", Price = 80000, DoseWeight = 20, Weight = 200, DoseQuantity = 10, PricePerDose = 8000 },
+                new Medication { Id = Guid.NewGuid(), Name = "Florfenicol", UsageInstructions = "Pha vào nước uống hoặc tiêm bắp, dùng trong 5 ngày", Price = 70000, DoseWeight = 30, Weight = 300, DoseQuantity = 10, PricePerDose = 7000 },
+                new Medication { Id = Guid.NewGuid(), Name = "Ivermectin", UsageInstructions = "Tiêm dưới da hoặc uống, dùng trong 2 ngày", Price = 90000, DoseWeight = 10, Weight = 100, DoseQuantity = 10, PricePerDose = 9000 },
+                new Medication { Id = Guid.NewGuid(), Name = "Penicillin", UsageInstructions = "Tiêm bắp hoặc pha nước uống, dùng trong 5 ngày", Price = 45000, DoseWeight = 50, Weight = 500, DoseQuantity = 10, PricePerDose = 4500 },
+                new Medication { Id = Guid.NewGuid(), Name = "Amoxicillin", UsageInstructions = "Pha vào nước uống, dùng trong 5-7 ngày", Price = 50000, DoseWeight = 50, Weight = 500, DoseQuantity = 10, PricePerDose = 5000 },
+                new Medication { Id = Guid.NewGuid(), Name = "Lincomycin", UsageInstructions = "Tiêm bắp hoặc pha nước uống, dùng trong 5 ngày", Price = 65000, DoseWeight = 25, Weight = 250, DoseQuantity = 10, PricePerDose = 6500 },
+                new Medication { Id = Guid.NewGuid(), Name = "Chloramphenicol", UsageInstructions = "Pha vào nước uống hoặc trộn thức ăn, dùng trong 5 ngày", Price = 48000, DoseWeight = 50, Weight = 500, DoseQuantity = 10, PricePerDose = 4800 },
+                new Medication { Id = Guid.NewGuid(), Name = "Nystatin", UsageInstructions = "Pha vào nước uống, dùng trong 5 ngày", Price = 35000, DoseWeight = 50, Weight = 500, DoseQuantity = 10, PricePerDose = 3500 },
+                new Medication { Id = Guid.NewGuid(), Name = "Fluconazole", UsageInstructions = "Pha vào nước uống, dùng trong 5 ngày", Price = 40000, DoseWeight = 50, Weight = 500, DoseQuantity = 10, PricePerDose = 4000 },
+
+                // ✅ Vitamin & Chất điện giải
+                new Medication { Id = Guid.NewGuid(), Name = "Vitamin A", UsageInstructions = "Bổ sung hàng ngày qua nước uống", Price = 20000, DoseWeight = 10, Weight = 100, DoseQuantity = 10, PricePerDose = 2000 },
+                new Medication { Id = Guid.NewGuid(), Name = "Vitamin D", UsageInstructions = "Bổ sung hàng ngày, giúp hấp thụ canxi", Price = 22000, DoseWeight = 10, Weight = 100, DoseQuantity = 10, PricePerDose = 2200 },
+                new Medication { Id = Guid.NewGuid(), Name = "Vitamin B-complex", UsageInstructions = "Giúp giảm stress, tăng chuyển hóa", Price = 25000, DoseWeight = 10, Weight = 100, DoseQuantity = 10, PricePerDose = 2500 },
+                new Medication { Id = Guid.NewGuid(), Name = "Vitamin C", UsageInstructions = "Tăng cường miễn dịch, hỗ trợ phục hồi", Price = 23000, DoseWeight = 10, Weight = 100, DoseQuantity = 10, PricePerDose = 2300 },
+                new Medication { Id = Guid.NewGuid(), Name = "Electrolyte", UsageInstructions = "Bù nước, giúp gà hồi phục nhanh", Price = 30000, DoseWeight = 20, Weight = 200, DoseQuantity = 10, PricePerDose = 3000 },
+                new Medication { Id = Guid.NewGuid(), Name = "Multivitamin tổng hợp", UsageInstructions = "Hỗ trợ miễn dịch, tăng đề kháng", Price = 27000, DoseWeight = 10, Weight = 100, DoseQuantity = 10, PricePerDose = 2700 }
+                };
+
+
+                _context.Medications.AddRange(medications);
+                _context.SaveChanges();
+
+                // 📌 2. Danh sách bệnh + phác đồ điều trị
+                var diseasesStandard = _context.Diseases.ToList();
+                var prescriptions = new List<StandardPrescription>();
+                var random = new Random();
+                foreach (var disease in diseasesStandard)
+                {
+                    var prescription = new StandardPrescription
+                    {
+                        Id = Guid.NewGuid(),
+                        DiseaseId = disease.Id,
+                        Notes = "Tuân thủ hướng dẫn điều trị, bổ sung vitamin và điện giải",
+                        RecommendDay = random.Next(3, 6)
+                    };
+
+                    prescriptions.Add(prescription);
+
+                }
+                _context.StandardPrescriptions.AddRange(prescriptions);
+                _context.SaveChanges();
+
+                // 📌 3. Gán thuốc + Vitamin & Điện giải vào phác đồ điều trị
+                var prescriptionMedications = new List<StandardPrescriptionMedication>();
+
+                foreach (var prescription in prescriptions)
+                {
+                    var diseaseName = _context.Diseases.First(d => d.Id == prescription.DiseaseId).Name;
+                    var medicationsForDisease = new List<(string Medication, int Morning, int Noon, int Afternoon, int Evening)>();
+
+                    switch (diseaseName)
+                    {
+                        case "Dịch tả gà":
+                            medicationsForDisease.Add(("Enrofloxacin", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Doxycycline", 1, 1, 0, 1));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            medicationsForDisease.Add(("Multivitamin tổng hợp", 1, 0, 1, 0));
+                            break;
+
+                        case "Viêm khí quản truyền nhiễm":
+                            medicationsForDisease.Add(("Tylosin", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Oxytetracycline", 1, 1, 0, 1));
+                            medicationsForDisease.Add(("Vitamin A", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Cầu trùng":
+                            medicationsForDisease.Add(("Amprolium", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Toltrazuril", 1, 1, 0, 1));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Thiếu Vitamin A":
+                            medicationsForDisease.Add(("Vitamin A", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Multivitamin tổng hợp", 1, 0, 1, 0));
+                            break;
+
+                        case "Thiếu Vitamin D":
+                            medicationsForDisease.Add(("Vitamin D", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Multivitamin tổng hợp", 1, 0, 1, 0));
+                            break;
+
+                        case "Tụ huyết trùng":
+                            medicationsForDisease.Add(("Florfenicol", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Gumboro":
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            medicationsForDisease.Add(("Multivitamin tổng hợp", 1, 0, 1, 0));
+                            break;
+
+                        case "Cúm gia cầm":
+                            medicationsForDisease.Add(("Enrofloxacin", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Florfenicol", 1, 1, 0, 1));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            medicationsForDisease.Add(("Vitamin C", 1, 0, 1, 0));
+                            break;
+
+                        case "Đậu gà":
+                            medicationsForDisease.Add(("Oxytetracycline", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Vitamin A", 1, 1, 0, 1));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Viêm ruột hoại tử":
+                            medicationsForDisease.Add(("Amoxicillin", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Lincomycin", 1, 1, 0, 1));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Ngộ độc thịt":
+                            medicationsForDisease.Add(("Penicillin", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Nhiễm nấm":
+                            medicationsForDisease.Add(("Nystatin", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Fluconazole", 1, 1, 0, 1));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Giun khí quản":
+                            medicationsForDisease.Add(("Ivermectin", 1, 0, 0, 1));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Lymphoid leukosis":
+                            medicationsForDisease.Add(("Multivitamin tổng hợp", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Thương hàn":
+                            medicationsForDisease.Add(("Chloramphenicol", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "E. coli":
+                            medicationsForDisease.Add(("Enrofloxacin", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Florfenicol", 1, 1, 0, 1));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Bệnh CRD":
+                            medicationsForDisease.Add(("Tylosin", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Doxycycline", 1, 1, 0, 1));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Gout nội tạng":
+                            medicationsForDisease.Add(("Vitamin D", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+
+                        case "Hội chứng báng nước":
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            medicationsForDisease.Add(("Multivitamin tổng hợp", 1, 0, 1, 0));
+                            break;
+
+                        case "Thiếu Canxi & Photpho":
+                            medicationsForDisease.Add(("Vitamin D", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Multivitamin tổng hợp", 1, 0, 1, 0));
+                            break;
+
+                        case "Thiếu Protein":
+                            medicationsForDisease.Add(("Multivitamin tổng hợp", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Vitamin B-complex", 1, 1, 0, 1));
+                            break;
+
+                        default:
+                            medicationsForDisease.Add(("Enrofloxacin", 1, 0, 1, 0));
+                            medicationsForDisease.Add(("Electrolyte", 1, 1, 1, 1));
+                            break;
+                    }
+
+                    foreach (var med in medicationsForDisease)
+                    {
+                        var medication = _context.Medications.FirstOrDefault(m => m.Name == med.Medication);
+
+                        if (medication != null)
+                        {
+                            prescriptionMedications.Add(new StandardPrescriptionMedication
+                            {
+                                Id = Guid.NewGuid(),
+                                PrescriptionId = prescription.Id,
+                                MedicationId = medication.Id,
+                                Morning = med.Morning,
+                                Noon = med.Noon,
+                                Afternoon = med.Afternoon,
+                                Evening = med.Evening
+                            });
+                        }
+                    }
+                }
+
+                _context.StandardPrescriptionMedications.AddRange(prescriptionMedications);
+                _context.SaveChanges();
+
+                var whiteListDomain = new WhitelistDomain
+                {
+                    Id = Guid.NewGuid(),
+                    Domain = "api-trangtrai.nongdanonline.vn",
+                    ApiKey = "pobqFpoFEvo7gs4dCMgGARjMhNjyvmGeXOpPPYRNzIJlRT46C4cN84YDKoUdrdhaQtrkTdFtDgR4IVi6INyw",
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
+                };
+                _context.WhitelistDomains.Add(whiteListDomain);
+                _context.SaveChanges();
+
+                var sensorTypes = new List<SensorType>
+        {
+            new SensorType { Id = Guid.NewGuid(), Name = "Cảm biến nhiệt độ", Description = "Cảm biến đo nhiệt độ", FieldName = "Temperature", Unit = "°C", DefaultPinCode = 1 },
+            new SensorType { Id = Guid.NewGuid(), Name = "Cảm biến H2S", Description = "Cảm biến đo nồng độ H2S", FieldName = "H2S", Unit = "%", DefaultPinCode = 2 },
+            new SensorType { Id = Guid.NewGuid(), Name = "Cảm biến NH3", Description = "Cảm biến đo nồng độ NH3", FieldName = "NH3", Unit = "%", DefaultPinCode = 3 },
+            new SensorType { Id = Guid.NewGuid(), Name = "Cảm biến độ ẩm", Description = "Cảm biến đo độ ẩm", FieldName = "Humidity", Unit = "%", DefaultPinCode = 4 }
+        };
+
+                _context.SensorTypes.AddRange(sensorTypes);
+                _context.SaveChanges();
+
                 return Ok("Dữ liệu đã được nhập vào thành công!");
             }
             catch (Exception ex)

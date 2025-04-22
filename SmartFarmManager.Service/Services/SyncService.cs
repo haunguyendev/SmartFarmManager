@@ -21,15 +21,15 @@ namespace SmartFarmManager.Service.Services
             _externalFarmApiClient = externalFarmApiClient;
         }
 
-        public async System.Threading.Tasks.Task SyncFarmFromExternalAsync( Guid farmId)
+        public async System.Threading.Tasks.Task SyncFarmFromExternalAsync(Guid farmId)
         {
-            var farmExisting = await _unitOfWork.Farms.FindByCondition(x => x.Id == farmId).FirstOrDefaultAsync();
+            var farmExisting = await _unitOfWork.Farms.FindByCondition(x => x.ExternalId == farmId).FirstOrDefaultAsync();
             if(farmExisting == null)
             {
                 throw new Exception($"FarmId: {farmId} không tồn tại!");
             }
 
-            var externalFarm = await _externalFarmApiClient.GetFarmDataAsync(farmExisting.FarmCode);
+            var externalFarm = await _externalFarmApiClient.GetFarmDataAsync((Guid)farmExisting.ExternalId);
             if (externalFarm == null)
                 throw new Exception("Không thể lấy dữ liệu từ API bên thứ ba.");
 
@@ -44,12 +44,13 @@ namespace SmartFarmManager.Service.Services
                 {
                     Id = Guid.NewGuid(),
                     FarmCode = externalFarm.FarmCode,
+                    ExternalId=externalFarm.Id,
                     CreatedDate = DateTime.UtcNow
                 };
                 await _unitOfWork.Farms.CreateAsync(farm);
                 await _unitOfWork.CommitAsync();
             }
-
+            farm.FarmCode = externalFarm.FarmCode;
             farm.Name = externalFarm.Name;
             farm.Address = externalFarm.Address;
             farm.PhoneNumber = externalFarm.PhoneNumber;
@@ -72,6 +73,7 @@ namespace SmartFarmManager.Service.Services
                     cage = new Cage
                     {
                         Id = Guid.NewGuid(),
+                        ExternalId = pen.Id,
                         PenCode = pen.PenCode,
                         Name = pen.Name,
                         CameraUrl = pen.CameraUrl,
@@ -110,6 +112,7 @@ namespace SmartFarmManager.Service.Services
                         entity = new Sensor
                         {
                             Id = Guid.NewGuid(),
+                            ExternalId = sensor.Id,
                             SensorCode = sensor.SensorCode,
                             Name=sensor.Name,
                             NodeId = sensor.NodeId,
@@ -122,7 +125,7 @@ namespace SmartFarmManager.Service.Services
                         await _unitOfWork.Sensors.CreateAsync(entity);
                         await _unitOfWork.CommitAsync();
                     }
-
+                    entity.SensorCode = sensor.SensorCode;
                     entity.Name = sensor.Name;
                     entity.NodeId = sensor.NodeId;
                     entity.PinCode = pin;
