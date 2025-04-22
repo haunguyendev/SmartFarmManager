@@ -1225,6 +1225,105 @@ namespace SmartFarmManager.Service.Services
             }
 
         }
+
+        public async System.Threading.Tasks.Task CheckAndNotifyAdminForEndingFarmingBatchesAsync()
+        {
+            var today = DateTimeUtils.GetServerTimeInVietnamTime().Date;
+
+            // Lấy các vụ nuôi có ngày kết thúc là hôm nay
+            var endingBatches = await _unitOfWork.FarmingBatches
+                .FindByCondition(fb =>
+                    fb.EndDate.HasValue &&
+                    fb.EndDate.Value.Date == today &&
+                    fb.Status == FarmingBatchStatusEnum.Active)
+                .Include(fb => fb.Cage)
+                .ToListAsync();
+
+            if (!endingBatches.Any())
+                return;
+
+            // Tìm admin farm
+            var admin = await _unitOfWork.Users
+                .FindByCondition(u => u.Role.RoleName == "Admin Farm")
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync();
+
+            if (admin == null)
+                return;
+
+            var notiType = await _unitOfWork.NotificationsTypes
+                .FindByCondition(nt => nt.NotiTypeName == "FarmingBatchSchedule")
+                .FirstOrDefaultAsync();
+
+            foreach (var farmingBatch in endingBatches)
+            {
+                var shortContent = $"Vụ nuôi {farmingBatch.Name} tại chuồng {farmingBatch.Cage.Name} kết thúc hôm nay.";
+                var content = $@"
+<table style='width: 100%; font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>
+    <tr>
+        <td align='center'>
+            <table style='max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'>
+                <tr style='background-color: #2c3e50;'>
+                    <td style='padding: 20px; text-align: center;'>
+                        <h2 style='color: #ffffff; margin: 10px 0 0;'>Thông báo kết thúc vụ nuôi</h2>
+                    </td>
+                </tr>
+                <tr>
+                    <td style='padding: 30px; color: #333333;'>
+                        <p>Xin chào <strong>{admin.FullName}</strong>,</p>
+                        <p>
+                            Hệ thống ghi nhận rằng vụ nuôi <strong>{farmingBatch.Name}</strong> tại chuồng
+                            <strong>{farmingBatch.Cage.Name}</strong> sẽ <span style='color: red; font-weight: bold;'>kết thúc hôm nay ({today:yyyy-MM-dd})</span>.
+                        </p>
+
+                        <p>Vui lòng thực hiện các bước sau:</p>
+                        <ul>
+                            <li>Kiểm tra và xác nhận số lượng vật nuôi còn lại</li>
+                            <li>Thực hiện công việc bán gà</li>
+                            <li>Ghi nhận số lượng chết (nếu có)</li>
+                            <li>Thực hiện vệ sinh chuồng trại</li>
+                            <li>Lập kế hoạch cho vụ nuôi kế tiếp</li>
+                        </ul>
+
+                        <p>Nếu cần hỗ trợ, vui lòng liên hệ bộ phận kỹ thuật.</p>
+
+                        <p style='margin-top: 30px;'>Trân trọng,<br /><strong>Hệ thống Smart Farm</strong></p>
+                    </td>
+                </tr>
+                <tr style='background-color: #ecf0f1; text-align: center;'>
+                    <td style='padding: 15px; font-size: 12px; color: #888888;'>
+                        © 2025 Smart Farm - Phần mềm quản lý trang trại thông minh
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>";
+
+                var notification = new DataAccessObject.Models.Notification
+                {
+                    UserId = admin.Id,
+                    NotiTypeId = (Guid)notiType?.Id,
+                    Content = shortContent,
+                    CreatedAt = DateTime.UtcNow,
+                    MedicalSymptomId = null,
+                    IsRead = false
+                };
+
+                // Gửi thông báo push
+                await _notificationUserService.CreateNotificationAsync(notification);
+                await _notificationService.SendNotification(admin.DeviceId, "📢 Vụ nuôi kết thúc hôm nay", notification);
+
+                // Gửi email
+                await _emailService.SendReminderEmailAsync(
+                    admin.Email,
+                    admin.FullName,
+                    "Vụ nuôi kết thúc hôm nay",
+                    content
+                );
+            }
+        }
+
         public async Task<CageFarmingStageModel> GetCurrentFarmingStageWithCageAsync(Guid cageId)
         {
             // 🔹 Lấy thông tin chuồng

@@ -47,12 +47,33 @@ namespace SmartFarmManager.Service.Services
             return new FarmModel
             {
                 Id = farm.Id,
+                ExternalId =(Guid)farm.ExternalId,
                 Name = farm.Name,
                 Address = farm.Address,
                 Area = farm.Area,
                 PhoneNumber = farm.PhoneNumber,
                 Email = farm.Email
             };
+        }
+        
+        public async Task<bool> UpdateFarmExternalIdAsync(Guid id, Guid externalId)
+        {
+            // Tìm trang trại theo id
+            var farm = await _unitOfWork.Farms.GetByIdAsync(id);
+            if (farm == null)
+            {
+                return false;
+            }
+
+            // Cập nhật ExternalId
+            farm.ExternalId = externalId;
+            farm.ModifiedDate = DateTimeUtils.GetServerTimeInVietnamTime();
+            
+            // Lưu thay đổi vào cơ sở dữ liệu
+            await _unitOfWork.Farms.UpdateAsync(farm);
+            await _unitOfWork.CommitAsync();
+            
+            return true;
         }
 
         public async Task<IEnumerable<FarmModel>> GetAllFarmsAsync(string? search)
@@ -62,6 +83,7 @@ namespace SmartFarmManager.Service.Services
             return farms.Select(f => new FarmModel
             {
                 Id = f.Id,
+                ExternalId = f.ExternalId ?? Guid.Empty,
                 Name = f.Name,
                 FarmCode = f.FarmCode,
                 Address = f.Address,
@@ -71,22 +93,43 @@ namespace SmartFarmManager.Service.Services
             });
         }
 
-        public async Task<bool> UpdateFarmAsync(Guid id, FarmModel model)
+        public async Task<bool> UpdateFarmAsync(Guid id, FarmUpdateModel model)
         {
-            var farm = await _unitOfWork.Farms.GetByIdAsync(id);
-            if (farm == null) return false;
+            var farm = await _unitOfWork.Farms.FindByCondition(f => f.Id == id).FirstOrDefaultAsync();
 
-            farm.Name = model.Name;
-            farm.Address = model.Address;
-            farm.Area = model.Area;
-            farm.PhoneNumber = model.PhoneNumber;
-            farm.Email = model.Email;
-            farm.ModifiedDate = DateTimeUtils.GetServerTimeInVietnamTime();
+            if (farm == null)
+            {
+                throw new KeyNotFoundException($"Nông trại với {id} không tìm thấy.");
+            }
+
+            var farmWithSameCode = await _unitOfWork.Farms
+                .FindByCondition(f => f.FarmCode == model.FarmCode && f.Id != id)
+                .FirstOrDefaultAsync();
+
+            if (farmWithSameCode != null)
+            {
+                throw new ArgumentException($"Nông trại với '{model.FarmCode}' đã tồn tại");
+            }
+            farm.ExternalId = model.ExternalId??farm.ExternalId;
+            farm.FarmCode = model.FarmCode ?? farm.FarmCode;
+            farm.Name = model.Name ?? farm.Name;
+            farm.Address = model.Address ?? farm.Address;
+            farm.PhoneNumber = model.PhoneNumber ?? farm.PhoneNumber;
+            farm.Email = model.Email ?? farm.Email;
+            farm.Area = model.Area ?? farm.Area;
+          
+            farm.ModifiedDate = DateTime.UtcNow;
 
             await _unitOfWork.Farms.UpdateAsync(farm);
             await _unitOfWork.CommitAsync();
+
             return true;
         }
+        
+        // Phương thức cần thêm vào lớp FarmService đã có sẵn
+// Đặt phương thức này trong lớp FarmService hiện có
+
+
 
         public async Task<bool> DeleteFarmAsync(Guid id)
         {

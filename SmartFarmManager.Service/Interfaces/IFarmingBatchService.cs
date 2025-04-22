@@ -32,7 +32,7 @@ namespace SmartFarmManager.Service.Interfaces
 
         Task<FarmingBatchModel> GetFarmingBatchByCageIdAndueDateTaskAsync(Guid cageId, DateTime dueDateTask);
         Task<List<GroupFarmingBatchModel>> GetGroupedFarmingBatchesByUser(Guid userId);
-
+        System.Threading.Tasks.Task CheckAndNotifyAdminForEndingFarmingBatchesAsync();
         Task<FarmingBatch> UpdateDeadAnimalsAsync(
         Guid farmingBatchId,
         Guid growthStageId,
