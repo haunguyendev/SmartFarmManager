@@ -86,6 +86,42 @@ namespace SmartFarmManager.Service.Services
                 HasPreviousPage = pageNumber > 1
             };
         }
+        
+        public async Task<bool> ReportErrorAndResetQuantityAsync(Guid deadPoultryLogId, string reportNote)
+        {
+            try
+            {
+                // Tìm log cần cập nhật bằng cách sử dụng FirstOrDefaultAsync từ repository
+                var deadPoultryLog = await _unitOfWork.DeadPoultryLogs.FindAll()
+                    .FirstOrDefaultAsync(d => d.Id == deadPoultryLogId);
+                
+                if (deadPoultryLog == null)
+                {
+                    throw new KeyNotFoundException("Không tìm thấy bản ghi cần cập nhật.");
+                }
+
+                // Lưu thông tin số lượng cũ vào ghi chú
+                string updatedNote = $"Báo cáo nhầm lẫn: {reportNote}. Số lượng ban đầu: {deadPoultryLog.Quantity}";
+                
+                if (!string.IsNullOrEmpty(deadPoultryLog.Note))
+                {
+                    updatedNote += $". Ghi chú cũ: {deadPoultryLog.Note}";
+                }
+                
+                // Cập nhật lại số lượng và ghi chú
+                deadPoultryLog.Quantity = 0;
+                deadPoultryLog.Note = updatedNote;
+                
+                // Lưu thay đổi thông qua UnitOfWork
+                await _unitOfWork.DeadPoultryLogs.UpdateAsync(deadPoultryLog);
+                await _unitOfWork.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
     }
 }
