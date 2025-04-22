@@ -25,13 +25,13 @@ namespace SmartFarmManager.Service.ExternalClient
             _logger = logger;
         }
 
-        public async Task<FarmSyncModel?> GetFarmDataAsync(string farmCode)
+        public async Task<FarmSyncModel?> GetFarmDataAsync(Guid farmId)
         {
             var apiKey = await _unitOfWork.WhiteListDomains.FindByCondition(x => x.Domain == "api-trangtrai.nongdanonline.vn").Select(x => x.ApiKey).FirstOrDefaultAsync();
             if (string.IsNullOrEmpty(apiKey))
                 throw new UnauthorizedAccessException("Không tìm thấy API key hợp lệ cho domain yêu cầu.");
             var request = new HttpRequestMessage(HttpMethod.Get,
-            $"https://api-trangtrai.nongdanonline.vn/api/farms/for-webhook/{farmCode}");
+            $"https://api-trangtrai.nongdanonline.vn/api/farms/for-webhook/{farmId}");
             request.Headers.Add("x-api-key", apiKey);
 
             var response = await _httpClient.SendAsync(request);
