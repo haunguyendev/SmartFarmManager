@@ -83,7 +83,10 @@ namespace SmartFarmManager.Service.Services
 
                                             // Vụ nuôi mới kết thúc trong khoảng thời gian vụ nuôi cũ
                                             (fb.EstimatedTimeStart.Value.Date <= estimatedTimeEnd.Date && fb.EndDate.Value.Date >= estimatedTimeEnd.Date)
-                                        ))
+                                            
+                                        )
+                                        &&fb.Status!=FarmingBatchStatusEnum.Cancelled)
+
                 .FirstOrDefaultAsync();
             if (existingBatch != null)
             {
