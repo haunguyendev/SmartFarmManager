@@ -21,9 +21,9 @@ namespace SmartFarmManager.Service.Services
             _externalFarmApiClient = externalFarmApiClient;
         }
 
-        public async System.Threading.Tasks.Task SyncFarmFromExternalAsync( Guid farmId)
+        public async System.Threading.Tasks.Task SyncFarmFromExternalAsync(Guid farmId)
         {
-            var farmExisting = await _unitOfWork.Farms.FindByCondition(x => x.ExternalId == farmId).FirstOrDefaultAsync();
+            var farmExisting = await _unitOfWork.Farms.FindByCondition(x => x.Id == farmId).FirstOrDefaultAsync();
             if(farmExisting == null)
             {
                 throw new Exception($"FarmId: {farmId} không tồn tại!");
@@ -50,7 +50,7 @@ namespace SmartFarmManager.Service.Services
                 await _unitOfWork.Farms.CreateAsync(farm);
                 await _unitOfWork.CommitAsync();
             }
-
+            farm.FarmCode = externalFarm.FarmCode;
             farm.Name = externalFarm.Name;
             farm.Address = externalFarm.Address;
             farm.PhoneNumber = externalFarm.PhoneNumber;
@@ -125,7 +125,7 @@ namespace SmartFarmManager.Service.Services
                         await _unitOfWork.Sensors.CreateAsync(entity);
                         await _unitOfWork.CommitAsync();
                     }
-
+                    entity.SensorCode = sensor.SensorCode;
                     entity.Name = sensor.Name;
                     entity.NodeId = sensor.NodeId;
                     entity.PinCode = pin;

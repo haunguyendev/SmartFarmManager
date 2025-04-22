@@ -702,6 +702,17 @@ namespace SmartFarmManager.API.Controllers
                 _context.WhitelistDomains.Add(whiteListDomain);
                 _context.SaveChanges();
 
+                var sensorTypes = new List<SensorType>
+        {
+            new SensorType { Id = Guid.NewGuid(), Name = "Cảm biến nhiệt độ", Description = "Cảm biến đo nhiệt độ", FieldName = "Temperature", Unit = "°C", DefaultPinCode = 1 },
+            new SensorType { Id = Guid.NewGuid(), Name = "Cảm biến H2S", Description = "Cảm biến đo nồng độ H2S", FieldName = "H2S", Unit = "%", DefaultPinCode = 2 },
+            new SensorType { Id = Guid.NewGuid(), Name = "Cảm biến NH3", Description = "Cảm biến đo nồng độ NH3", FieldName = "NH3", Unit = "%", DefaultPinCode = 3 },
+            new SensorType { Id = Guid.NewGuid(), Name = "Cảm biến độ ẩm", Description = "Cảm biến đo độ ẩm", FieldName = "Humidity", Unit = "%", DefaultPinCode = 4 }
+        };
+
+                _context.SensorTypes.AddRange(sensorTypes);
+                _context.SaveChanges();
+
                 return Ok("Dữ liệu đã được nhập vào thành công!");
             }
             catch (Exception ex)
