@@ -9,6 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using SmartFarmManager.Service.Shared;
 
 namespace SmartFarmManager.Service.Services
 {
@@ -107,11 +109,20 @@ namespace SmartFarmManager.Service.Services
                 {
                     updatedNote += $". Ghi chú cũ: {deadPoultryLog.Note}";
                 }
-                
+                var deadPoultryLogFarmingbatch = await _unitOfWork.DeadPoultryLogs.FindByCondition(dp => dp.Id == deadPoultryLogId).Include(dp => dp.FarmingBatch).ThenInclude(fb => fb.GrowthStages).FirstOrDefaultAsync();
+                var farmingBatch = deadPoultryLogFarmingbatch.FarmingBatch;
+
+                farmingBatch.DeadQuantity = deadPoultryLog.FarmingBatch.DeadQuantity - deadPoultryLog.Quantity;
+
+                var growthStage = deadPoultryLogFarmingbatch.FarmingBatch.GrowthStages.Where(gs => gs.Status == GrowthStageStatusEnum.Active).FirstOrDefault();
+
+                growthStage.DeadQuantity = growthStage.DeadQuantity - deadPoultryLog.Quantity;
                 // Cập nhật lại số lượng và ghi chú
                 deadPoultryLog.Quantity = 0;
                 deadPoultryLog.Note = updatedNote;
-                
+
+                await _unitOfWork.FarmingBatches.UpdateAsync(farmingBatch);
+                await _unitOfWork.GrowthStages.UpdateAsync(growthStage);
                 // Lưu thay đổi thông qua UnitOfWork
                 await _unitOfWork.DeadPoultryLogs.UpdateAsync(deadPoultryLog);
                 await _unitOfWork.CommitAsync();
