@@ -35,6 +35,72 @@ namespace SmartFarmManager.Service.Services
             _notificationService = notificationService;
         }
 
+        public async Task<bool> CreateSaleTaskAsync(CreateSaleTaskModel model)
+        {
+            if (model.DueDate < DateTimeUtils.GetServerTimeInVietnamTime().Date)
+                throw new ArgumentException("Ngày thực hiện phải từ hôm nay hoặc tương lai.");
+
+            var farmingBatch = await _unitOfWork.FarmingBatches
+                .FindByCondition(fb => fb.Id == model.FarmingBatchId && fb.Status == FarmingBatchStatusEnum.Active)
+                .Include(fb => fb.GrowthStages)
+                .Include(fb => fb.Cage)
+                .FirstOrDefaultAsync();
+
+            if (farmingBatch == null)
+                throw new ArgumentException("FarmingBatch không tồn tại hoặc không hoạt động.");
+
+            if (model.DueDate.Date < farmingBatch.EndDate?.Date)
+                throw new ArgumentException("Không thể tạo nhiệm vụ bán vật nuôi khi chưa đến ngày kết thúc vụ nuôi.");
+
+            var cage = farmingBatch.Cage;
+
+            var taskType = await _unitOfWork.TaskTypes.FindByCondition(tt => tt.TaskTypeName == "Bán vật nuôi").FirstOrDefaultAsync();
+            if (taskType == null)
+                throw new ArgumentException("Không tìm thấy TaskType 'Bán vật nuôi'.");
+
+            var assignedUserId = await _unitOfWork.CageStaffs
+                .FindByCondition(cs => cs.CageId == cage.Id && cs.StaffFarm.Role.RoleName == "Staff Farm")
+                .Include(cs => cs.StaffFarm)
+                .Select(cs => cs.StaffFarmId)
+                .FirstOrDefaultAsync();
+
+            if (assignedUserId == Guid.Empty)
+                throw new InvalidOperationException($"Không có nhân viên nào được gán cho chuồng {cage.Name}.");
+
+            var exists = await _unitOfWork.Tasks.FindByCondition(t =>
+                t.CageId == cage.Id && t.DueDate.Value.Date == model.DueDate.Date &&
+                t.Session == 3 && t.TaskTypeId == taskType.Id).AnyAsync();
+
+            if (exists)
+                throw new InvalidOperationException("Task 'Bán vật nuôi' đã tồn tại trong chuồng hôm nay.");
+
+            var task = new DataAccessObject.Models.Task
+            {
+                Id = Guid.NewGuid(),
+                TaskTypeId = taskType.Id,
+                CageId = cage.Id,
+                AssignedToUserId = assignedUserId,
+                CreatedByUserId = model.CreatedByUserId,
+                TaskName = "Bán vật nuôi",
+                PriorityNum = (int)taskType.PriorityNum,
+                Description = model.Notes,
+                DueDate = model.DueDate.Date,
+                Session = 3,
+                CreatedAt = DateTimeUtils.GetServerTimeInVietnamTime(),
+                Status = TaskStatusEnum.Pending
+            };
+
+            await _unitOfWork.Tasks.CreateAsync(task);
+            await _unitOfWork.CommitAsync();
+
+            await _notificationService.SendNotificationToUser(task.AssignedToUserId.ToString(),
+                $"Nhiệm vụ 'Bán vật nuôi' đã được tạo và gán cho bạn tại chuồng {cage.Name}.");
+
+            return true;
+        }
+
+
+
         public async Task<bool> CreateTaskRecurringAsync(CreateTaskRecurringModel model)
         {
             // 1. Kiểm tra Cage có thuộc FarmingBatch đang hoạt động không

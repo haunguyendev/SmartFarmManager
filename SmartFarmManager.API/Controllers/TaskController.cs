@@ -249,6 +249,34 @@ namespace SmartFarmManager.API.Controllers
             }
         }
 
+        [HttpPost("sell-task")]
+        public async Task<IActionResult> CreateSaleTask([FromBody] CreateSaleTaskRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
+            }
+
+            try
+            {
+                var result = await _taskService.CreateSaleTaskAsync(request.MapToModel());
+                if (!result)
+                {
+                    throw new Exception("Error while creating sale task!");
+                }
+
+                return Ok(ApiResult<string>.Succeed("Task 'Bán vật nuôi' đã được tạo thành công."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
+
 
         [HttpGet("user-tasks-with-priority")]
         public async Task<IActionResult> GetUserTasksWithPriority([FromQuery] Guid userId, [FromQuery] Guid cageId, [FromQuery] DateTime? specificDate = null)
