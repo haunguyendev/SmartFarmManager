@@ -621,7 +621,7 @@ namespace SmartFarmManager.Service.Services
             if (user == null)
                 throw new ArgumentException("Người dùng không tồn tại.");
 
-            if (user.Role.RoleName != "Staff Farm" || user.Role.RoleName != "Customer")
+            if (user.Role.RoleName != "Staff Farm" && user.Role.RoleName != "Customer")
                 throw new InvalidOperationException("Chỉ nhân viên trang trại mới được gán chuồng.");
 
             // 2. Lấy FarmConfig
