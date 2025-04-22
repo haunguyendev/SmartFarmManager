@@ -24,71 +24,88 @@ namespace SmartFarmManager.Service.Services
         }
 
         // DeadPoultryLogService.cs
-        public async Task<PagedResult<DeadPoultryLogResponseModel>> GetDeadPoultryLogsAsync( string? cageName, string? farmingBatchName, string? note, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize)
+        public async Task<PagedResult<DeadPoultryLogResponseModel>> GetDeadPoultryLogsAsync(bool? isError, string? cageName, string? farmingBatchName, string? note, DateTime? startDate, DateTime? endDate, int pageNumber, int pageSize)
+{
+    var query = _unitOfWork.DeadPoultryLogs.FindAll()
+        .Include(d => d.FarmingBatch)
+            .ThenInclude(fb => fb.Cage)
+        .AsQueryable();
+
+    // Áp dụng bộ lọc isError theo quantity
+    if (isError.HasValue)
+    {
+        if (isError.Value)
         {
-            var query = _unitOfWork.DeadPoultryLogs.FindAll()
-                .Include(d => d.FarmingBatch)
-                    .ThenInclude(fb => fb.Cage)
-                .AsQueryable();
-
-            // Áp dụng bộ lọc
-            if (!string.IsNullOrEmpty(cageName))
-            {
-                query = query.Where(d =>
-                    d.FarmingBatch.Cage.Name.Contains(cageName));
-            }
-
-            if (!string.IsNullOrEmpty(farmingBatchName))
-            {
-                query = query.Where(d =>
-                    d.FarmingBatch.Name.Contains(farmingBatchName));
-            }
-
-            if (!string.IsNullOrEmpty(note))
-            {
-                query = query.Where(d =>
-                    d.Note.Contains(note));
-            }
-
-            // Thêm bộ lọc ngày
-            if (startDate.HasValue)
-                query = query.Where(d => d.Date >= startDate.Value);
-
-            if (endDate.HasValue)
-                query = query.Where(d => d.Date <= endDate.Value);
-
-            // Phân trang
-            var totalItems = await query.CountAsync();
-
-            var items = await query
-                .OrderByDescending(d => d.Date)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .Select(d => new DeadPoultryLogResponseModel
-                {
-                    Id = d.Id,
-                    Date = d.Date,
-                    Quantity = d.Quantity,
-                    Note = d.Note,
-                    FarmingBatchId = d.FarmingBatch.Id,
-                    FarmingBatchName = d.FarmingBatch.Name,
-                    CageId = d.FarmingBatch.Cage.Id,
-                    CageName = d.FarmingBatch.Cage.Name
-                })
-                .ToListAsync();
-
-            return new PagedResult<DeadPoultryLogResponseModel>
-            {
-                Items = items,
-                TotalItems = totalItems,
-                CurrentPage = pageNumber,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
-                HasNextPage = pageNumber < (int)Math.Ceiling(totalItems / (double)pageSize),
-                HasPreviousPage = pageNumber > 1
-            };
+            // isError == true: lấy các bản ghi có quantity == 0
+            query = query.Where(d => d.Quantity == 0);
         }
-        
+        else
+        {
+            // isError == false: lấy các bản ghi có quantity > 0
+            query = query.Where(d => d.Quantity > 0);
+        }
+    }
+    // Trường hợp isError == null: lấy tất cả bản ghi (không cần thêm điều kiện)
+
+    // Áp dụng bộ lọc theo tên lồng
+    if (!string.IsNullOrEmpty(cageName))
+    {
+        query = query.Where(d =>
+            d.FarmingBatch.Cage.Name.Contains(cageName));
+    }
+
+    // Áp dụng bộ lọc theo tên vụ nuôi
+    if (!string.IsNullOrEmpty(farmingBatchName))
+    {
+        query = query.Where(d =>
+            d.FarmingBatch.Name.Contains(farmingBatchName));
+    }
+
+    // Áp dụng bộ lọc theo ghi chú
+    if (!string.IsNullOrEmpty(note))
+    {
+        query = query.Where(d =>
+            d.Note.Contains(note));
+    }
+
+    // Thêm bộ lọc ngày
+    if (startDate.HasValue)
+        query = query.Where(d => d.Date >= startDate.Value);
+
+    if (endDate.HasValue)
+        query = query.Where(d => d.Date <= endDate.Value);
+
+    // Phân trang
+    var totalItems = await query.CountAsync();
+
+    var items = await query
+        .OrderByDescending(d => d.Date)
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+        .Select(d => new DeadPoultryLogResponseModel
+        {
+            Id = d.Id,
+            Date = d.Date,
+            Quantity = d.Quantity,
+            Note = d.Note,
+            FarmingBatchId = d.FarmingBatch.Id,
+            FarmingBatchName = d.FarmingBatch.Name,
+            CageId = d.FarmingBatch.Cage.Id,
+            CageName = d.FarmingBatch.Cage.Name
+        })
+        .ToListAsync();
+
+    return new PagedResult<DeadPoultryLogResponseModel>
+    {
+        Items = items,
+        TotalItems = totalItems,
+        CurrentPage = pageNumber,
+        PageSize = pageSize,
+        TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+        HasNextPage = pageNumber < (int)Math.Ceiling(totalItems / (double)pageSize),
+        HasPreviousPage = pageNumber > 1
+    };
+}
         public async Task<bool> ReportErrorAndResetQuantityAsync(Guid deadPoultryLogId, string reportNote)
         {
             try
