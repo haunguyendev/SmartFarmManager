@@ -131,7 +131,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail("Đã xảy ra lỗi không mong muốn. Vui lòng liên hệ bộ phận hỗ trợ."));
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
             }
         }
         [HttpPost("update-status-today")]

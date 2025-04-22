@@ -13,12 +13,12 @@ public partial class GrowthStage : EntityBase
 
     public string Name { get; set; }
 
-    public decimal? WeightAnimal { get; set; }
-    public decimal? WeightAnimalExpect { get; set; }
+    public decimal? WeightAnimal { get; set; } = 0;
+    public decimal? WeightAnimalExpect { get; set; } = 0;
 
-    public int? Quantity { get; set; }
-    public int? DeadQuantity { get; set; }
-    public int? AffectedQuantity { get; set; }
+    public int? Quantity { get; set; } = 0;
+    public int? DeadQuantity { get; set; } = 0;
+    public int? AffectedQuantity { get; set; } = 0;
     public int? AgeStart { get; set; }
     public string FoodType { get; set; }
 
