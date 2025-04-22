@@ -21,9 +21,9 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetDeadPoultryLogs([FromQuery] string? cageName, [FromQuery] string? farmingBatchName, [FromQuery] string? note,[FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetDeadPoultryLogs([FromQuery] bool? isError,[FromQuery] string? cageName, [FromQuery] string? farmingBatchName, [FromQuery] string? note,[FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _deadPoultryLogService.GetDeadPoultryLogsAsync(cageName, farmingBatchName, note, startDate, endDate, pageNumber, pageSize);
+            var result = await _deadPoultryLogService.GetDeadPoultryLogsAsync(isError,cageName, farmingBatchName, note, startDate, endDate, pageNumber, pageSize);
 
             return Ok(ApiResult<PagedResult<DeadPoultryLogResponseModel>>.Succeed(result));
         }
