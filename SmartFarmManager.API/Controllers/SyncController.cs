@@ -29,7 +29,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(ApiResult<string>.Fail("Bạn không có quyền truy cập vào hệ thống"));
+                return StatusCode(400,ApiResult<string>.Fail("Có lỗi giao tiếp với API bên thứ ba! Vui lòng kiểm tra và thử lại sau!"));
             }
             catch (Exception ex)
             {
