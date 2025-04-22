@@ -699,6 +699,8 @@ namespace SmartFarmManager.API.Controllers
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true
                 };
+                _context.WhitelistDomains.Add(whiteListDomain);
+                _context.SaveChanges();
 
                 return Ok("Dữ liệu đã được nhập vào thành công!");
             }
