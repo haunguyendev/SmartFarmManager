@@ -86,7 +86,14 @@ namespace SmartFarmManager.Service.Services
                      await _unitOfWork.Cages.CreateAsync(cage);
                     await _unitOfWork.CommitAsync();
                 }
-
+                if(pen.Name.Trim().StartsWith("[CCL]"))
+                {
+                    cage.IsSolationCage = true;
+                }
+                else
+                {
+                    cage.IsSolationCage = false;
+                }
                 cage.Name = pen.Name;
                 cage.CameraUrl = pen.CameraUrl;
                 cage.ChannelId = pen.ChannelId;
