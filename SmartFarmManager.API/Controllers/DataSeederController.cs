@@ -695,7 +695,7 @@ namespace SmartFarmManager.API.Controllers
                 {
                     Id = Guid.NewGuid(),
                     Domain = "api-trangtrai.nongdanonline.vn",
-                    ApiKey = "pobqFpoFEvo7gs4dCMgGARjMhNjyvmGeXOpPPYRNzIJlRT46C4cN84YDKoUdrdhaQtrkTdFtDgR4IVi6INyw"
+                    ApiKey = "pobqFpoFEvo7gs4dCMgGARjMhNjyvmGeXOpPPYRNzIJlRT46C4cN84YDKoUdrdhaQtrkTdFtDgR4IVi6INyw",
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true
                 };
