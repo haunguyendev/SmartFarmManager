@@ -760,31 +760,31 @@ namespace SmartFarmManager.Service.Services
 
 
             // Tìm FarmingBatch theo CageId và các điều kiện
-            var farmingBatch = await _unitOfWork.FarmingBatches.FindByCondition(
-    fb =>
-        fb.CageId == cageId &&
-        fb.StartDate.HasValue &&
-        (fb.CompleteAt.HasValue || fb.EndDate.HasValue) &&
-        fb.StartDate.Value.Date <= dueDateTask.Date &&
-        (
-            (fb.CompleteAt.HasValue && fb.CompleteAt.Value.Date.AddDays(1) >= dueDateTask.Date) ||
-            (fb.EndDate.HasValue && fb.EndDate.Value.Date.AddDays(1) >= dueDateTask.Date)
-        ),
-    trackChanges: false
-).Include(fb => fb.GrowthStages).FirstOrDefaultAsync();
+            //var farmingBatch = await _unitOfWork.FarmingBatches.FindByCondition(fb =>
+            //fb.CageId == cageId &&
+            //fb.StartDate.HasValue &&
+            //(fb.CompleteAt.HasValue || fb.EndDate.HasValue) &&
+            //fb.StartDate.Value.Date <= dueDateTask.Date && ((fb.CompleteAt.HasValue && fb.CompleteAt.Value.Date.AddDays(1) >= dueDateTask.Date) ||
+            //(fb.EndDate.HasValue && fb.EndDate.Value.Date.AddDays(1) >= dueDateTask.Date)),
+            //trackChanges: false).Include(fb => fb.GrowthStages).FirstOrDefaultAsync();
+            var farmingBatch = await _unitOfWork.FarmingBatches.FindByCondition(fb => fb.CageId == cageId 
+            && fb.Status == FarmingBatchStatusEnum.Active).Include(fb => fb.GrowthStages).FirstOrDefaultAsync();
 
             if (farmingBatch == null)
                 return null;
 
-            var growthStage = farmingBatch.GrowthStages.Where(gs => gs.AgeStartDate.HasValue && (gs.AgeStartDate.HasValue || gs.AgeEndDate.HasValue)
-                                                                    && gs.AgeStartDate.Value.Date <= dueDateTask.Date &&
-                                                                    (gs.AgeEndDate.HasValue && gs.AgeEndDate.Value.Date >= dueDateTask.Date)).FirstOrDefault();
-            if (growthStage == null)
-            {
-                growthStage = farmingBatch.GrowthStages.Where(gs => gs.AgeStartDate.HasValue && (gs.AgeStartDate.HasValue || gs.AgeEndDate.HasValue)
-                                                                    && gs.AgeStartDate.Value.Date <= dueDateTask.Date &&
-                                                                    (gs.AgeEndDate.HasValue && gs.AgeEndDate.Value.Date.AddDays(1) >= dueDateTask.Date)).FirstOrDefault();
-            }
+            //var growthStage = farmingBatch.GrowthStages.Where(gs => gs.AgeStartDate.HasValue && (gs.AgeStartDate.HasValue || gs.AgeEndDate.HasValue)
+            //                                                        && gs.AgeStartDate.Value.Date <= dueDateTask.Date &&
+            //                                                        (gs.AgeEndDate.HasValue && gs.AgeEndDate.Value.Date >= dueDateTask.Date)).FirstOrDefault();
+            //if (growthStage == null)
+            //{
+            //    growthStage = farmingBatch.GrowthStages.Where(gs => gs.AgeStartDate.HasValue && (gs.AgeStartDate.HasValue || gs.AgeEndDate.HasValue)
+            //                                                        && gs.AgeStartDate.Value.Date <= dueDateTask.Date &&
+            //                                                        (gs.AgeEndDate.HasValue && gs.AgeEndDate.Value.Date.AddDays(1) >= dueDateTask.Date)).FirstOrDefault();
+            //}
+
+            var growthStage = farmingBatch.GrowthStages.Where(gs => gs.Status == GrowthStageStatusEnum.Active).FirstOrDefault();
+            
             return new FarmingBatchModel
             {
                 Id = farmingBatch.Id,
