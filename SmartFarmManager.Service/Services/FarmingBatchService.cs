@@ -679,8 +679,8 @@ namespace SmartFarmManager.Service.Services
                     EstimatedTimeStart = fb.EstimatedTimeStart,
                     CleaningFrequency = fb.CleaningFrequency,
                     Quantity = fb.Quantity,
-                    AffectQuantity = fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).AffectedQuantity,
-                    CurrentQuantity = fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).Quantity - fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).DeadQuantity,
+                    AffectQuantity = fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).AffectedQuantity ?? 0,
+                    CurrentQuantity = (fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).Quantity ?? 0) - (fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).DeadQuantity ?? 0),
                     DeadQuantity = fb.DeadQuantity,
                     Cage = fb.Cage == null ? null : new CageModel
                     {
