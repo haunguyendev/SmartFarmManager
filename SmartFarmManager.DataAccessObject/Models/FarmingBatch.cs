@@ -21,7 +21,7 @@ public partial class FarmingBatch : EntityBase
     public int CleaningFrequency { get; set; }
     public int DeadQuantity { get; set; } = 0;
 
-    public int? Quantity { get; set; }
+    public int? Quantity { get; set; } = 0;
     public Guid FarmId { get; set; }
 
     public virtual ICollection<AnimalSale> AnimalSales { get; set; } = new List<AnimalSale>();
