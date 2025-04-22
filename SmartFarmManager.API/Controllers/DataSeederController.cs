@@ -23,7 +23,7 @@ namespace SmartFarmManager.API.Controllers
             _context = context;
         }
 
-        [HttpPost("seed/TempleteChicken")]
+        [HttpPost("seed/TemplateChicken")]
         public IActionResult SeedDataTempleteChicken()
         {
             try
@@ -690,6 +690,16 @@ namespace SmartFarmManager.API.Controllers
 
                 _context.StandardPrescriptionMedications.AddRange(prescriptionMedications);
                 _context.SaveChanges();
+
+                var whiteListDomain = new WhitelistDomain
+                {
+                    Id = Guid.NewGuid(),
+                    Domain = "api-trangtrai.nongdanonline.vn",
+                    ApiKey = "pobqFpoFEvo7gs4dCMgGARjMhNjyvmGeXOpPPYRNzIJlRT46C4cN84YDKoUdrdhaQtrkTdFtDgR4IVi6INyw"
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
+                };
+
                 return Ok("Dữ liệu đã được nhập vào thành công!");
             }
             catch (Exception ex)
