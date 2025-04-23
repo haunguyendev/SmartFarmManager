@@ -16,12 +16,14 @@ namespace SmartFarmManager.Service.Services
     public class FarmConfigService:IFarmConfigService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ITaskService _taskService; 
+        private readonly ITaskService _taskService;
+        private readonly IFarmingBatchService _farmingBatchService;
 
-        public FarmConfigService(IUnitOfWork unitOfWork, ITaskService taskService)
+        public FarmConfigService(IUnitOfWork unitOfWork, ITaskService taskService,IFarmingBatchService farmingBatchService)
         {
             _unitOfWork = unitOfWork;
             _taskService = taskService;
+            _farmingBatchService = farmingBatchService;
         }
 
         public async Task UpdateFarmTimeDifferenceAsync(Guid farmId, DateTime newTime)
@@ -45,6 +47,8 @@ namespace SmartFarmManager.Service.Services
 
             DateTimeUtils.SetTimeDifference(farmConfig.TimeDifferenceInMinutes);
             await _taskService.UpdateAllTaskStatusesAsync();
+            await _farmingBatchService.RunUpdateFarmingBatchesStatusAsync();
+
 
         }
 
