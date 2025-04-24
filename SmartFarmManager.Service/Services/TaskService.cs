@@ -765,10 +765,15 @@ namespace SmartFarmManager.Service.Services
             }
 
             // Sắp xếp dữ liệu
-            query = query.OrderBy(t => t.CageId)
-                         .ThenBy(t => t.DueDate.Value.Date)
-                         .ThenBy(t => t.Session)
-                         .ThenBy(t => t.PriorityNum);
+            query = filter.SortByDueDateDesc
+    ? query.OrderBy(t => t.CageId)
+           .ThenByDescending(t => t.DueDate)
+           .ThenBy(t => t.Session)
+           .ThenBy(t => t.PriorityNum)
+    : query.OrderBy(t => t.CageId)
+           .ThenBy(t => t.DueDate)
+           .ThenBy(t => t.Session)
+           .ThenBy(t => t.PriorityNum);
 
             // Tổng số phần tử
             var totalItems = await query.CountAsync();

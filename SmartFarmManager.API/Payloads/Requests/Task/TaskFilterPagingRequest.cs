@@ -14,7 +14,7 @@
         public int? Session {  get; set; }  // Lọc theo buổi trong ngày (1- sáng, 2- trưa, 3 chiều)
         public DateTime? CompletedAt { get; set; }
         public DateTime? CreatedAt { get; set; }
-
+        public bool SortByDueDateDesc { get; set; } = false;
         public int PageNumber { get; set; } = 1; // Số trang
         public int PageSize { get; set; } = 10; // Số phần tử mỗi trang
     }
