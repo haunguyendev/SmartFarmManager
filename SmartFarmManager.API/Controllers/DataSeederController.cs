@@ -2063,7 +2063,7 @@ namespace SmartFarmManager.API.Controllers
                     MedicalSymtomId = symptomNewPrescriptionCage3.Id,
                     CageId = Guid.Parse("F37F0727-435D-4D80-9C29-AE2F41B49C9D"),
                     PrescribedDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-3),
-                    EndDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-3 + standardPrescriptionCage3.RecommendDay),
+                    EndDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-2 + standardPrescriptionCage3.RecommendDay),
                     Notes = "Đơn thuốc từ mẫu chuẩn",
                     QuantityAnimal = 20,
                     RemainingQuantity = 20,
