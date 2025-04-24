@@ -192,6 +192,7 @@ namespace SmartFarmManager.API.Controllers
                     Session = filterRequest.Session,
                     CompletedAt = filterRequest.CompletedAt,
                     CreatedAt = filterRequest.CreatedAt,
+                    SortByDueDateDesc=filterRequest.SortByDueDateDesc,
                     PageNumber = filterRequest.PageNumber,
                     PageSize = filterRequest.PageSize,
                     
