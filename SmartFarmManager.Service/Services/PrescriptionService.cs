@@ -480,6 +480,7 @@ namespace SmartFarmManager.Service.Services
                 .Include(p => p.PrescriptionMedications)
                 .Include(p => p.MedicalSymtom)
                 .ThenInclude(ms => ms.FarmingBatch).ThenInclude(fb => fb.GrowthStages)
+                .Include(p => p.MedicalSymtom).ThenInclude(ms => ms.Disease)               
                 .FirstOrDefaultAsync();
 
             // ❌ Kiểm tra nếu đơn thuốc không tồn tại
@@ -498,9 +499,18 @@ namespace SmartFarmManager.Service.Services
 
                 if (request.RemainingQuantity > prescription.QuantityAnimal)
                     throw new ArgumentException("Remaining quantity cannot exceed total affected animals.");
-
+                var newDeadLog = new DeadPoultryLog
+                {
+                    Date = DateTimeUtils.GetServerTimeInVietnamTime(),
+                    Quantity = prescription.QuantityAnimal - (int)request.RemainingQuantity,
+                    FarmingBatchId = prescription.MedicalSymtom.FarmingBatchId,
+                    Note=$"Chết vì bị bệnh {prescription.MedicalSymtom.Disease.Name}"
+                };
+                await _unitOfWork.DeadPoultryLogs.CreateAsync(newDeadLog);               
                 prescription.RemainingQuantity = request.RemainingQuantity;
+
             }
+            
             //else if (request.Status == PrescriptionStatusEnum.Dead)
             //{
             //    prescription.RemainingQuantity = 0; // ✅ Nếu chết hết, RemainingQuantity = 0
