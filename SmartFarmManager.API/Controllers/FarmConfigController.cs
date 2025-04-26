@@ -28,7 +28,7 @@ namespace SmartFarmManager.API.Controllers
 
             try
             {
-                await _farmConfigService.UpdateFarmTimeDifferenceAsync(request.FarmId, request.NewTime);
+                await _farmConfigService.UpdateFarmTimeDifferenceAsync( request.NewTime);
                 return Ok(ApiResult<string>.Succeed("Time difference updated successfully."));
             }
             catch (Exception ex)
