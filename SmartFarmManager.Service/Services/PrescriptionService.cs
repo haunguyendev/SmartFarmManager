@@ -478,7 +478,7 @@ namespace SmartFarmManager.Service.Services
             var prescription = await _unitOfWork.Prescription
                 .FindByCondition(p => p.Id == prescriptionId && (p.Status == PrescriptionStatusEnum.Active || p.Status == PrescriptionStatusEnum.Completed))
                 .Include(p => p.PrescriptionMedications)
-                .Include(p => p.MedicalSymtom)
+                .Include(p => p.MedicalSymtom)             
                 .ThenInclude(ms => ms.FarmingBatch).ThenInclude(fb => fb.GrowthStages)
                 .Include(p => p.MedicalSymtom).ThenInclude(ms => ms.Disease)               
                 .FirstOrDefaultAsync();
@@ -531,7 +531,7 @@ namespace SmartFarmManager.Service.Services
                         Date = DateTimeUtils.GetServerTimeInVietnamTime(),
                         Quantity = prescription.QuantityAnimal - (int)request.RemainingQuantity,
                         FarmingBatchId = prescription.MedicalSymtom.FarmingBatchId,
-                        Note = $"Chết vì bị bệnh {prescription.MedicalSymtom.Disease.Name}"
+                        Note = $"Chết vì bị bệnh"
                     };
 
                     await _unitOfWork.DeadPoultryLogs.CreateAsync(newDeadLog);
