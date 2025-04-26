@@ -499,14 +499,7 @@ namespace SmartFarmManager.Service.Services
 
                 if (request.RemainingQuantity > prescription.QuantityAnimal)
                     throw new ArgumentException("Remaining quantity cannot exceed total affected animals.");
-                var newDeadLog = new DeadPoultryLog
-                {
-                    Date = DateTimeUtils.GetServerTimeInVietnamTime(),
-                    Quantity = prescription.QuantityAnimal - (int)request.RemainingQuantity,
-                    FarmingBatchId = prescription.MedicalSymtom.FarmingBatchId,
-                    Note=$"Chết vì bị bệnh {prescription.MedicalSymtom.Disease.Name}"
-                };
-                await _unitOfWork.DeadPoultryLogs.CreateAsync(newDeadLog);               
+                              
                 prescription.RemainingQuantity = request.RemainingQuantity;
 
             }
@@ -533,15 +526,15 @@ namespace SmartFarmManager.Service.Services
                     }
 
                     farmingBatch.DeadQuantity = farmingBatch.DeadQuantity + prescription.QuantityAnimal - remainingQuantity;
-                    var deadLogs = new DeadPoultryLog
+                    var newDeadLog = new DeadPoultryLog
                     {
-                        FarmingBatchId = farmingBatch.Id,
-                        Quantity = prescription.QuantityAnimal - remainingQuantity,
                         Date = DateTimeUtils.GetServerTimeInVietnamTime(),
-                        Note = "Bị chết trong quá trình trị bệnh",
+                        Quantity = prescription.QuantityAnimal - (int)request.RemainingQuantity,
+                        FarmingBatchId = prescription.MedicalSymtom.FarmingBatchId,
+                        Note = $"Chết vì bị bệnh {prescription.MedicalSymtom.Disease.Name}"
                     };
 
-                    await _unitOfWork.DeadPoultryLogs.CreateAsync(deadLogs);
+                    await _unitOfWork.DeadPoultryLogs.CreateAsync(newDeadLog);
                     await _unitOfWork.FarmingBatches.UpdateAsync(farmingBatch);
                     await _unitOfWork.GrowthStages.UpdateAsync(growStageActive);
                 }
