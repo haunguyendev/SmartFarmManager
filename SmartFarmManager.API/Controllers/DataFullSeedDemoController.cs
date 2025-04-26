@@ -765,23 +765,23 @@ namespace SmartFarmManager.API.Controllers
                 var assignedUserIdSale = assignedStaffsSale.First(); // Chọn ngẫu nhiên 1 nhân viên Staff Farm
 
                 DateTime vietnamNowLastSale = DateTimeUtils.GetServerTimeInVietnamTime();
-                if (saleAnimalType != null)
-                {
-                    tasks.Add(new DataAccessObject.Models.Task
-                    {
-                        Id = Guid.NewGuid(),
-                        TaskTypeId = saleAnimalType.Id,
-                        CageId = cage3.Id,
-                        AssignedToUserId = assignedUserIdSale,
-                        TaskName = "Bán gà",
-                        PriorityNum = saleAnimalType.PriorityNum.Value,
-                        Description = $"Bán gà",
-                        DueDate = vietnamNowLastSale.Date.AddDays(1),
-                        Status = "Pending",
-                        Session = 3,
-                        CreatedAt = vietnamNowLastSale.Date
-                    });
-                }
+                //if (saleAnimalType != null)
+                //{
+                //    tasks.Add(new DataAccessObject.Models.Task
+                //    {
+                //        Id = Guid.NewGuid(),
+                //        TaskTypeId = saleAnimalType.Id,
+                //        CageId = cage3.Id,
+                //        AssignedToUserId = assignedUserIdSale,
+                //        TaskName = "Bán gà",
+                //        PriorityNum = saleAnimalType.PriorityNum.Value,
+                //        Description = $"Bán gà",
+                //        DueDate = vietnamNowLastSale.Date.AddDays(1),
+                //        Status = "Pending",
+                //        Session = 3,
+                //        CreatedAt = vietnamNowLastSale.Date
+                //    });
+                //}
                 _context.Tasks.AddRange(tasks);
                 _context.SaveChanges();
 
@@ -957,7 +957,7 @@ namespace SmartFarmManager.API.Controllers
                         Id = Guid.NewGuid(),
                         DiseaseId = disease.Id,
                         Notes = "Tuân thủ hướng dẫn điều trị, bổ sung vitamin và điện giải",
-                        RecommendDay = random.Next(3, 6)
+                        RecommendDay = 5
                     };
 
                     prescriptions.Add(prescription);

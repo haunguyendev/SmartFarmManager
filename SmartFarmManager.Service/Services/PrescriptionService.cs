@@ -523,8 +523,15 @@ namespace SmartFarmManager.Service.Services
                     }
 
                     farmingBatch.DeadQuantity = farmingBatch.DeadQuantity + prescription.QuantityAnimal - remainingQuantity;
+                    var deadLogs = new DeadPoultryLog
+                    {
+                        FarmingBatchId = farmingBatch.Id,
+                        Quantity = prescription.QuantityAnimal - remainingQuantity,
+                        Date = DateTimeUtils.GetServerTimeInVietnamTime(),
+                        Note = "Bị chết trong quá trình trị bệnh",
+                    };
 
-
+                    await _unitOfWork.DeadPoultryLogs.CreateAsync(deadLogs);
                     await _unitOfWork.FarmingBatches.UpdateAsync(farmingBatch);
                     await _unitOfWork.GrowthStages.UpdateAsync(growStageActive);
                 }

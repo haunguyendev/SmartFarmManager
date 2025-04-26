@@ -1501,6 +1501,7 @@ namespace SmartFarmManager.Service.Services
                 FarmingBatchCode = farmingBatch.FarmingBatchCode,
                 Quantity = farmingBatch.Quantity,
                 TemplateName = farmingBatch.Template.Name,
+                CurrentQuantity = (farmingBatch.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).Quantity ?? 0) - (farmingBatch.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).DeadQuantity ?? 0),
                 AnimalSales = farmingBatch.AnimalSales.Select(asale => new AnimalSaleDetaiInFarmingBatchlModel
                 {
                     Id = asale.Id,
@@ -1534,7 +1535,14 @@ namespace SmartFarmManager.Service.Services
                     QuantityInCage = ms.QuantityInCage,
                     Status = ms.Status
 
-                }).ToList()
+                }).ToList(),
+                deadPoultryLogModels = farmingBatch.DeadPoultryLogs.Select(dpl => new DeadPoultryLogModel
+                {
+                    FarmingBatchId = dpl.FarmingBatchId,
+                    Date = dpl.Date,
+                    Quantity = dpl.Quantity,
+                    Note = dpl.Note
+                }).ToList(),
 
 
             };
@@ -1554,6 +1562,8 @@ namespace SmartFarmManager.Service.Services
                 .FindByCondition(fb => cageIds.Contains(fb.CageId))
                 .Include(fb => fb.Cage)
                 .Include(fb => fb.Template)
+                .Include(fb => fb.GrowthStages)
+                .Include(fb => fb.DeadPoultryLogs)
                 .ToListAsync();
 
             // Map sang FarmingBatchModel
@@ -1571,6 +1581,7 @@ namespace SmartFarmManager.Service.Services
                 CleaningFrequency = fb.CleaningFrequency,
                 Quantity = fb.Quantity,
                 DeadQuantity = fb.DeadQuantity,
+                CurrentQuantity = (fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).Quantity ?? 0) - (fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).DeadQuantity ?? 0),
                 Cage = fb.Cage == null ? null : new CageModel
                 {
                     Id = fb.Cage.Id,
