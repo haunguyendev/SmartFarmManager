@@ -11,6 +11,7 @@ using SmartFarmManager.Service.BusinessModels.Prescription;
 using SmartFarmManager.Service.BusinessModels.Task;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
+using SmartFarmManager.Service.Services;
 using Sprache;
 
 namespace SmartFarmManager.API.Controllers
@@ -216,5 +217,20 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
             }
         }
+        [HttpGet("IsolationCage")]
+        public async Task<IActionResult> GetIsolationCage()
+        {
+            try
+            {
+                var result = await _cageService.GetCageIsolatePrescriptionsWithDetailsAsync();
+
+                return Ok(ApiResult<CageIsolateModel>.Succeed(result));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail($"Error: {ex.Message}"));
+            }
+        }
+
     }
 }
