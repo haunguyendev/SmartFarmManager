@@ -35,7 +35,8 @@ namespace SmartFarmManager.Service.Services
 
         public async Task<IEnumerable<TaskTypeModel>> GetTaskTypesAsync()
         {
-            var taskTypes = await _unitOfWork.TaskTypes.FindAll().ToListAsync();
+            var taskTypes = await _unitOfWork.TaskTypes.FindAll().Where(tt => tt.TaskTypeName != "Nhập thức ăn" && tt.TaskTypeName!= "Tiêm vắc xin" && tt.TaskTypeName != "Cho uống thuốc" && tt.TaskTypeName != "Bán trứng" && tt.TaskTypeName != "Thu hoạch" && tt.TaskTypeName != "Nhập vật nuôi").ToListAsync();
+            
             return taskTypes.Select(tt => new TaskTypeModel
             {
                 Id = tt.Id,
