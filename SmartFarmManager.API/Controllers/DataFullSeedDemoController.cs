@@ -1431,7 +1431,7 @@ namespace SmartFarmManager.API.Controllers
                     Notes = "Đơn thuốc từ mẫu chuẩn",
                     QuantityAnimal = 15,
                     RemainingQuantity = 15,
-                    Status = PrescriptionStatusEnum.Active,
+                    Status = PrescriptionStatusEnum.Return,
                     DaysToTake = 4,
                     Price = 0 // sẽ tính bên dưới
                 };
@@ -1666,7 +1666,7 @@ namespace SmartFarmManager.API.Controllers
                 _context.SaveChanges();
 
                 //update task thành overdue giờ hiện tại với session là 1
-                var updateTaskSession1Now = _context.Tasks.Where(t => t.Session == 1 && t.DueDate == DateTimeUtils.GetServerTimeInVietnamTime()).ToList();
+                var updateTaskSession1Now = _context.Tasks.Where(t => t.Session == 1 && t.DueDate.Value.Date == DateTimeUtils.GetServerTimeInVietnamTime().Date).ToList();
                 foreach(var taskSession1Status in updateTaskSession1Now){
                     taskSession1Status.Status = TaskStatusEnum.Overdue;
                 }
