@@ -522,7 +522,7 @@ namespace SmartFarmManager.Service.Services
                     if (growStageActive != null)
                     {
                         growStageActive.DeadQuantity = growStageActive.DeadQuantity + prescription.QuantityAnimal - remainingQuantity;
-                        growStageActive.AffectedQuantity = growStageActive.AffectedQuantity - prescription.QuantityAnimal; //return là đã trả về hoặc đã chết nên trừ thẳng cho số con bị bệnh
+                        growStageActive.AffectedQuantity = growStageActive.AffectedQuantity - prescription.QuantityAnimal;
                     }
 
                     farmingBatch.DeadQuantity = farmingBatch.DeadQuantity + prescription.QuantityAnimal - remainingQuantity;
