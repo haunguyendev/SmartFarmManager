@@ -1581,7 +1581,16 @@ namespace SmartFarmManager.Service.Services
                 CleaningFrequency = fb.CleaningFrequency,
                 Quantity = fb.Quantity,
                 DeadQuantity = fb.DeadQuantity,
-                CurrentQuantity = (fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).Quantity ?? 0) - (fb.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).DeadQuantity ?? 0),
+                CurrentQuantity = (fb.GrowthStages
+                        .FirstOrDefault(gs => gs.Status == GrowthStageStatusEnum.Active)?
+                        .Quantity ?? 0)
+                     -
+                     (fb.GrowthStages
+                        .FirstOrDefault(gs => gs.Status == GrowthStageStatusEnum.Active)?
+                        .DeadQuantity ?? 0),
+                AffectQuantity = (fb.GrowthStages
+                        .FirstOrDefault(gs => gs.Status == GrowthStageStatusEnum.Active)?
+                        .AffectedQuantity ?? 0),
                 Cage = fb.Cage == null ? null : new CageModel
                 {
                     Id = fb.Cage.Id,

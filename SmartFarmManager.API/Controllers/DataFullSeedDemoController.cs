@@ -33,15 +33,16 @@ namespace SmartFarmManager.API.Controllers
                     new TaskType { Id = Guid.Parse("F1124086-2B16-4D3F-B522-0AE43EB528AC"), TaskTypeName = "Bán vật nuôi", PriorityNum = 10 },
                     new TaskType { Id = Guid.Parse("468E7FDE-6DD4-48BD-9358-6168D2840FBD"), TaskTypeName = "Cho uống thuốc", PriorityNum = 3 },
                     new TaskType { Id = Guid.Parse("51C09974-49C9-4484-8620-63D0FAA3876B"), TaskTypeName = "Cân", PriorityNum = 6 },
-                    new TaskType { Id = Guid.Parse("CC9E8354-F0DF-481B-ADBB-694F810E68EA"), TaskTypeName = "Thu hoạch", PriorityNum = 7 },
-                    new TaskType { Id = Guid.Parse("6C5EF3C3-449B-431D-8996-76942057F936"), TaskTypeName = "Nhập vật nuôi", PriorityNum = 9 },
+                    //new TaskType { Id = Guid.Parse("CC9E8354-F0DF-481B-ADBB-694F810E68EA"), TaskTypeName = "Thu hoạch", PriorityNum = 7 },
+                    //new TaskType { Id = Guid.Parse("6C5EF3C3-449B-431D-8996-76942057F936"), TaskTypeName = "Nhập vật nuôi", PriorityNum = 9 },
                     new TaskType { Id = Guid.Parse("88F4EDE7-3AFC-45B1-83CC-77D2EBE43B64"), TaskTypeName = "Phun thuốc sát trùng", PriorityNum = 5 },
                     new TaskType { Id = Guid.Parse("5772F17E-088C-458D-8808-7CACB5E5103E"), TaskTypeName = "Cho ăn", PriorityNum = 1 },
                     new TaskType { Id = Guid.Parse("E01A648B-FCF3-4933-BBBA-80A1B71C8EF2"), TaskTypeName = "Nhập thức ăn", PriorityNum = 11 },
                     new TaskType { Id = Guid.Parse("646143A0-EB0A-42BF-A308-99896E3C6476"), TaskTypeName = "Dọn chuồng", PriorityNum = 4 },
-                    new TaskType { Id = Guid.Parse("6AD005A1-1764-4836-A70F-B589A095231C"), TaskTypeName = "Sửa chữa chuồng trại", PriorityNum = 8 },
-                    new TaskType { Id = Guid.Parse("A426BF57-E6F8-4FC5-BCE4-BE39BBFE9930"), TaskTypeName = "Bán trứng", PriorityNum = 12 },
-                    new TaskType { Id = Guid.Parse("23D4BEF2-D68C-4F8D-B9AA-D4AFB9FCCF4E"), TaskTypeName = "Tiêm vắc xin", PriorityNum = 2 }
+                    //new TaskType { Id = Guid.Parse("6AD005A1-1764-4836-A70F-B589A095231C"), TaskTypeName = "Sửa chữa chuồng trại", PriorityNum = 8 },
+                    //new TaskType { Id = Guid.Parse("A426BF57-E6F8-4FC5-BCE4-BE39BBFE9930"), TaskTypeName = "Bán trứng", PriorityNum = 12 },
+                    new TaskType { Id = Guid.Parse("23D4BEF2-D68C-4F8D-B9AA-D4AFB9FCCF4E"), TaskTypeName = "Tiêm vắc xin", PriorityNum = 2 },
+                    new TaskType { Id = Guid.NewGuid(), TaskTypeName = "Biếu gà", PriorityNum = 13 },
                 };
 
                 _context.TaskTypes.AddRange(taskTypes);
@@ -1323,7 +1324,7 @@ namespace SmartFarmManager.API.Controllers
 
                 //tạo đơn thuốc cho cage 3 để demo hoàn thành
                 var farmingBatchNewPrescriptionCage3 = _context.FarmingBatchs.Where(fb => fb.CageId == Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387")).Include(fb => fb.GrowthStages).FirstOrDefault();
-                // Tạo MedicalSymptom
+                // Tạo MedicalSymptom còn cho uống thuốc
                 var symptomNewPrescriptionCage3 = new MedicalSymptom
                 {
                     Id = Guid.NewGuid(),
@@ -1349,7 +1350,7 @@ namespace SmartFarmManager.API.Controllers
                     EndDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-2 + 3),
                     Notes = "Đơn thuốc từ mẫu chuẩn",
                     QuantityAnimal = 20,
-                    RemainingQuantity = 20,
+                    RemainingQuantity = 0,
                     Status = PrescriptionStatusEnum.Active,
                     DaysToTake = 3,
                     Price = 0 // sẽ tính bên dưới
@@ -1402,6 +1403,84 @@ namespace SmartFarmManager.API.Controllers
                 _context.MedicalSymtomDetails.Add(medicalSymptomDetail1);
                 _context.MedicalSymtomDetails.Add(medicalSymptomDetail2);
                 _context.SaveChanges();
+
+                // Tạo Mecalsymptom đã uống xong đã trở về chuồng
+                var symptomNewPrescription2Cage3 = new MedicalSymptom
+                {
+                    Id = Guid.NewGuid(),
+                    FarmingBatchId = farmingBatchNewPrescriptionCage3.Id, // farming batch cụ thể
+                    Diagnosis = "Nhiễm trùng Adenovirus",
+                    Status = MedicalSymptomStatuseEnum.Prescribed,
+                    AffectedQuantity = 20,
+                    QuantityInCage = 200,
+                    IsEmergency = false,
+                    Notes = "Phát hiện nghi nhiễm dịch tả",
+                    CreateAt = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-10),
+                    DiseaseId = diseaseId,
+                    PrescriptionId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25")
+                };
+
+                // Tạo Prescription từ mẫu
+                var prescriptionNewPrescription2Cage3 = new Prescription
+                {
+                    Id = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"),
+                    MedicalSymtomId = symptomNewPrescriptionCage3.Id,
+                    CageId = Guid.Parse("F37F0727-435D-4D80-9C29-AE2F41B49C9D"),
+                    PrescribedDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-10),
+                    EndDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-10 + 4),
+                    Notes = "Đơn thuốc từ mẫu chuẩn",
+                    QuantityAnimal = 15,
+                    RemainingQuantity = 15,
+                    Status = PrescriptionStatusEnum.Active,
+                    DaysToTake = 4,
+                    Price = 0 // sẽ tính bên dưới
+                };
+
+                // Tạo danh sách PrescriptionMedications từ StandardPrescriptionMedications
+                var stdMeds2 = _context.StandardPrescriptionMedications
+                    .Where(m => m.PrescriptionId == standardPrescriptionCage3.Id)
+                    .ToList();
+
+                var prescriptionMeds2 = stdMeds.Select(m => new PrescriptionMedication
+                {
+                    Id = Guid.NewGuid(),
+                    PrescriptionId = prescriptionNewPrescription2Cage3.Id,
+                    MedicationId = m.MedicationId,
+                    Morning = m.Morning,
+                    Noon = m.Noon,
+                    Afternoon = m.Afternoon,
+                    Evening = m.Evening
+                }).ToList();
+
+                // Tính tổng giá đơn thuốc (nếu cần)
+                var medicationPrices2 = _context.Medications
+                    .Where(m => stdMeds.Select(x => x.MedicationId).Contains(m.Id))
+                    .ToDictionary(m => m.Id, m => m.PricePerDose ?? 0);
+
+                prescriptionNewPrescription2Cage3.Price = prescriptionMeds.Sum(pm => (medicationPrices.ContainsKey(pm.MedicationId) ? medicationPrices[pm.MedicationId] : 0) * prescriptionNewPrescriptionCage3.DaysToTake ?? 1);
+
+                // Add vào DB
+                _context.MedicalSymptoms.Add(symptomNewPrescription2Cage3);
+                _context.Prescriptions.Add(prescriptionNewPrescription2Cage3);
+                _context.PrescriptionMedications.AddRange(prescriptionMeds2);
+                _context.SaveChanges();
+
+                var symptomCage3_1_2 = _context.Symptoms.Where(s => s.SymptomName == "Ủ rũ, kém hoạt động").FirstOrDefault();
+                var medicalSymptomDetail1_2 = new MedicalSymtomDetail
+                {
+                    MedicalSymptomId = symptomNewPrescriptionCage3.Id,
+                    SymptomId = symptomCage3_1.Id
+                };
+                var symptomCage3_2_2 = _context.Symptoms.Where(s => s.SymptomName == "Giảm ăn, bỏ ăn").FirstOrDefault();
+                var medicalSymptomDetail2_2 = new MedicalSymtomDetail
+                {
+                    MedicalSymptomId = symptomNewPrescriptionCage3.Id,
+                    SymptomId = symptomCage3_2.Id
+                };
+                _context.MedicalSymtomDetails.Add(medicalSymptomDetail1_2);
+                _context.MedicalSymtomDetails.Add(medicalSymptomDetail2_2);
+                _context.SaveChanges();
+                //Hoàn thành tạo đơn thuốc đã cho uống ở chuồng 2 và đã trả về chuồng cũ
 
                 // Bước 1: Lấy danh sách MedicationId
                 var medicationListIds = prescriptionMeds.Select(pm => pm.MedicationId).ToList();
