@@ -1665,6 +1665,14 @@ namespace SmartFarmManager.API.Controllers
                 // Lưu thay đổi Task
                 _context.SaveChanges();
 
+                //update task thành overdue giờ hiện tại với session là 1
+                var updateTaskSession1Now = _context.Tasks.Where(t => t.Session == 1 && t.DueDate == DateTimeUtils.GetServerTimeInVietnamTime()).ToList();
+                foreach(var taskSession1Status in updateTaskSession1Now){
+                    taskSession1Status.Status = TaskStatusEnum.Overdue;
+                }
+                _context.Tasks.UpdateRange(updateTaskSession1Now);
+                _context.SaveChanges();
+
 
                 return Ok("Dữ liệu đã được nhập vào thành công!");
             }
