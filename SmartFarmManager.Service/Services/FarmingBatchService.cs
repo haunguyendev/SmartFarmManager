@@ -1501,7 +1501,13 @@ namespace SmartFarmManager.Service.Services
                 FarmingBatchCode = farmingBatch.FarmingBatchCode,
                 Quantity = farmingBatch.Quantity,
                 TemplateName = farmingBatch.Template.Name,
-                CurrentQuantity = (farmingBatch.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).Quantity ?? 0) - (farmingBatch.GrowthStages.First(gs => gs.Status == GrowthStageStatusEnum.Active).DeadQuantity ?? 0),
+                CurrentQuantity = (farmingBatch.GrowthStages
+                        .FirstOrDefault(gs => gs.Status == GrowthStageStatusEnum.Active)?
+                        .Quantity ?? 0)
+                     -
+                     (farmingBatch.GrowthStages
+                        .FirstOrDefault(gs => gs.Status == GrowthStageStatusEnum.Active)?
+                        .DeadQuantity ?? 0),
                 AnimalSales = farmingBatch.AnimalSales.Select(asale => new AnimalSaleDetaiInFarmingBatchlModel
                 {
                     Id = asale.Id,
