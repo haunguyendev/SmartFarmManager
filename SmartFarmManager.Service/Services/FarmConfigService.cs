@@ -26,9 +26,9 @@ namespace SmartFarmManager.Service.Services
             _farmingBatchService = farmingBatchService;
         }
 
-        public async Task UpdateFarmTimeDifferenceAsync(Guid farmId, DateTime newTime)
+        public async Task UpdateFarmTimeDifferenceAsync(DateTime newTime)
         {
-            var farmConfig = await _unitOfWork.FarmConfigs.FindByCondition(f => f.FarmId == farmId).FirstOrDefaultAsync();
+            var farmConfig = await _unitOfWork.FarmConfigs.FindAll().FirstOrDefaultAsync();
 
             if (farmConfig == null)
             {
