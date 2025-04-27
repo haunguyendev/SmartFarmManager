@@ -27,12 +27,14 @@ namespace SmartFarmManager.Service.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly NotificationService _notificationService;
+        private readonly EmailService _emailService;
 
-        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, NotificationService notificationService)
+        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, NotificationService notificationService, EmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _notificationService = notificationService;
+            _emailService = emailService;
         }
 
         public async Task<bool> CreateSaleTaskAsync(CreateSaleTaskModel model)
@@ -2472,6 +2474,10 @@ namespace SmartFarmManager.Service.Services
                 throw new Exception($"Lỗi khi lấy log từ task: {ex.Message}");
             }
         }
+
+
+
+       
 
 
 
