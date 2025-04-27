@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using SmartFarmManager.API.Common;
 using SmartFarmManager.DataAccessObject.Models;
+using SmartFarmManager.Repository.Interfaces;
 using SmartFarmManager.Service.BusinessModels.SensorDataLog;
 using SmartFarmManager.Service.BusinessModels.Webhook;
 using SmartFarmManager.Service.Helpers;
@@ -17,10 +19,12 @@ namespace SmartFarmManager.API.Controllers
     public class DataSeederController : ControllerBase
     {
         private readonly SmartFarmContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public DataSeederController(SmartFarmContext context)
+        public DataSeederController(SmartFarmContext context, IUnitOfWork unitOfWork)
         {
             _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpPost("seed/TemplateChicken")]
@@ -2413,5 +2417,121 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, $"❌ Lỗi khi cập nhật dữ liệu: {ex.Message}");
             }
         }
+
+        [HttpPost("seed-costing-reports")]
+        public async Task<IActionResult> SeedCostingReports()
+        {
+            try
+            {
+                var farms = await _unitOfWork.Farms.FindAll(false).ToListAsync();
+
+                if (!farms.Any())
+                {
+                    return BadRequest(ApiResult<string>.Fail("Không có farm nào trong hệ thống để seed dữ liệu."));
+                }
+
+                var currentYear = DateTimeUtils.GetServerTimeInVietnamTime().Year;
+                var currentMonth = DateTimeUtils.GetServerTimeInVietnamTime().Month;
+
+                var random = new Random();
+                var costingReports = new List<CostingReport>();
+
+                foreach (var farm in farms)
+                {
+                    for (int month = 1; month <= currentMonth; month++)
+                    {
+                        var existingReports = await _unitOfWork.CostingReports
+                            .FindByCondition(r => r.FarmId == farm.Id && r.ReportMonth == month && r.ReportYear == currentYear)
+                            .ToListAsync();
+
+                        if (existingReports.Any())
+                        {
+                            continue; // Bỏ qua tháng đã có dữ liệu
+                        }
+
+                        // Random nhẹ dữ liệu thực tế
+                        var electricityQuantity = random.Next(480, 550);
+                        var waterQuantity = random.Next(280, 320);
+                        var foodQuantity = random.Next(1500, 1700);
+                        var vaccineQuantity = random.Next(90, 110);
+                        var medicineQuantity = random.Next(50, 70);
+
+                        costingReports.AddRange(new List<CostingReport>
+                {
+                    new CostingReport
+                    {
+                        Id = Guid.NewGuid(),
+                        FarmId = farm.Id,
+                        ReportMonth = month,
+                        ReportYear = currentYear,
+                        CostType = "Điện",
+                        TotalQuantity = electricityQuantity,
+                        TotalCost = electricityQuantity * 2000,
+                        GeneratedAt = new DateTime(currentYear, month, 1)
+                    },
+                    new CostingReport
+                    {
+                        Id = Guid.NewGuid(),
+                        FarmId = farm.Id,
+                        ReportMonth = month,
+                        ReportYear = currentYear,
+                        CostType = "Nước",
+                        TotalQuantity = waterQuantity,
+                        TotalCost = waterQuantity * 8500,
+                        GeneratedAt = new DateTime(currentYear, month, 1)
+                    },
+                    new CostingReport
+                    {
+                        Id = Guid.NewGuid(),
+                        FarmId = farm.Id,
+                        ReportMonth = month,
+                        ReportYear = currentYear,
+                        CostType = "Thức ăn",
+                        TotalQuantity = foodQuantity,
+                        TotalCost = foodQuantity * 12000,
+                        GeneratedAt = new DateTime(currentYear, month, 1)
+                    },
+                    new CostingReport
+                    {
+                        Id = Guid.NewGuid(),
+                        FarmId = farm.Id,
+                        ReportMonth = month,
+                        ReportYear = currentYear,
+                        CostType = "Vaccine",
+                        TotalQuantity = vaccineQuantity,
+                        TotalCost = vaccineQuantity * 20000,
+                        GeneratedAt = new DateTime(currentYear, month, 1)
+                    },
+                    new CostingReport
+                    {
+                        Id = Guid.NewGuid(),
+                        FarmId = farm.Id,
+                        ReportMonth = month,
+                        ReportYear = currentYear,
+                        CostType = "Thuốc",
+                        TotalQuantity = medicineQuantity,
+                        TotalCost = medicineQuantity * 15000,
+                        GeneratedAt = new DateTime(currentYear, month, 1)
+                    }
+                });
+                    }
+                }
+
+                await _unitOfWork.CostingReports.CreateListAsync(costingReports);
+                await _unitOfWork.CommitAsync();
+
+                return Ok(ApiResult<string>.Succeed("Seed dữ liệu CostingReports thành công!"));
+            }
+            catch (Exception ex)
+            {               
+                return StatusCode(500, ApiResult<string>.Fail("Đã xảy ra lỗi khi seed dữ liệu."));
+            }
+        }
+
+
+
+
+
+
     }
 }

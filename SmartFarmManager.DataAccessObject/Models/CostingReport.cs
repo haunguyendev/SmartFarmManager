@@ -16,7 +16,7 @@ namespace SmartFarmManager.DataAccessObject.Models
 
         public int ReportYear { get; set; } // Năm
 
-        public string CostType { get; set; } // Loại chi phí (Điện, Nước, Nhân công, v.v.)
+        public string CostType { get; set; }
 
         public decimal TotalQuantity { get; set; } // Tổng số lượng
 
