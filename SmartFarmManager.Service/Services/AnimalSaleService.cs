@@ -162,9 +162,9 @@ namespace SmartFarmManager.Service.Services
                     throw new KeyNotFoundException($"Không tìm thấy task với ID '{taskId}'.");
                 }
 
-                if (task.TaskType?.TaskTypeName != "Bán vật nuôi")
+                if (task.TaskType?.TaskTypeName != "Bán vật nuôi" || task.TaskType?.TaskTypeName != "Biếu gà")
                 {
-                    throw new InvalidOperationException("Task không phải là 'Bán vật nuôi'.");
+                    throw new InvalidOperationException("Task không phải là 'Bán vật nuôi' hoặc 'Biếu gà'.");
                 }
 
                 var statusLog = task.StatusLogs
