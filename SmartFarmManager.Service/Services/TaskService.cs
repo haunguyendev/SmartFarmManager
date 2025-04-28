@@ -27,14 +27,16 @@ namespace SmartFarmManager.Service.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly NotificationService _notificationService;
+        private readonly INotificationService _notificationUserService;
         private readonly EmailService _emailService;
 
-        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, NotificationService notificationService, EmailService emailService)
+        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, NotificationService notificationService, EmailService emailService,INotificationService notificationUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _notificationService = notificationService;
             _emailService = emailService;
+            _notificationUserService = notificationUserService;
         }
 
         public async Task<bool> CreateSaleTaskAsync(CreateSaleTaskModel model)
@@ -1664,7 +1666,7 @@ namespace SmartFarmManager.Service.Services
                 }
 
                 var tasks = await _unitOfWork.Tasks
-                    .FindByCondition(t => t.DueDate.Value.Date <= today.Date)
+                    .FindByCondition(t => t.DueDate.Value.Date == today.Date)
                     .ToListAsync();
 
                 foreach (var task in tasks)
@@ -1696,6 +1698,10 @@ namespace SmartFarmManager.Service.Services
                         };
                         await _unitOfWork.StatusLogs.CreateAsync(statusLog);
                         await _unitOfWork.Tasks.UpdateAsync(task);
+                        if (task.Status == TaskStatusEnum.Overdue)
+                        {
+                            await ProcessOverdueTaskNotificationAsync(task);
+                        }
                     }
                 }
 
@@ -2476,8 +2482,122 @@ namespace SmartFarmManager.Service.Services
         }
 
 
+        public async System.Threading.Tasks.Task ProcessOverdueTaskNotificationAsync(Task task)
+        {
+            var today = DateTimeUtils.GetServerTimeInVietnamTime();
 
-       
+            var cage = await _unitOfWork.Cages.FindByCondition(c => c.Id == task.CageId).FirstOrDefaultAsync();
+            if (cage == null)
+            {
+                throw new ArgumentException("Không tìm thấy chuồng của nhiệm vụ.");
+            }
+
+            var staff = await _unitOfWork.Users.FindByCondition(u => u.Id == task.AssignedToUserId)
+                .Include(x=>x.Role).FirstOrDefaultAsync();
+            if (staff == null)
+            {
+                throw new ArgumentException("Không tìm thấy nhân viên được giao nhiệm vụ.");
+            }
+
+            // 3. Gửi thông báo + Email cho Admin Farm
+            var admin = await _unitOfWork.Users
+                .FindByCondition(u => u.Role.RoleName == "Admin Farm")
+                .Include(u=>u.Role)
+                .FirstOrDefaultAsync();
+
+            if (admin != null)
+            {
+                var adminNoti = new DataAccessObject.Models.Notification
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = admin.Id,
+                    NotiTypeId = await GetNotificationTypeIdAsync("TaskOverdue"),
+                    Title = "Thông báo nhiệm vụ quá hạn",
+                    Content = $"Nhiệm vụ {task.TaskName} tại chuồng {cage.Name} do {staff.FullName} phụ trách đã quá hạn vào buổi {GetSessionName(task.Session)} ({GetSessionEndTime(task.Session)}) ngày {task.DueDate.Value.Date}",
+                    CreatedAt = today,
+                    IsRead = false,
+                    TaskId = task.Id,
+                    CageId = cage.Id
+                };
+                await _notificationUserService.CreateNotificationAsync(adminNoti);
+                await _notificationService.SendNotification(admin.DeviceId, adminNoti.Title, adminNoti);
+
+                var adminEmailContent = HtmlTemplateHelper.GenerateOverdueTaskEmailForAdmin(admin.FullName, task.TaskName, cage.Name, staff.FullName, task.DueDate ?? today, GetSessionName(task.Session),GetSessionEndTime(task.Session));
+                await _emailService.SendReminderEmailAsync(admin.Email, admin.FullName, "Thông báo nhiệm vụ quá hạn", adminEmailContent);
+            }
+
+            if (task.IsTreatmentTask == true && task.PrescriptionId.HasValue)
+            {
+                var vet = await _unitOfWork.Users
+                    .FindByCondition(u => u.Role.RoleName == "Vet")
+                    .Include(u => u.Role)   
+                    .FirstOrDefaultAsync();
+
+                var prescription = await _unitOfWork.Prescription
+                    .FindByCondition(p => p.Id == task.PrescriptionId.Value)
+                    .Include(p => p.MedicalSymtom)
+                    .FirstOrDefaultAsync();
+
+                if (vet != null && prescription != null)
+                {
+                    var vetNoti = new DataAccessObject.Models.Notification
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = vet.Id,
+                        NotiTypeId = await GetNotificationTypeIdAsync("TaskOverdue"),
+                        Title = "Thông báo nhiệm vụ thú y quá hạn",
+                        Content = $"Nhiệm vụ {task.TaskName} liên quan điều trị '{prescription.MedicalSymtom.Diagnosis}' đã quá hạn vào buổi {GetSessionName(task.Session)} ({GetSessionEndTime(task.Session)}) ngày {task.DueDate.Value.Date}.",
+                        CreatedAt = today,
+                        IsRead = false,
+                        TaskId = task.Id,
+                        CageId = cage.Id
+                    };
+                    await _notificationUserService.CreateNotificationAsync(vetNoti);
+                    await _notificationService.SendNotification(vet.DeviceId, vetNoti.Title, vetNoti);
+
+                    var vetEmailContent = HtmlTemplateHelper.GenerateOverdueTaskEmailForVet(cage.Name, staff.FullName, task.TaskName, prescription.MedicalSymtom.Diagnosis, task.DueDate ?? today,GetSessionName(task.Session),GetSessionEndTime(task.Session));
+                    await _emailService.SendReminderEmailAsync(vet.Email, vet.FullName, "Thông báo công việc thú y quá hạn", vetEmailContent);
+                }
+            }
+
+            var staffNoti = new DataAccessObject.Models.Notification
+            {
+                Id = Guid.NewGuid(),
+                UserId = staff.Id,
+                NotiTypeId = await GetNotificationTypeIdAsync("TaskOverdue"),
+                Title = "Thông báo công việc quá hạn",
+                Content = $"Nhiệm vụ {task.TaskName} tại chuồng {cage.Name} của bạn đã quá hạn vào buổi {GetSessionName(task.Session)} ({GetSessionEndTime(task.Session)}) ngày {task.DueDate.Value.Date}.",
+                CreatedAt = today,
+                IsRead = false,
+                TaskId = task.Id,
+                CageId = cage.Id
+            };
+            await _notificationUserService.CreateNotificationAsync(staffNoti);
+            await _notificationService.SendNotification(staff.DeviceId, staffNoti.Title, staffNoti);
+
+            var staffEmailContent = HtmlTemplateHelper.GenerateOverdueTaskEmailForStaff(cage.Name, task.TaskName, task.DueDate ?? today, GetSessionName(task.Session), GetSessionEndTime(task.Session));
+            await _emailService.SendReminderEmailAsync(staff.Email, staff.FullName, "Thông báo công việc quá hạn", staffEmailContent);
+
+            await _unitOfWork.CommitAsync();
+        }
+
+        private async Task<Guid> GetNotificationTypeIdAsync(string notiTypeName)
+        {
+            var notiType = await _unitOfWork.NotificationsTypes
+                .FindByCondition(nt => nt.NotiTypeName == notiTypeName)
+                .FirstOrDefaultAsync();
+
+            if (notiType == null)
+                throw new Exception($"NotificationType '{notiTypeName}' không tồn tại.");
+
+            return notiType.Id;
+        }
+
+
+
+
+
+
 
 
 
