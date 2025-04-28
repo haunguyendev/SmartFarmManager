@@ -48,6 +48,7 @@ namespace SmartFarmManager.Service.Services
             DateTimeUtils.SetTimeDifference(farmConfig.TimeDifferenceInMinutes);
             await _taskService.UpdateAllTaskStatusesAsync();
             await _farmingBatchService.RunUpdateFarmingBatchesStatusAsync();
+            await _taskService.ProcessUpcomingTaskNotificationAsync();
 
 
         }
