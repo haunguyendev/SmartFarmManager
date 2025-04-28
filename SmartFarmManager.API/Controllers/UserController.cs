@@ -406,7 +406,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Admin Farm")]
         public async Task<IActionResult> GetUsers([FromQuery] UserFilterModel filter)
         {
             var users = await _userService.GetUsersAsync(filter);
@@ -415,7 +415,7 @@ namespace SmartFarmManager.API.Controllers
 
 
         [HttpGet("/filter")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Admin Farm")]
         public async Task<IActionResult> GetUsers(
 
         [FromQuery] string? roleName,
