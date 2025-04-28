@@ -249,6 +249,20 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, ApiResult<string>.Fail(ex.Message));
             }
         }
+        [HttpPost("generate-notification-overdue-tasks")]
+        public async Task<IActionResult> GenerateNotificationOverdueTasksForToday()
+        {
+            try
+            {
+                 await _taskService.ProcessUpcomingTaskNotificationAsync();
+                              
+                return Ok(ApiResult<string>.Succeed("Notification successfully!"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
 
         [HttpPost("sell-task")]
         public async Task<IActionResult> CreateSaleTask([FromBody] CreateSaleTaskRequest request)

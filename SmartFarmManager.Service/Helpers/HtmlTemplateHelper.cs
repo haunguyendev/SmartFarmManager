@@ -64,6 +64,35 @@ namespace SmartFarmManager.Service.Helpers
             <p>Vui lòng nhanh chóng hoàn thành hoặc báo cáo lý do chậm trễ.</p>";
             return GenerateEmailLayout("Thông báo công việc quá hạn", bodyContent);
         }
+
+        public static string GenerateUpcomingTaskEmailForStaff(string recipientName, string taskName, string cageName, TimeSpan sessionEndTime, DateTime dueDate)
+        {
+            return $@"
+        <html>
+        <body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>
+            <table style='max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px;'>
+                <tr>
+                    <td style='text-align: center;'>
+                        <h2 style='color: #2c3e50;'>Nhắc nhở nhiệm vụ sắp đến hạn</h2>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>Xin chào <strong>{recipientName}</strong>,</p>
+                        <p>Nhiệm vụ <strong>{taskName}</strong> tại chuồng <strong>{cageName}</strong> sẽ kết thúc vào lúc <strong>{sessionEndTime}</strong> ngày <strong>{dueDate:yyyy-MM-dd}</strong>.</p>
+                        <p>Vui lòng chuẩn bị và hoàn thành đúng hạn!</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style='text-align: center; color: gray; font-size: 12px;'>
+                        <p>Smart Farm Manager &copy; 2025</p>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>";
+        }
+
     }
 
 

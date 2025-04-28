@@ -2593,6 +2593,70 @@ namespace SmartFarmManager.Service.Services
             return notiType.Id;
         }
 
+        public async System.Threading.Tasks.Task ProcessUpcomingTaskNotificationAsync()
+        {
+            var now = DateTimeUtils.GetServerTimeInVietnamTime();
+            var today = now.Date;
+            var currentTime = now.TimeOfDay;
+
+            // Xác định phiên hiện tại
+            var currentSession = SessionTime.GetCurrentSession(currentTime);
+
+            if (currentSession == -1)
+            {
+                throw new Exception("Thời gian hiện tại không thuộc bất kỳ phiên nào được định nghĩa.");
+            }
+
+            var sessionEndTime = GetSessionEndTime(currentSession);
+            var notifyBefore = sessionEndTime.Subtract(TimeSpan.FromMinutes(30));
+
+            if (currentTime < notifyBefore || currentTime >= sessionEndTime)
+            {
+                return;
+            }
+
+            var tasks = await _unitOfWork.Tasks
+                .FindByCondition(t =>
+                    t.DueDate.HasValue &&
+                    t.DueDate.Value.Date == today.Date &&
+                    t.Session == currentSession &&
+                    (t.Status == TaskStatusEnum.Pending || t.Status == TaskStatusEnum.InProgress))
+                .ToListAsync();
+
+            foreach (var task in tasks)
+            {
+                var cage = await _unitOfWork.Cages.FindByCondition(c => c.Id == task.CageId).FirstOrDefaultAsync();
+                if (cage == null) continue;
+
+                var staff = await _unitOfWork.Users.FindByCondition(u => u.Id == task.AssignedToUserId).FirstOrDefaultAsync();
+                if (staff == null) continue;
+
+                // Gửi Notification cho nhân viên
+                var staffNoti = new DataAccessObject.Models.Notification
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = staff.Id,
+                    NotiTypeId = await GetNotificationTypeIdAsync("TaskOverdue"),
+                    Title = "Thông báo nhiệm vụ sắp đến hạn",
+                    Content = $"Nhắc nhở: Nhiệm vụ {task.TaskName} tại chuồng {cage.Name} sẽ đến hạn buổi {GetSessionName(task.Session)} ({GetSessionEndTime(task.Session)}) ngày {task.DueDate.Value.Date}.",
+                    CreatedAt = now,
+                    IsRead = false,
+                    TaskId = task.Id,
+                    CageId = cage.Id
+                };
+
+                await _notificationUserService.CreateNotificationAsync(staffNoti);
+                await _notificationService.SendNotification(staff.DeviceId, staffNoti.Title, staffNoti);
+
+                // Gửi Email cho nhân viên
+                var emailContent = HtmlTemplateHelper.GenerateUpcomingTaskEmailForStaff(staff.FullName, task.TaskName, cage.Name, sessionEndTime,task.DueDate.Value);
+                await _emailService.SendReminderEmailAsync(staff.Email, staff.FullName, "Nhắc nhở nhiệm vụ sắp đến hạn", emailContent);
+            }
+
+            await _unitOfWork.CommitAsync();
+        }
+
+
 
 
 
