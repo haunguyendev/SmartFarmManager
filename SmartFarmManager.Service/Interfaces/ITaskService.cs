@@ -40,6 +40,7 @@ namespace SmartFarmManager.Service.Interfaces
         Task<TaskLogResponse> GetLogsByTaskIdAsync(Guid taskId);
         Task<WeightAnimalLogModel> GetWeightAnimalLogByTaskId(Guid taskId);
         Task<bool> CreateSaleTaskAsync(CreateSaleTaskModel model);
+        System.Threading.Tasks.Task ProcessUpcomingTaskNotificationAsync();
 
 
     }

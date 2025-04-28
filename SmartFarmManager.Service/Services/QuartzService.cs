@@ -44,6 +44,10 @@ namespace SmartFarmManager.Service.Services
             //await ScheduleJob<Jobs.HelloWorldJob>("HelloWorldJob", "*/5 * * * * ?", serverTimeZone, cancellationToken);
             // Job tính toán chi phí hàng ngày, chạy lúc 11h đêm
             await ScheduleJob<Jobs.CalculateDailyCostJob>("CalculateDailyCostJob", "0 0 23 * * ?", serverTimeZone, cancellationToken);
+            await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Morning", "0 31 11 * * ?", serverTimeZone, cancellationToken); // 11:30 sáng
+            await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Noon", "0 31 13 * * ?", serverTimeZone, cancellationToken);    // 13:30 trưa
+            await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Afternoon", "0 31 17 * * ?", serverTimeZone, cancellationToken); // 17:30 chiều
+            await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Evening", "0 31 22 * * ?", serverTimeZone, cancellationToken);
         }
 
         /// <summary>
