@@ -22,6 +22,60 @@ namespace SmartFarmManager.Service.Services
             _unitOfWork = unitOfWork;
         }
 
+        public async Task<PagedResult<CostingReportGroupModel>> GetGroupedCostingReportsAsync(CostingReportGroupFilterModel filter)
+        {
+            var query = _unitOfWork.CostingReports.FindAll(false).AsQueryable();
+
+            if (filter.Year.HasValue)
+            {
+                query = query.Where(x => x.ReportYear == filter.Year.Value);
+            }
+
+            var grouped = query
+                .GroupBy(x => new { x.ReportMonth, x.ReportYear })
+                .Select(g => new CostingReportGroupModel
+                {
+                    ReportMonth = g.Key.ReportMonth,
+                    ReportYear = g.Key.ReportYear,
+                    Electricity = g.Where(x => x.CostType == "Điện")
+                        .Select(x => new CostDetail { TotalQuantity = x.TotalQuantity, TotalCost = x.TotalCost })
+                        .FirstOrDefault(),
+                    Water = g.Where(x => x.CostType == "Nước")
+                        .Select(x => new CostDetail { TotalQuantity = x.TotalQuantity, TotalCost = x.TotalCost })
+                        .FirstOrDefault(),
+                    Food = g.Where(x => x.CostType == "Thức ăn")
+                        .Select(x => new CostDetail { TotalQuantity = x.TotalQuantity, TotalCost = x.TotalCost })
+                        .FirstOrDefault(),
+                    Vaccine = g.Where(x => x.CostType == "Vaccine")
+                        .Select(x => new CostDetail { TotalQuantity = x.TotalQuantity, TotalCost = x.TotalCost })
+                        .FirstOrDefault(),
+                    Medicine = g.Where(x => x.CostType == "Thuốc")
+                        .Select(x => new CostDetail { TotalQuantity = x.TotalQuantity, TotalCost = x.TotalCost })
+                        .FirstOrDefault(),
+                });
+
+            var totalItems = await grouped.CountAsync();
+
+            var items = await grouped
+                .OrderBy(g => g.ReportYear)
+                .ThenBy(g => g.ReportMonth)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<CostingReportGroupModel>
+            {
+                Items = items,
+                TotalItems = totalItems,
+                PageSize = filter.PageSize,
+                CurrentPage = filter.PageNumber,
+                TotalPages = (int)Math.Ceiling(totalItems / (double)filter.PageSize),
+                HasNextPage = filter.PageNumber * filter.PageSize < totalItems,
+                HasPreviousPage = filter.PageNumber > 1
+            };
+        }
+
+
         public async Task<PagedResult<CostingReportItemModel>> GetCostingReportsAsync(CostingReportFilterModel filter)
         {
             var query = _unitOfWork.CostingReports

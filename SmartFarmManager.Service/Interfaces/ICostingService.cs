@@ -12,6 +12,7 @@ namespace SmartFarmManager.Service.Interfaces
     {
         Task CalculateAndStoreDailyCostAsync();
         Task<PagedResult<CostingReportItemModel>> GetCostingReportsAsync(CostingReportFilterModel filter);
+        Task<PagedResult<CostingReportGroupModel>> GetGroupedCostingReportsAsync(CostingReportGroupFilterModel filter);
     }
 
 }

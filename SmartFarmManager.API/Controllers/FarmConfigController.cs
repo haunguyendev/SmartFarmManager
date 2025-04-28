@@ -38,7 +38,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost("reset-time")]
-        public async Task<IActionResult> ResetTime([FromQuery] Guid farmId)
+        public async Task<IActionResult> ResetTime()
         {
             if (!ModelState.IsValid)
             {
@@ -47,7 +47,25 @@ namespace SmartFarmManager.API.Controllers
 
             try
             {
-                await _farmConfigService.ResetTimeDifferenceAsync(farmId);
+                await _farmConfigService.ResetTimeDifferenceAsync();
+                return Ok(ApiResult<string>.Succeed("Time difference updated successfully."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
+        [HttpPost("sync-time")]
+        public async Task<IActionResult> SyncTime()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResult<string>.Fail("Invalid request."));
+            }
+
+            try
+            {
+                await _farmConfigService.SyncTimeDifferenceAsync();
                 return Ok(ApiResult<string>.Succeed("Time difference updated successfully."));
             }
             catch (Exception ex)

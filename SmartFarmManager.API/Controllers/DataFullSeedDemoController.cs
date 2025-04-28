@@ -370,7 +370,8 @@ namespace SmartFarmManager.API.Controllers
                     new DataAccessObject.Models.NotificationType { Id = Guid.Parse("800bd31c-4fcb-4d4d-a462-55c4a70c1e7d"), NotiTypeName = "Alert" },
                     new DataAccessObject.Models.NotificationType { Id = Guid.Parse("4245669d-361d-4c8b-bc76-cfbd1961505b"), NotiTypeName = "MedicalSymptom" },
                     new DataAccessObject.Models.NotificationType { Id = Guid.Parse("05904def-aedc-421a-86cb-93226c2e08ad"), NotiTypeName = "Task" },
-                    new DataAccessObject.Models.NotificationType { Id = Guid.NewGuid(), NotiTypeName = "FarmingBatchSchedule" }
+                    new DataAccessObject.Models.NotificationType { Id = Guid.NewGuid(), NotiTypeName = "FarmingBatchSchedule" },
+                    new DataAccessObject.Models.NotificationType { Id = Guid.NewGuid(), NotiTypeName = "TaskOverdue" }
                 };
 
                 _context.NotificationTypes.AddRange(notificationTypes);

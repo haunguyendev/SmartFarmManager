@@ -53,5 +53,28 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, ApiResult<string>.Fail(ex.Message));
             }
         }
+
+        [HttpGet("grouped")]
+        public async Task<IActionResult> GetGroupedCostingReports([FromQuery] CostingReportGroupFilterRequest filterRequest)
+        {
+            try
+            {
+                var filterModel = new CostingReportGroupFilterModel
+                {
+                    Year = filterRequest.Year,
+                    PageNumber = filterRequest.PageNumber,
+                    PageSize = filterRequest.PageSize
+                };
+
+                var result = await _costingReportService.GetGroupedCostingReportsAsync(filterModel);
+
+                return Ok(ApiResult<PagedResult<CostingReportGroupModel>>.Succeed(result));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail("Đã xảy ra lỗi trong quá trình xử lý."));
+            }
+        }
+
     }
 }
