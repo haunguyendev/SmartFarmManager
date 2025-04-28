@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.FarmConfig;
@@ -75,6 +76,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPut("{farmId}")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> UpdateFarmConfig(Guid farmId, [FromBody] FarmConfigUpdateRequest request)
         {
             if (!ModelState.IsValid)
@@ -113,6 +115,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("{farmId}")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetFarmConfig(Guid farmId)
         {
             try

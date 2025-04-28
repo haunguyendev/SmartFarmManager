@@ -8,6 +8,7 @@ using SmartFarmManager.Service.Interfaces;
 using Sprache;
 using SmartFarmManager.Service.BusinessModels.FarmingBatch;
 using SmartFarmManager.Service.BusinessModels.Cages;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SmartFarmManager.API.Controllers
 {
@@ -24,6 +25,7 @@ namespace SmartFarmManager.API.Controllers
 
 
         [HttpPost()]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> CreateFarmingBatch([FromBody] CreateFarmingBatchRequest request)
         {
             if (!ModelState.IsValid)
@@ -95,6 +97,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPut("{id}/status")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> UpdateFarmingBatchStatus(Guid id, [FromBody] UpdateFarmingBatchStatusRequest request)
         {
             if (!ModelState.IsValid)
@@ -151,6 +154,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetFarmingBatches([FromQuery] FarmingBatchFilterPagingRequest request)
         {
 
@@ -282,6 +286,7 @@ namespace SmartFarmManager.API.Controllers
 
         /// 📌 **API: Báo cáo chi tiết Farming Batch**
         [HttpGet("{farmingBatchId}/detailed-report")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetDetailedFarmingBatchReport(Guid farmingBatchId)
         {
             var report = await _farmingBatchService.GetDetailedFarmingBatchReportAsync(farmingBatchId);

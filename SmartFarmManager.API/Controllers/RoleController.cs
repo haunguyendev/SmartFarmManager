@@ -18,7 +18,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("roles")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetRoles()
         {
             try

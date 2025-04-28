@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.MedicalSymptom;
@@ -25,6 +26,7 @@ namespace SmartFarmManager.API.Controllers
             _prescriptionService = prescriptionService;
         }
         [HttpGet("{id:guid}/prescription")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> GetPrescriptionById(Guid id)
         {
             if (!ModelState.IsValid)
@@ -84,6 +86,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPost("{symptomId:guid}/prescription")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> CreatePrescription(Guid symptomId, [FromBody] CreatePrescriptionRequest request)
         {
             if (!ModelState.IsValid)
@@ -260,6 +263,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPut("{prescriptionId}/status")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> UpdatePrescriptionStatus(Guid prescriptionId, [FromBody] UpdatePrescriptionModel request)
         {
             try
@@ -276,6 +280,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPost("{medicalSymptomId}/create-new-prescription")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> CreateNewPrescription([FromBody] UpdateMedicalSymptomRequest request, Guid medicalSymptomId)
         {
             try
@@ -324,6 +329,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("vet")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> GetPrescriptions(
     [FromQuery] DateTime? startDate,
     [FromQuery] DateTime? endDate,
@@ -345,6 +351,7 @@ namespace SmartFarmManager.API.Controllers
 
 
         [HttpGet("{medicalSymptomId}/prescriptions-history")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> GetPrescriptionsHistory(Guid medicalSymptomId)
         {
             try

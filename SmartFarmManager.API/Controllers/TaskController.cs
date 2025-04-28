@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.Task;
@@ -21,6 +22,7 @@ namespace SmartFarmManager.API.Controllers
             _taskService = taskService;
         }
         [HttpPost("create-recurring-task")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> CreateTaskRecurring([FromBody] CreateTaskRecurringRequest request)
         {
             if (!ModelState.IsValid)
@@ -63,6 +65,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> CreateTask([FromBody] CreateTaskRequest request)
         {
             if (!ModelState.IsValid)
@@ -151,6 +154,7 @@ namespace SmartFarmManager.API.Controllers
 
         //change status of task by task id and status id
         [HttpPut("{taskId}/status/{status}")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> ChangeTaskStatus(Guid taskId, string status)
         {
             try
@@ -173,6 +177,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetFilteredTasks([FromQuery] TaskFilterPagingRequest filterRequest)
         {
             try
@@ -385,6 +390,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{taskId}/logs")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetLogsByTaskId(Guid taskId)
         {
             try

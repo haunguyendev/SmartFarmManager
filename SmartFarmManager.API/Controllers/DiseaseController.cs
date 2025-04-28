@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.Disease;
@@ -21,7 +22,8 @@ namespace SmartFarmManager.API.Controllers
 
 
 
-     [HttpPost()]
+        [HttpPost()]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> CreateDisease([FromBody] CreateDiseaseRequest request)
         {
             if (!ModelState.IsValid)
@@ -58,6 +60,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPut("{id}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> UpdateDisease(Guid id, [FromBody] UpdateDiseaseRequest request)
         {
             if (!ModelState.IsValid)
@@ -99,6 +102,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> DeleteDisease(Guid id)
         {
             try
@@ -122,6 +126,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> GetDiseases([FromQuery] DiseaseFilterPagingRequest filterRequest)
         {
             if (!ModelState.IsValid)

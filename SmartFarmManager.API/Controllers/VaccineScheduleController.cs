@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.VaccineSchedule;
@@ -146,6 +147,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetVaccineSchedules([FromQuery] VaccineScheduleFilterPagingRequest filterRequest)
         {
             if (!ModelState.IsValid)

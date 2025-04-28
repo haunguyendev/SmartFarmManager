@@ -30,6 +30,7 @@ namespace SmartFarmManager.API.Controllers
 
         // POST: api/medical-symptoms
         [HttpPost]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> CreateMedicalSymptom([FromBody] CreateMedicalSymptomRequest request)
         {
             if (!ModelState.IsValid)
@@ -138,6 +139,7 @@ namespace SmartFarmManager.API.Controllers
 
         // GET: api/medical-symptoms
         [HttpGet]
+        [Authorize(Roles = "Admin Farm, Vet")]
         public async Task<IActionResult> GetMedicalSymptoms(
     [FromQuery] string? status,
     [FromQuery] DateTime? startDate,
@@ -199,6 +201,7 @@ namespace SmartFarmManager.API.Controllers
 
         // PUT: api/medical-symptoms/{id}
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> UpdateMedicalSymptom(Guid id, [FromBody] UpdateMedicalSymptomRequest request)
         {
             if (!ModelState.IsValid)

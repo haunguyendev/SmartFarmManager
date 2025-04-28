@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.Service.BusinessModels.ElectricityLog;
@@ -38,6 +39,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("get-by-daterange")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetWaterLogByDateRange([FromQuery] Guid farmId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
             try
@@ -66,6 +68,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("get-by-year")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetWaterLogsByYear([FromQuery] Guid farmId, [FromQuery] int year)
         {
             try
