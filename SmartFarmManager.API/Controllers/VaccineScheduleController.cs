@@ -59,6 +59,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("vaccine-schedules")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetVaccineSchedules([FromQuery] Guid? stageId, [FromQuery] DateTime? date, [FromQuery] string status)
         {
             try
@@ -109,6 +110,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetVaccineScheduleById(Guid id)
         {
             try

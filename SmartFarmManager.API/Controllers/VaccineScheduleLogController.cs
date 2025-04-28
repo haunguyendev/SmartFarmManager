@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.VaccineScheduleLog;
@@ -61,6 +62,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("task/{taskId:guid}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetVaccineScheduleLogByTaskId(Guid taskId)
         {
             var log = await _vaccineScheduleLogService.GetVaccineScheduleLogByTaskIdAsync(taskId);
@@ -83,6 +85,7 @@ namespace SmartFarmManager.API.Controllers
             return Ok(ApiResult<Payloads.Responses.VaccineScheduleLog.VaccineScheduleLogResponse>.Succeed(response));
         }
         [HttpPost("vaccine-log/create")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> CreateVaccineLog([FromBody] CreateVaccineLogRequest request)
         {
             try

@@ -205,6 +205,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("{id}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetVaccineDetail(Guid id)
         {
             try

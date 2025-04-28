@@ -26,7 +26,7 @@ namespace SmartFarmManager.API.Controllers
             _prescriptionService = prescriptionService;
         }
         [HttpGet("{id:guid}/prescription")]
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Vet, Staff Farm")]
         public async Task<IActionResult> GetPrescriptionById(Guid id)
         {
             if (!ModelState.IsValid)
@@ -250,6 +250,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{prescriptionId}/is-last-session")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> CheckLastPrescriptionSession(Guid prescriptionId)
         {
             try
@@ -263,7 +264,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPut("{prescriptionId}/status")]
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Vet, Staff Farm")]
         public async Task<IActionResult> UpdatePrescriptionStatus(Guid prescriptionId, [FromBody] UpdatePrescriptionModel request)
         {
             try

@@ -230,6 +230,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("cage/{cageId:guid}/{dueDateTask:Datetime}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetFarmingBatchByCageIdAndueDateTask(Guid cageId, DateTime dueDateTask)
         {
             if (!ModelState.IsValid)
@@ -286,7 +287,7 @@ namespace SmartFarmManager.API.Controllers
 
         /// 📌 **API: Báo cáo chi tiết Farming Batch**
         [HttpGet("{farmingBatchId}/detailed-report")]
-        [Authorize(Roles = "Admin Farm")]
+        [Authorize(Roles = "Admin Farm, Customer")]
         public async Task<IActionResult> GetDetailedFarmingBatchReport(Guid farmingBatchId)
         {
             var report = await _farmingBatchService.GetDetailedFarmingBatchReportAsync(farmingBatchId);
@@ -359,6 +360,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{farmingBatchId}")]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> GetFarmingBatchDetail(Guid farmingBatchId)
         {
             try
@@ -377,6 +379,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("customer/{userId}")]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> GetFarmingBatchesForCustomer(Guid userId)
         {
 
@@ -414,6 +417,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost("{farmingBatchId}/growth-stages/{growthStageId}/dead-animals")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> UpdateDeadAnimals(
         Guid farmingBatchId,
         Guid growthStageId,

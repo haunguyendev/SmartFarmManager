@@ -154,7 +154,7 @@ namespace SmartFarmManager.API.Controllers
 
         //change status of task by task id and status id
         [HttpPut("{taskId}/status/{status}")]
-        [Authorize(Roles = "Admin Farm")]
+        [Authorize(Roles = "Admin Farm, Staff Farm")]
         public async Task<IActionResult> ChangeTaskStatus(Guid taskId, string status)
         {
             try
@@ -177,7 +177,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet]
-        [Authorize(Roles = "Admin Farm")]
+        [Authorize(Roles = "Admin Farm, Staff Farm")]
         public async Task<IActionResult> GetFilteredTasks([FromQuery] TaskFilterPagingRequest filterRequest)
         {
             try
@@ -292,6 +292,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("next-task")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetNextTask([FromQuery] Guid userId)
         {
             var task = await _taskService.GetNextTasksForCagesWithStatsAsync(userId);
@@ -304,6 +305,7 @@ namespace SmartFarmManager.API.Controllers
             return Ok(task);
         }
         [HttpGet("{taskId}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetTaskDetail(Guid taskId)
         {
             try
@@ -379,6 +381,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPut("{taskId}/set-treatment")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> MarkAsTreatmentTask(Guid taskId, [FromQuery]Guid medicalSymptomId)
         {
             var result = await _taskService.SetIsTreatmentTaskTrueAsync(taskId,medicalSymptomId);

@@ -10,6 +10,7 @@ using SmartFarmManager.Service.BusinessModels.VaccineSchedule;
 using Sprache;
 using SmartFarmManager.Service.BusinessModels.AnimalSale;
 using SmartFarmManager.Service.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SmartFarmManager.API.Controllers
 {
@@ -161,6 +162,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("cage/{cageId:guid}/active-growth-stage")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetActiveGrowthStageByCageId(Guid cageId)
         {
             if (!ModelState.IsValid)
@@ -193,6 +195,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPut("growth-stage/update-weight")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> UpdateWeightAnimal([FromBody] UpdateGrowthStageRequest request)
         {
             try
@@ -217,6 +220,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("growth-stage/{growthStageId}/sales")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetSalesByGrowthStage(Guid growthStageId)
         {
             try
