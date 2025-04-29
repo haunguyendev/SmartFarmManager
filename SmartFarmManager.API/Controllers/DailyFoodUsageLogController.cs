@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.DailyFoodUsageLog;
@@ -20,6 +21,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost("{cageId:guid}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> CreateDailyFoodUsageLog(Guid cageId, [FromBody] CreateDailyFoodUsageLogRequest request)
         {
             if (!ModelState.IsValid)
@@ -41,6 +43,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{id:guid}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetDailyFoodUsageLogById(Guid id)
         {
             var log = await _dailyFoodUsageLogService.GetDailyFoodUsageLogByIdAsync(id);
@@ -62,6 +65,7 @@ namespace SmartFarmManager.API.Controllers
             return Ok(ApiResult<DailyFoodUsageLogResponse>.Succeed(response));
         }
         [HttpGet("task/{taskId:guid}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetDailyFoodUsageLogByTaskId(Guid taskId)
         {
             var log = await _dailyFoodUsageLogService.GetDailyFoodUsageLogByTaskIdAsync(taskId);

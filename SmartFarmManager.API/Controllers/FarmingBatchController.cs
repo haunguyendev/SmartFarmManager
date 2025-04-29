@@ -8,6 +8,7 @@ using SmartFarmManager.Service.Interfaces;
 using Sprache;
 using SmartFarmManager.Service.BusinessModels.FarmingBatch;
 using SmartFarmManager.Service.BusinessModels.Cages;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SmartFarmManager.API.Controllers
 {
@@ -24,6 +25,7 @@ namespace SmartFarmManager.API.Controllers
 
 
         [HttpPost()]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> CreateFarmingBatch([FromBody] CreateFarmingBatchRequest request)
         {
             if (!ModelState.IsValid)
@@ -95,6 +97,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPut("{id}/status")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> UpdateFarmingBatchStatus(Guid id, [FromBody] UpdateFarmingBatchStatusRequest request)
         {
             if (!ModelState.IsValid)
@@ -151,6 +154,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetFarmingBatches([FromQuery] FarmingBatchFilterPagingRequest request)
         {
 
@@ -226,6 +230,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("cage/{cageId:guid}/{dueDateTask:Datetime}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetFarmingBatchByCageIdAndueDateTask(Guid cageId, DateTime dueDateTask)
         {
             if (!ModelState.IsValid)
@@ -282,6 +287,7 @@ namespace SmartFarmManager.API.Controllers
 
         /// 📌 **API: Báo cáo chi tiết Farming Batch**
         [HttpGet("{farmingBatchId}/detailed-report")]
+        [Authorize(Roles = "Admin Farm, Customer")]
         public async Task<IActionResult> GetDetailedFarmingBatchReport(Guid farmingBatchId)
         {
             var report = await _farmingBatchService.GetDetailedFarmingBatchReportAsync(farmingBatchId);
@@ -354,6 +360,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{farmingBatchId}")]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> GetFarmingBatchDetail(Guid farmingBatchId)
         {
             try
@@ -372,6 +379,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("customer/{userId}")]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> GetFarmingBatchesForCustomer(Guid userId)
         {
 
@@ -409,6 +417,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost("{farmingBatchId}/growth-stages/{growthStageId}/dead-animals")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> UpdateDeadAnimals(
         Guid farmingBatchId,
         Guid growthStageId,

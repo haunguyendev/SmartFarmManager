@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -31,6 +32,7 @@ namespace SmartFarmManager.API.Controllers
         /// <param name="request">Filter and pagination parameters</param>
         /// <returns>Paginated list of cages</returns>
         [HttpGet]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetAll([FromQuery] CageFilterPagingRequest request)
         {
             if (!ModelState.IsValid)
@@ -85,6 +87,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> CreateCage([FromBody] CreateCageRequest request)
         {
             if (!ModelState.IsValid)
@@ -118,6 +121,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("all")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetAllCages([FromQuery] string? search)
         {
             try
@@ -197,6 +201,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("prescriptions/tasks")]
+        [Authorize(Roles = "Admin Farm, Vet")]
         public async Task<IActionResult> GetTasksForCage()
         {
             try

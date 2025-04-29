@@ -30,6 +30,7 @@ namespace SmartFarmManager.API.Controllers
 
         // POST: api/medical-symptoms
         [HttpPost]
+        [Authorize(Roles = "Vet, Staff Farm")]
         public async Task<IActionResult> CreateMedicalSymptom([FromBody] CreateMedicalSymptomRequest request)
         {
             if (!ModelState.IsValid)
@@ -85,6 +86,7 @@ namespace SmartFarmManager.API.Controllers
 
         // GET: api/medical-symptoms/{id}
         [HttpGet("{id:guid}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetMedicalSymptomById(Guid id)
         {
             var medicalSymptom = await _medicalSymptomService.GetMedicalSymptomByIdAsync(id);
@@ -138,6 +140,7 @@ namespace SmartFarmManager.API.Controllers
 
         // GET: api/medical-symptoms
         [HttpGet]
+        [Authorize(Roles = "Admin Farm, Vet")]
         public async Task<IActionResult> GetMedicalSymptoms(
     [FromQuery] string? status,
     [FromQuery] DateTime? startDate,
@@ -199,6 +202,7 @@ namespace SmartFarmManager.API.Controllers
 
         // PUT: api/medical-symptoms/{id}
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> UpdateMedicalSymptom(Guid id, [FromBody] UpdateMedicalSymptomRequest request)
         {
             if (!ModelState.IsValid)
@@ -271,6 +275,7 @@ namespace SmartFarmManager.API.Controllers
         }
         // GET: api/medical-symptoms/by-staff-and-batch
         [HttpGet("by-staff-and-batch")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetMedicalSymptomsByStaffAndBatch([FromQuery] Guid? staffId, [FromQuery] Guid? farmBatchId)
         {
             if (staffId == Guid.Empty || farmBatchId == Guid.Empty)

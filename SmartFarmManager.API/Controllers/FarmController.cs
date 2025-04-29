@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SmartFarmManager.API.Common;
@@ -96,7 +97,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
-        [HttpGet]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetAllFarms([FromQuery] string? search)
         {
             try
@@ -183,6 +184,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{farmId:guid}/users")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetUsersByFarmId(Guid farmId, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try

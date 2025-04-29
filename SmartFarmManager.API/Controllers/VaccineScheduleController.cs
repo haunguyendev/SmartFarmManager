@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.VaccineSchedule;
@@ -58,6 +59,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("vaccine-schedules")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetVaccineSchedules([FromQuery] Guid? stageId, [FromQuery] DateTime? date, [FromQuery] string status)
         {
             try
@@ -108,6 +110,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetVaccineScheduleById(Guid id)
         {
             try
@@ -146,6 +149,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetVaccineSchedules([FromQuery] VaccineScheduleFilterPagingRequest filterRequest)
         {
             if (!ModelState.IsValid)

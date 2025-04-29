@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using MimeKit.Utils;
@@ -173,6 +174,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateUser([FromBody] UserCreateModel request)
         {
             try
@@ -404,6 +406,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, Admin Farm")]
         public async Task<IActionResult> GetUsers([FromQuery] UserFilterModel filter)
         {
             var users = await _userService.GetUsersAsync(filter);
@@ -412,6 +415,7 @@ namespace SmartFarmManager.API.Controllers
 
 
         [HttpGet("/filter")]
+        [Authorize(Roles = "Admin, Admin Farm")]
         public async Task<IActionResult> GetUsers(
 
         [FromQuery] string? roleName,
@@ -473,6 +477,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost("assign-staffFarm-cages")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> AssignCages([FromBody] AssignStaffToCagesRequest request)
         {
             try
@@ -489,6 +494,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPost("active-inactive/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ToggleUserStatus(Guid id)
         {
             try
