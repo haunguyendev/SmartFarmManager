@@ -20,5 +20,6 @@ namespace SmartFarmManager.Service.BusinessModels.AnimalSale
         public string SaleTypeName { get; set; }
         public DateTime LogTime { get; set; }
         public decimal? Weight { get; set; }
+        public string? Note { get; set; }   
     }
 }

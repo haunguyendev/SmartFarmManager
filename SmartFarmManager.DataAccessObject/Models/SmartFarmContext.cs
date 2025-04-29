@@ -165,10 +165,6 @@ public partial class SmartFarmContext : DbContext
 
 
 
-
-
-
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DeadPoultryLog>(entity =>

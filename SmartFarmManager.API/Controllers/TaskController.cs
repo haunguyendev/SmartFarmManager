@@ -16,7 +16,7 @@ namespace SmartFarmManager.API.Controllers
     {
         public readonly ITaskService _taskService;
 
-        public TaskController(ITaskService taskService)
+        public TaskController(ITaskService taskService) 
         {
             _taskService = taskService;
         }

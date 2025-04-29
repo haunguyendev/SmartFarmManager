@@ -74,7 +74,8 @@ namespace SmartFarmManager.Service.Services
                     StaffName = staff.FullName,
                     Total = request.UnitPrice * (double)request.Weight,
                     UnitPrice = request.UnitPrice,
-                    Weight = request.Weight
+                    Weight = request.Weight,
+                    Note=request.Note
                 };
 
                 growthStage.Quantity = growthStage.Quantity - request.Quantity;
