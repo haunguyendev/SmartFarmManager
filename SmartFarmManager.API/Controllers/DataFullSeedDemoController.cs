@@ -503,8 +503,8 @@ namespace SmartFarmManager.API.Controllers
                     Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387")
                 };
 
-                var startDate = DateTime.UtcNow.AddDays(-50);
-                var endDate = DateTime.UtcNow;
+                var startDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-50);
+                var endDate = DateTimeUtils.GetServerTimeInVietnamTime();
 
                 var farmingBatches = new List<FarmingBatch>();
 
@@ -1160,8 +1160,8 @@ namespace SmartFarmManager.API.Controllers
                             Name = sensorType.Name,
                             PinCode = sensorType.DefaultPinCode, // Gán PinCode theo mặc định của SensorType
                             Status = true, // Giả sử cảm biến luôn hoạt động
-                            CreatedDate = DateTime.UtcNow,
-                            ModifiedDate = DateTime.UtcNow,
+                            CreatedDate = DateTimeUtils.GetServerTimeInVietnamTime(),
+                            ModifiedDate = DateTimeUtils.GetServerTimeInVietnamTime(),
                             IsDeleted = false,
                             NodeId = 1 // Gán NodeId mặc định (có thể thay đổi nếu có yêu cầu thêm về NodeId)
                         };
