@@ -28,7 +28,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Vet, Staff Farm")]
         public async Task<IActionResult> GetSymptoms([FromQuery] SymptomFilterModel filter)
         {
             if (!ModelState.IsValid)
