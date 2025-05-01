@@ -1674,6 +1674,7 @@ namespace SmartFarmManager.Service.Services
             // Cập nhật số lượng chết
             farmingBatch.DeadQuantity += deadAnimal;
             growthStage.DeadQuantity += deadAnimal;
+            growthStage.Quantity -= deadAnimal;
 
             await _unitOfWork.FarmingBatches.UpdateAsync(farmingBatch);
             await _unitOfWork.GrowthStages.UpdateAsync(growthStage);
