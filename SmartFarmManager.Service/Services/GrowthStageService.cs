@@ -133,6 +133,7 @@ namespace SmartFarmManager.Service.Services
                 AgeStartDate = growthStage.AgeStartDate,
                 AgeEndDate = growthStage.AgeEndDate,
                 Status = growthStage.Status,
+                CurrentQuantity = growthStage.Quantity - growthStage.DeadQuantity,
                 RecommendedWeightPerSession = growthStage.RecommendedWeightPerSession,
                 WeightBasedOnBodyMass = growthStage.WeightBasedOnBodyMass,
                 TaskDailies = growthStage.TaskDailies.Select(td => new TaskDailyModel

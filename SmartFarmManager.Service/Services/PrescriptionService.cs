@@ -523,7 +523,6 @@ namespace SmartFarmManager.Service.Services
                     {
                         growStageActive.DeadQuantity = growStageActive.DeadQuantity + prescription.QuantityAnimal - remainingQuantity;
                         growStageActive.AffectedQuantity = growStageActive.AffectedQuantity - prescription.QuantityAnimal;
-                        growStageActive.Quantity = growStageActive.Quantity - prescription.QuantityAnimal + remainingQuantity;
                     }
 
                     farmingBatch.DeadQuantity = farmingBatch.DeadQuantity + prescription.QuantityAnimal - remainingQuantity;
