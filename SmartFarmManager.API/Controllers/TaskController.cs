@@ -435,5 +435,27 @@ namespace SmartFarmManager.API.Controllers
             }
         }
 
+        //api to request task id to update status task to Complete
+        [HttpPut("{taskId}/changeOverdueTask")]
+        public async Task<IActionResult> CompleteTask(Guid taskId)
+        {
+            try
+            {
+                var result = await _taskService.UpdateTaskToDone(taskId);
+                if (!result)
+                {
+                    throw new Exception("Do not have task or task status not overdue");
+                }
+                return Ok(ApiResult<string>.Succeed("Task completed successfully!"));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<string>.Fail(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
     }
 }

@@ -42,6 +42,6 @@ namespace SmartFarmManager.Service.Interfaces
         Task<bool> CreateSaleTaskAsync(CreateSaleTaskModel model);
         System.Threading.Tasks.Task ProcessUpcomingTaskNotificationAsync();
 
-
+        Task<bool> UpdateTaskToDone(Guid taskId);
     }
 }
