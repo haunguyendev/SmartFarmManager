@@ -129,7 +129,12 @@ namespace SmartFarmManager.Service.Services
                 var deadPoultryLogFarmingbatch = await _unitOfWork.DeadPoultryLogs.FindByCondition(dp => dp.Id == deadPoultryLogId).Include(dp => dp.FarmingBatch).ThenInclude(fb => fb.GrowthStages).FirstOrDefaultAsync();
                 var farmingBatch = deadPoultryLogFarmingbatch.FarmingBatch;
 
-                farmingBatch.DeadQuantity = deadPoultryLog.FarmingBatch.DeadQuantity - deadPoultryLog.Quantity;
+                if (farmingBatch == null)
+                {
+                    throw new KeyNotFoundException("Không tìm thấy vụ nuôi nào tương ứng!");
+                }
+
+                farmingBatch.DeadQuantity = deadPoultryLogFarmingbatch.FarmingBatch.DeadQuantity - deadPoultryLog.Quantity;
 
                 var growthStage = deadPoultryLogFarmingbatch.FarmingBatch.GrowthStages.Where(gs => gs.Status == GrowthStageStatusEnum.Active).FirstOrDefault();
 
