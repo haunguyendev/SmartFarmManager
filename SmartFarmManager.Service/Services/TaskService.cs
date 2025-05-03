@@ -2656,6 +2656,23 @@ namespace SmartFarmManager.Service.Services
             await _unitOfWork.CommitAsync();
         }
 
+        //update task overdue to done
+        public async Task<bool> UpdateTaskToDone(Guid taskId)
+        {
+            var task = await _unitOfWork.Tasks.FindByCondition(t => t.Id == taskId).FirstOrDefaultAsync();
+            if (task == null )
+            {
+                return false;
+            }
+            if (task.Status != TaskStatusEnum.Overdue)
+            {
+                return false;
+            }
+            task.Status = TaskStatusEnum.Done;
+            await _unitOfWork.Tasks.UpdateAsync(task);
+            await _unitOfWork.CommitAsync();
+            return true;
+        }
 
 
 
@@ -2665,6 +2682,5 @@ namespace SmartFarmManager.Service.Services
 
 
 
-
-    }
+        }
 }
