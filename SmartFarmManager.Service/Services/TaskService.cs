@@ -2523,7 +2523,7 @@ namespace SmartFarmManager.Service.Services
                 await _notificationService.SendNotification(admin.DeviceId, adminNoti.Title, adminNoti);
 
                 var adminEmailContent = HtmlTemplateHelper.GenerateOverdueTaskEmailForAdmin(admin.FullName, task.TaskName, cage.Name, staff.FullName, task.DueDate ?? today, GetSessionName(task.Session),GetSessionEndTime(task.Session));
-                _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(admin.Email, admin.FullName, "Thông báo nhiệm vụ quá hạn", adminEmailContent);
+                _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(admin.Email, admin.FullName, "Thông báo nhiệm vụ quá hạn", adminEmailContent));
             }
 
             if (task.IsTreatmentTask == true && task.PrescriptionId.HasValue)
@@ -2556,7 +2556,7 @@ namespace SmartFarmManager.Service.Services
                     await _notificationService.SendNotification(vet.DeviceId, vetNoti.Title, vetNoti);
 
                     var vetEmailContent = HtmlTemplateHelper.GenerateOverdueTaskEmailForVet(cage.Name, staff.FullName, task.TaskName, prescription.MedicalSymtom.Diagnosis, task.DueDate ?? today,GetSessionName(task.Session),GetSessionEndTime(task.Session));
-                    _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(vet.Email, vet.FullName, "Thông báo công việc thú y quá hạn", vetEmailContent);
+                    _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(vet.Email, vet.FullName, "Thông báo công việc thú y quá hạn", vetEmailContent));
                 }
             }
 
@@ -2576,7 +2576,7 @@ namespace SmartFarmManager.Service.Services
             await _notificationService.SendNotification(staff.DeviceId, staffNoti.Title, staffNoti);
 
             var staffEmailContent = HtmlTemplateHelper.GenerateOverdueTaskEmailForStaff(cage.Name, task.TaskName, task.DueDate ?? today, GetSessionName(task.Session), GetSessionEndTime(task.Session));
-            _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(staff.Email, staff.FullName, "Thông báo công việc quá hạn", staffEmailContent);
+            _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(staff.Email, staff.FullName, "Thông báo công việc quá hạn", staffEmailContent));
 
             await _unitOfWork.CommitAsync();
         }
@@ -2650,7 +2650,7 @@ namespace SmartFarmManager.Service.Services
 
                 // Gửi Email cho nhân viên
                 var emailContent = HtmlTemplateHelper.GenerateUpcomingTaskEmailForStaff(staff.FullName, task.TaskName, cage.Name, sessionEndTime,task.DueDate.Value);
-                _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(staff.Email, staff.FullName, "Nhắc nhở nhiệm vụ sắp đến hạn", emailContent);
+                _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(staff.Email, staff.FullName, "Nhắc nhở nhiệm vụ sắp đến hạn", emailContent));
             }
 
             await _unitOfWork.CommitAsync();
