@@ -2675,6 +2675,47 @@ namespace SmartFarmManager.Service.Services
         }
 
 
+        //redo task by get old task by id and create new task with same information but different duedate
+        public async Task<bool> RedoTask(Guid taskId, DateTime newDueDate, int session)
+        {
+            var task = await _unitOfWork.Tasks.FindByCondition(t => t.Id == taskId).FirstOrDefaultAsync();
+            if (task == null)
+            {
+                return false;
+            }
+            if (task.Status != TaskStatusEnum.Overdue)
+            {
+                return false;
+            }
+            //check time cho know status task
+            var currentTime = DateTimeUtils.GetServerTimeInVietnamTime();
+            var sessionEndTime = GetSessionEndTime(session);
+            var status = TaskStatusEnum.Pending;
+            if (currentTime.Date == newDueDate.Date)
+            {
+                if (session == task.Session + 1)
+                {
+                    status = TaskStatusEnum.InProgress;
+                }
+            }
+            var newTask = new DataAccessObject.Models.Task
+            {
+                Id = Guid.NewGuid(),
+                TaskTypeId = task.TaskTypeId,
+                CageId = task.CageId,
+                AssignedToUserId = task.AssignedToUserId,
+                CreatedByUserId = task.CreatedByUserId,
+                TaskName = task.TaskName,
+                PriorityNum = task.PriorityNum,
+                Description = task.Description,
+                DueDate = newDueDate,
+                Session = session,
+                Status = status,
+                CreatedAt = DateTimeUtils.GetServerTimeInVietnamTime()
+            };
+            await _unitOfWork.Tasks.CreateAsync(newTask);
+            await _unitOfWork.CommitAsync();
+            return true;
 
 
 
@@ -2683,4 +2724,4 @@ namespace SmartFarmManager.Service.Services
 
 
         }
-}
+    }

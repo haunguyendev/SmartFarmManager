@@ -43,5 +43,7 @@ namespace SmartFarmManager.Service.Interfaces
         System.Threading.Tasks.Task ProcessUpcomingTaskNotificationAsync();
 
         Task<bool> UpdateTaskToDone(Guid taskId);
+
+        Task<bool> RedoTask(Guid taskId, DateTime newDueDate, int session);
     }
 }

@@ -457,5 +457,32 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, ApiResult<string>.Fail(ex.Message));
             }
         }
+
+        //REDO TASK 
+        [HttpPost("redo-task")]
+        public async Task<IActionResult> RedoTask([FromBody] RedoTaskRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
+            }
+            try
+            {
+                var result = await _taskService.RedoTask(request.TaskId, request.DueDate, request.Session);
+                if (!result)
+                {
+                    throw new Exception("Error while creating sale task!");
+                }
+                return Ok(ApiResult<string>.Succeed("Task đã được tạo thành công."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
     }
 }
