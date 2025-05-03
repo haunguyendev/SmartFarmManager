@@ -2650,7 +2650,7 @@ namespace SmartFarmManager.Service.Services
 
                 // Gửi Email cho nhân viên
                 var emailContent = HtmlTemplateHelper.GenerateUpcomingTaskEmailForStaff(staff.FullName, task.TaskName, cage.Name, sessionEndTime,task.DueDate.Value);
-                await _emailService.SendReminderEmailAsync(staff.Email, staff.FullName, "Nhắc nhở nhiệm vụ sắp đến hạn", emailContent);
+                 _emailService.SendReminderEmailAsync(staff.Email, staff.FullName, "Nhắc nhở nhiệm vụ sắp đến hạn", emailContent);
             }
 
             await _unitOfWork.CommitAsync();
