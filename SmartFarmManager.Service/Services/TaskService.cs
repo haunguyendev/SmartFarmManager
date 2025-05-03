@@ -30,7 +30,7 @@ namespace SmartFarmManager.Service.Services
         private readonly INotificationService _notificationUserService;
         private readonly EmailService _emailService;
 
-        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, NotificationService notificationService, EmailService emailService,INotificationService notificationUserService)
+        public TaskService(IUnitOfWork unitOfWork, IMapper mapper, NotificationService notificationService, EmailService emailService, INotificationService notificationUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -211,7 +211,7 @@ namespace SmartFarmManager.Service.Services
             }
 
             var validGrowthStage = farmingBatch.GrowthStages
-                .FirstOrDefault(gs => gs.AgeStartDate.Value.Date <= model.DueDate.Date && gs.AgeEndDate.Value.Date >= model.DueDate.Date);        
+                .FirstOrDefault(gs => gs.AgeStartDate.Value.Date <= model.DueDate.Date && gs.AgeEndDate.Value.Date >= model.DueDate.Date);
 
             // 5. Gán nhân viên cho chuồng
             Guid? assignedUserId = null;
@@ -858,7 +858,7 @@ namespace SmartFarmManager.Service.Services
                 cageAnimal = await _unitOfWork.Prescription.FindByCondition(t => t.Id == task.PrescriptionId).Include(p => p.MedicalSymtom).ThenInclude(p => p.FarmingBatch).ThenInclude(p => p.Cage).FirstOrDefaultAsync();
             }
             int countPrescription = 0;
-            if(task.TaskType.TaskTypeName == "Cho ăn")
+            if (task.TaskType.TaskTypeName == "Cho ăn")
             {
                 var farmingBatch = await _unitOfWork.FarmingBatches
                     .FindByCondition(fb => fb.CageId == task.CageId && fb.Status == FarmingBatchStatusEnum.Active)
@@ -873,7 +873,7 @@ namespace SmartFarmManager.Service.Services
                         .Count(p => p.Status == PrescriptionStatusEnum.Active) ?? 0;
                 }
             }
-            
+
 
             // Map Task sang TaskDetailResponse
             return new TaskDetailModel
@@ -891,7 +891,7 @@ namespace SmartFarmManager.Service.Services
                 CreatedAt = task.CreatedAt,
                 IsTreatmentTask = task.IsTreatmentTask,
                 PrescriptionId = task.PrescriptionId,
-                HasAnimalDesease = countPrescription > 0,  
+                HasAnimalDesease = countPrescription > 0,
                 IsWarning = task.IsWarning,
                 CageAnimalName = task.TaskType.TaskTypeName == "Cho uống thuốc" && cageAnimal != null ? cageAnimal.MedicalSymtom.FarmingBatch.Cage.Name : null,
                 AssignedToUser = new UserResponseModel
@@ -1452,7 +1452,7 @@ namespace SmartFarmManager.Service.Services
                     .ThenInclude(gs => gs.TaskDailies)
                     .Include(fb => fb.GrowthStages)
                     .ThenInclude(gs => gs.VaccineSchedules)
-                    .ThenInclude(vs=>vs.Vaccine)
+                    .ThenInclude(vs => vs.Vaccine)
                     .Include(fb => fb.Cage)
                     .ToListAsync();
 
@@ -2175,7 +2175,7 @@ namespace SmartFarmManager.Service.Services
 
             await _unitOfWork.VaccineSchedules.CreateAsync(newVaccineSchedule);
             var vaccine = await _unitOfWork.Vaccines.FindByCondition(v => v.Id == vaccineSchedule.VaccineId).FirstOrDefaultAsync();
-            if(vaccine == null) return false;
+            if (vaccine == null) return false;
 
             newVaccineSchedule.Vaccine = vaccine;
             // 4️⃣ Nếu `Date > serverTime + 1 ngày` → Chỉ tạo VaccineSchedule, không tạo Task
@@ -2190,7 +2190,7 @@ namespace SmartFarmManager.Service.Services
             // 5️⃣ Nếu `Date = ngày mai` → Tạo Task
             if (requestDate == serverTime.Date.AddDays(1))
             {
-                
+
                 var result = await CreateVaccineTask(newVaccineSchedule);
                 if (!result)
                 {
@@ -2328,14 +2328,14 @@ namespace SmartFarmManager.Service.Services
             return totalTasksToCreate;
         }
 
-        public async Task<bool> SetIsTreatmentTaskTrueAsync(Guid taskId,Guid medicalSymptomId)
+        public async Task<bool> SetIsTreatmentTaskTrueAsync(Guid taskId, Guid medicalSymptomId)
         {
             var task = await _unitOfWork.Tasks.FindByCondition(t => t.Id == taskId).FirstOrDefaultAsync();
             if (task == null)
                 return false;
 
             task.IsWarning = true;
-            task.MedicalSymptomId=medicalSymptomId;
+            task.MedicalSymptomId = medicalSymptomId;
             await _unitOfWork.Tasks.UpdateAsync(task);
             await _unitOfWork.CommitAsync();
 
@@ -2362,7 +2362,7 @@ namespace SmartFarmManager.Service.Services
                 if (statusLogs == null || !statusLogs.Any())
                 {
                     throw new KeyNotFoundException("Không tìm thấy logs với công việc này hoặc công việc chưa hoàn thành.");
-                } 
+                }
 
                 var latestLog = statusLogs.FirstOrDefault();
 
@@ -2383,7 +2383,8 @@ namespace SmartFarmManager.Service.Services
                 else if (task.TaskType?.TaskTypeName == "Cho ăn")
                 {
                     taskLogResponse.FoodLog = JsonConvert.DeserializeObject<DailyFoodUsageLogInTaskModel>(latestLog.Log);
-                }else if (task.TaskType?.TaskTypeName == "Cân")
+                }
+                else if (task.TaskType?.TaskTypeName == "Cân")
                 {
                     taskLogResponse.WeightLog = JsonConvert.DeserializeObject<WeightAnimalLogModel>(latestLog.Log);
                 }
@@ -2397,8 +2398,8 @@ namespace SmartFarmManager.Service.Services
                     var medicalSymptom = await _unitOfWork.MedicalSymptom
                         .FindByCondition(ms => ms.Id == task.MedicalSymptomId.Value)
                         .Include(ms => ms.FarmingBatch)
-                        .Include(ms=>ms.MedicalSymptomDetails)
-                        .ThenInclude(msd=>msd.Symptom)
+                        .Include(ms => ms.MedicalSymptomDetails)
+                        .ThenInclude(msd => msd.Symptom)
                         .FirstOrDefaultAsync();
 
                     if (medicalSymptom != null)
@@ -2413,7 +2414,7 @@ namespace SmartFarmManager.Service.Services
                         {
                             MedicalSymptomId = medicalSymptom.Id,
                             FarmingBatchId = medicalSymptom.FarmingBatchId,
-                            FarmingBatchName = medicalSymptom.FarmingBatch.Name, 
+                            FarmingBatchName = medicalSymptom.FarmingBatch.Name,
                             Diagnosis = medicalSymptom.Diagnosis,
                             Status = medicalSymptom.Status,
                             AffectedQuantity = medicalSymptom.AffectedQuantity,
@@ -2421,9 +2422,9 @@ namespace SmartFarmManager.Service.Services
                             QuantityInCage = medicalSymptom.QuantityInCage,
                             Notes = medicalSymptom.Notes,
                             CreateAt = medicalSymptom.CreateAt,
-                            Symptoms= symptoms,
+                            Symptoms = symptoms,
                         };
-                        
+
 
                     }
                 }
@@ -2493,7 +2494,7 @@ namespace SmartFarmManager.Service.Services
             }
 
             var staff = await _unitOfWork.Users.FindByCondition(u => u.Id == task.AssignedToUserId)
-                .Include(x=>x.Role).FirstOrDefaultAsync();
+                .Include(x => x.Role).FirstOrDefaultAsync();
             if (staff == null)
             {
                 throw new ArgumentException("Không tìm thấy nhân viên được giao nhiệm vụ.");
@@ -2502,7 +2503,7 @@ namespace SmartFarmManager.Service.Services
             // 3. Gửi thông báo + Email cho Admin Farm
             var admin = await _unitOfWork.Users
                 .FindByCondition(u => u.Role.RoleName == "Admin Farm")
-                .Include(u=>u.Role)
+                .Include(u => u.Role)
                 .FirstOrDefaultAsync();
 
             if (admin != null)
@@ -2522,7 +2523,7 @@ namespace SmartFarmManager.Service.Services
                 await _notificationUserService.CreateNotificationAsync(adminNoti);
                 await _notificationService.SendNotification(admin.DeviceId, adminNoti.Title, adminNoti);
 
-                var adminEmailContent = HtmlTemplateHelper.GenerateOverdueTaskEmailForAdmin(admin.FullName, task.TaskName, cage.Name, staff.FullName, task.DueDate ?? today, GetSessionName(task.Session),GetSessionEndTime(task.Session));
+                var adminEmailContent = HtmlTemplateHelper.GenerateOverdueTaskEmailForAdmin(admin.FullName, task.TaskName, cage.Name, staff.FullName, task.DueDate ?? today, GetSessionName(task.Session), GetSessionEndTime(task.Session));
                 _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(admin.Email, admin.FullName, "Thông báo nhiệm vụ quá hạn", adminEmailContent));
             }
 
@@ -2530,7 +2531,7 @@ namespace SmartFarmManager.Service.Services
             {
                 var vet = await _unitOfWork.Users
                     .FindByCondition(u => u.Role.RoleName == "Vet")
-                    .Include(u => u.Role)   
+                    .Include(u => u.Role)
                     .FirstOrDefaultAsync();
 
                 var prescription = await _unitOfWork.Prescription
@@ -2555,7 +2556,7 @@ namespace SmartFarmManager.Service.Services
                     await _notificationUserService.CreateNotificationAsync(vetNoti);
                     await _notificationService.SendNotification(vet.DeviceId, vetNoti.Title, vetNoti);
 
-                    var vetEmailContent = HtmlTemplateHelper.GenerateOverdueTaskEmailForVet(cage.Name, staff.FullName, task.TaskName, prescription.MedicalSymtom.Diagnosis, task.DueDate ?? today,GetSessionName(task.Session),GetSessionEndTime(task.Session));
+                    var vetEmailContent = HtmlTemplateHelper.GenerateOverdueTaskEmailForVet(cage.Name, staff.FullName, task.TaskName, prescription.MedicalSymtom.Diagnosis, task.DueDate ?? today, GetSessionName(task.Session), GetSessionEndTime(task.Session));
                     _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(vet.Email, vet.FullName, "Thông báo công việc thú y quá hạn", vetEmailContent));
                 }
             }
@@ -2649,7 +2650,7 @@ namespace SmartFarmManager.Service.Services
                 await _notificationService.SendNotification(staff.DeviceId, staffNoti.Title, staffNoti);
 
                 // Gửi Email cho nhân viên
-                var emailContent = HtmlTemplateHelper.GenerateUpcomingTaskEmailForStaff(staff.FullName, task.TaskName, cage.Name, sessionEndTime,task.DueDate.Value);
+                var emailContent = HtmlTemplateHelper.GenerateUpcomingTaskEmailForStaff(staff.FullName, task.TaskName, cage.Name, sessionEndTime, task.DueDate.Value);
                 _ = System.Threading.Tasks.Task.Run(() => _emailService.SendReminderEmailAsync(staff.Email, staff.FullName, "Nhắc nhở nhiệm vụ sắp đến hạn", emailContent));
             }
 
@@ -2660,7 +2661,7 @@ namespace SmartFarmManager.Service.Services
         public async Task<bool> UpdateTaskToDone(Guid taskId)
         {
             var task = await _unitOfWork.Tasks.FindByCondition(t => t.Id == taskId).FirstOrDefaultAsync();
-            if (task == null )
+            if (task == null)
             {
                 return false;
             }
@@ -2725,3 +2726,4 @@ namespace SmartFarmManager.Service.Services
 
         }
     }
+}
