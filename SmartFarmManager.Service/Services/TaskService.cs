@@ -1775,9 +1775,9 @@ namespace SmartFarmManager.Service.Services
                         CageId = farmingBatch.CageId,
                         AssignedToUserId = (Guid)assignedStaff,
                         CreatedByUserId = (Guid)adminId,
-                        TaskName = $"Cho ăn cho giai đoạn {lastGrowthStage.Name} - {GetSessionName(session)}",
+                        TaskName = $"Cho ăn",
                         PriorityNum = (int)taskType?.PriorityNum,
-                        Description = $"Cho các động vật trong giai đoạn {lastGrowthStage.Name} ăn - {GetSessionName(session)}",
+                        Description = $"Cho gà ăn",
                         DueDate = date.Add(GetSessionEndTime(session)),  // Dựa vào session để tính giờ kết thúc
                         Session = session,
                         Status = TaskStatusEnum.Pending,
