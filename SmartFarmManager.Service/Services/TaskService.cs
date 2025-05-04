@@ -1660,10 +1660,10 @@ namespace SmartFarmManager.Service.Services
 
                 var currentSession = SessionTime.GetCurrentSession(currentTime);
 
-                if (currentSession == -1)
-                {
-                    throw new Exception("Thời gian hiện tại không nằm trong bất kỳ phiên nào được định nghĩa.");
-                }
+                //if (currentSession == -1)
+                //{
+                //    throw new Exception("Thời gian hiện tại không nằm trong bất kỳ phiên nào được định nghĩa.");
+                //}
 
                 var tasks = await _unitOfWork.Tasks
                     .FindByCondition(t => t.DueDate.Value.Date == today.Date)
@@ -2718,12 +2718,6 @@ namespace SmartFarmManager.Service.Services
             await _unitOfWork.CommitAsync();
             return true;
 
-
-
-
-
-
-
-        }
+97        }
     }
 }
