@@ -18,7 +18,7 @@ namespace SmartFarmManager.Service.Interfaces
         Task<IEnumerable<PrescriptionModel>> GetActivePrescriptionsByCageIdAsync(Guid cageId);
         Task<bool> UpdatePrescriptionAsync(PrescriptionModel model);
 
-        Task<bool> IsLastPrescriptionSessionAsync(Guid prescriptionId);
+        Task<bool> IsLastPrescriptionSessionAsync(Guid prescriptionId, Guid taskId);
         Task<bool> UpdatePrescriptionStatusAsync(Guid prescriptionId, UpdatePrescriptionModel request);
         Task<bool> CreateNewPrescriptionAsync(UpdateMedicalSymptomModel request);
         Task<PagedResult<PrescriptionList>> GetPrescriptionsAsync(

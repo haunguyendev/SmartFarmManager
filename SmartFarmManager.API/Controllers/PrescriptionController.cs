@@ -249,13 +249,13 @@ namespace SmartFarmManager.API.Controllers
             }
         }
 
-        [HttpGet("{prescriptionId}/is-last-session")]
+        [HttpGet("{prescriptionId}/{taskId}/is-last-session")]
         [Authorize(Roles = "Staff Farm")]
-        public async Task<IActionResult> CheckLastPrescriptionSession(Guid prescriptionId)
+        public async Task<IActionResult> CheckLastPrescriptionSession(Guid prescriptionId, Guid taskId)
         {
             try
             {
-                var result = await _prescriptionService.IsLastPrescriptionSessionAsync(prescriptionId);
+                var result = await _prescriptionService.IsLastPrescriptionSessionAsync(prescriptionId, taskId);
                 return Ok(ApiResult<bool>.Succeed(result));
             }
             catch (Exception ex)
