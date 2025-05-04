@@ -352,6 +352,7 @@ namespace SmartFarmManager.API.Extensions
             services.AddTransient<SmartFarmManager.Service.Jobs.UpdateFarmingBatchStatusForTodayJob>();
             services.AddTransient<SmartFarmManager.Service.Jobs.CheckAndNotifyAdminForEndingFarmingBatchesJob>();
             services.AddTransient<SmartFarmManager.Service.Jobs.UpcomingTaskReminderJob>();
+            services.AddTransient<SmartFarmManager.Service.Jobs.UpdateCompletedPrescriptionsJob>();
             return services;
         }
 

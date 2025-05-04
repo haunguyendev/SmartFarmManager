@@ -369,5 +369,19 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
             }
         }
+
+        [HttpPost("update-completed-prescriptions")]
+        public async Task<IActionResult> UpdateCompletedPrescriptions()
+        {
+            try
+            {
+                await _prescriptionService.UpdateCompletedPrescriptionsAsync();
+                return Ok(ApiResult<string>.Succeed($"Đã cập nhật đơn thuốc sang trạng thái 'Completed'."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail($"Lỗi: {ex.Message}"));
+            }
+        }
     }
 }

@@ -48,6 +48,9 @@ namespace SmartFarmManager.Service.Services
             await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Noon", "0 31 13 * * ?", serverTimeZone, cancellationToken);    // 13:30 trưa
             await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Afternoon", "0 31 17 * * ?", serverTimeZone, cancellationToken); // 17:30 chiều
             await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Evening", "0 31 22 * * ?", serverTimeZone, cancellationToken);
+            await ScheduleJob<Jobs.UpdateCompletedPrescriptionsJob>("UpdateCompletedPrescriptionsJob-Night", "0 0 23 * * ?", serverTimeZone, cancellationToken);
+
+
         }
 
         /// <summary>

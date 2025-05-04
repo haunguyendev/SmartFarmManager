@@ -24,5 +24,6 @@ namespace SmartFarmManager.Service.Interfaces
         Task<PagedResult<PrescriptionList>> GetPrescriptionsAsync(
     DateTime? startDate, DateTime? endDate, string? status, string? cageName, int pageNumber, int pageSize);
         Task<List<PrescriptionModel>> GetPrescriptionsHistoryAsync(Guid medicalSymptomId);
+        System.Threading.Tasks.Task UpdateCompletedPrescriptionsAsync();
         }
 }

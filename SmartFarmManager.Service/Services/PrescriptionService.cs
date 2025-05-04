@@ -1397,5 +1397,31 @@ namespace SmartFarmManager.Service.Services
             }).ToList();
         }
 
+
+        public async System.Threading.Tasks.Task UpdateCompletedPrescriptionsAsync()
+        {
+            var today = DateTimeUtils.GetServerTimeInVietnamTime().Date;
+
+            var prescriptionsToComplete = await _unitOfWork.Prescription
+                .FindByCondition(p =>
+                    p.Status == PrescriptionStatusEnum.Active &&
+                    p.EndDate.HasValue &&
+                    p.EndDate.Value.Date == today)
+                .ToListAsync();
+
+            foreach (var prescription in prescriptionsToComplete)
+            {
+                prescription.Status = PrescriptionStatusEnum.Completed;
+                await _unitOfWork.Prescription.UpdateAsync(prescription);
+            }
+
+            if (prescriptionsToComplete.Any())
+            {
+                await _unitOfWork.CommitAsync();
+                Console.WriteLine($"Updated {prescriptionsToComplete.Count} prescriptions to Completed.");
+            }
+        }
+
+
     }
 }
