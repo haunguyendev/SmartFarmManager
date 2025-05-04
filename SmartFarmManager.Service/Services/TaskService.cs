@@ -2605,7 +2605,7 @@ namespace SmartFarmManager.Service.Services
 
             if (currentSession == -1)
             {
-                throw new Exception("Thời gian hiện tại không thuộc bất kỳ phiên nào được định nghĩa.");
+                return;
             }
 
             var sessionEndTime = GetSessionEndTime(currentSession);
