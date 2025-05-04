@@ -449,6 +449,7 @@ namespace SmartFarmManager.Service.Services
             // ✅ Nếu hôm nay không phải ngày cuối → return false
             if (now.Date < prescription.EndDate.Value.Date)
                 return false;
+            
 
             //get task to check if task status is overdue
             var task = await _unitOfWork.Tasks.FindByCondition(t => t.Id == taskId).FirstOrDefaultAsync();
@@ -456,6 +457,8 @@ namespace SmartFarmManager.Service.Services
                 return false;
             if (task.Status == TaskStatusEnum.Overdue)
             {
+                if (now.Date > prescription.EndDate.Value.Date)
+                    return true;
                 //check last session in one day 
                 int lastSessionInDay = -1;
 
@@ -471,7 +474,7 @@ namespace SmartFarmManager.Service.Services
                 {
                     lastSessionInDay = 2;
                 }
-                else if (prescription.PrescriptionMedications.Any(m => m.Morning > 0))
+                else if (hasMorningMedication)
                 {
                     lastSessionInDay = 1;
                 }
