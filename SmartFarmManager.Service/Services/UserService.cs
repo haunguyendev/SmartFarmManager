@@ -374,17 +374,17 @@ namespace SmartFarmManager.Service.Services
             await _unitOfWork.Users.UpdateAsync(user);
             return await _unitOfWork.CommitAsync() > 0;
         }
-
         public async Task<bool> UpdatePasswordAsync(Guid userId, PasswordUpdateModel request)
         {
             var user = await _unitOfWork.Users.FindByCondition(u => u.Id == userId).FirstOrDefaultAsync();
-            if (user == null) return false;
+            if (user == null)
+                throw new KeyNotFoundException("Người dùng không tồn tại.");
 
             if (user.PasswordHash != SecurityUtil.Hash(request.CurrentPassword))
-                throw new ArgumentException("Current password is incorrect.");
+                throw new ArgumentException("Mật khẩu hiện tại không chính xác.");
 
             if (!IsValidPassword(request.NewPassword))
-                throw new ArgumentException("Password must contain at least 8 characters, including uppercase, lowercase, number, and special character.");
+                throw new ArgumentException("Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
 
             user.PasswordHash = SecurityUtil.Hash(request.NewPassword);
             await _unitOfWork.Users.UpdateAsync(user);
