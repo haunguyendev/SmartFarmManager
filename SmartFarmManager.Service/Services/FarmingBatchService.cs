@@ -1020,7 +1020,9 @@ namespace SmartFarmManager.Service.Services
                     SaleTypeId = sale.SaleTypeId,
                     Weight = sale.Weight,
                     SaleTypeName = sale.SaleType.StageTypeName,
-                    ExpectTotalWeight = expectTotalWeight
+                    ExpectTotalWeight = expectTotalWeight,
+                    Note=sale.Note,
+
                 })
                 .ToList();
 

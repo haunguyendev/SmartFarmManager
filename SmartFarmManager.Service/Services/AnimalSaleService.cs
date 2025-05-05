@@ -57,7 +57,8 @@ namespace SmartFarmManager.Service.Services
                     Quantity = request.Quantity,
                     StaffId = request.StaffId,
                     SaleTypeId = request.SaleTypeId,
-                    Weight = request.Weight
+                    Weight = request.Weight,
+                    Note = request.Note
                 };
                 await _unitOfWork.AnimalSales.CreateAsync(newAnimalSaleMeat);
 
