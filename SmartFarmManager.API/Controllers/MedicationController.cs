@@ -79,7 +79,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Vet, Customer")]
         public async Task<IActionResult> UpdateMedication(Guid id, [FromBody] UpdateMedicationRequest request)
         {
             if (!ModelState.IsValid)

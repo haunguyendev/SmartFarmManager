@@ -86,7 +86,7 @@ namespace SmartFarmManager.API.Controllers
 
         // GET: api/medical-symptoms/{id}
         [HttpGet("{id:guid}")]
-        [Authorize(Roles = "Staff Farm")]
+        [Authorize(Roles = "Staff Farm, Customer")]
         public async Task<IActionResult> GetMedicalSymptomById(Guid id)
         {
             var medicalSymptom = await _medicalSymptomService.GetMedicalSymptomByIdAsync(id);
