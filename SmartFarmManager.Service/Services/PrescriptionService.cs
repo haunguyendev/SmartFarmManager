@@ -457,6 +457,7 @@ namespace SmartFarmManager.Service.Services
                 return false;
             if (task.Status == TaskStatusEnum.Overdue)
             {
+                //check if prescription end date is before today
                 if (now.Date > prescription.EndDate.Value.Date)
                     return true;
                 //check last session in one day 
