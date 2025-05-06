@@ -5,10 +5,8 @@ namespace SmartFarmManager.API.Payloads.Requests.VaccineSchedule
     public class CreateVaccineScheduleRequest
     {
         public Guid VaccineId { get; set; }
-        public Guid StageId { get; set; }
+        public Guid CageId { get; set; }
         public DateTime? Date { get; set; }
-        public int? Quantity { get; set; }
-        public int? ApplicationAge { get; set; }
         public int Session { get; set; }
 
         public CreateVaccineScheduleModel MapToModel()
@@ -16,10 +14,8 @@ namespace SmartFarmManager.API.Payloads.Requests.VaccineSchedule
             return new CreateVaccineScheduleModel
             {
                 VaccineId = this.VaccineId,
-                StageId = this.StageId,
+                CageId = this.CageId,
                 Date = this.Date,
-                Quantity = this.Quantity,
-                ApplicationAge = this.ApplicationAge,
                 Session = this.Session,
             };
         }
