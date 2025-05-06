@@ -7,6 +7,7 @@ using SmartFarmManager.Service.BusinessModels.Farm;
 using SmartFarmManager.Service.BusinessModels.Users;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
+using SmartFarmManager.Service.Shared;
 using Sprache;
 using System;
 using System.Collections.Generic;
@@ -636,6 +637,18 @@ namespace SmartFarmManager.Service.Services
             {
                 if (distinctNewCageIds.Count > maxCages)
                     throw new InvalidOperationException($"Vượt quá số chuồng tối đa cho phép ({maxCages}). Đã chọn {distinctNewCageIds.Count} chuồng.");
+                //get all task has status Pending and InProgress in list newCageIds request
+                var tasks = await _unitOfWork.Tasks.FindByCondition(t => distinctNewCageIds.Contains(t.CageId) && (t.Status == TaskStatusEnum.Pending || t.Status == TaskStatusEnum.InProgress)).ToListAsync();
+                //if (tasks.Count > 0) then assign staffId
+                if (tasks.Count > 0)
+                {
+                    foreach (var task in tasks)
+                    {
+                        task.AssignedToUserId = staffId;
+                        await _unitOfWork.Tasks.UpdateAsync(task);
+                    }
+                }
+
             }
 
             // 3. Xóa các chuồng cũ đã gán

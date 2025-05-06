@@ -535,8 +535,8 @@ namespace SmartFarmManager.Service.Services
                 throw new ArgumentException("Prescription not found or not active or not completed.");
 
             // ❌ Kiểm tra nếu trạng thái không hợp lệ
-            if (request.Status != PrescriptionStatusEnum.Completed && request.Status != PrescriptionStatusEnum.Return)
-                throw new ArgumentException("Invalid status. Only 'Completed' or 'Return' are allowed.");
+            if (request.Status != PrescriptionStatusEnum.Completed && request.Status != PrescriptionStatusEnum.Return && request.Status != PrescriptionStatusEnum.Stop)
+                throw new ArgumentException("Invalid status. Only 'Completed' or 'Return' or  'Stop' are allowed.");
 
             // ✅ Kiểm tra số lượng vật nuôi bị ảnh hưởng
             if (request.Status == PrescriptionStatusEnum.Return)
@@ -550,6 +550,15 @@ namespace SmartFarmManager.Service.Services
                 prescription.RemainingQuantity = request.RemainingQuantity;
 
             }
+            if (request.Status == PrescriptionStatusEnum.Stop)
+            {
+                if (request.RemainingQuantity == null)
+                    throw new ArgumentException("RemainingQuantity is required for status 'Stop'.");
+                if (request.RemainingQuantity > 0)
+                    throw new ArgumentException("Remaining quantity must be 0 in 'Stop' status");
+
+                prescription.RemainingQuantity = request.RemainingQuantity;
+            }
 
             //else if (request.Status == PrescriptionStatusEnum.Dead)
             //{
@@ -558,7 +567,7 @@ namespace SmartFarmManager.Service.Services
 
             // ✅ Cập nhật trạng thái đơn thuốc
             prescription.Status = request.Status;
-            if (request.Status == PrescriptionStatusEnum.Return)
+            if (request.Status == PrescriptionStatusEnum.Return || request.Status == PrescriptionStatusEnum.Stop)
             {
                 // 🔹 Cập nhật số lượng bị ảnh hưởng trong **FarmingBatch**
                 var farmingBatch = prescription.MedicalSymtom?.FarmingBatch;
