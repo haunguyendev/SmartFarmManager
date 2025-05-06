@@ -32,7 +32,7 @@ namespace SmartFarmManager.API.Controllers
         /// <param name="request">Filter and pagination parameters</param>
         /// <returns>Paginated list of cages</returns>
         [HttpGet]
-        [Authorize(Roles = "Admin Farm")]
+        [Authorize(Roles = "Admin Farm, Admin")]
         public async Task<IActionResult> GetAll([FromQuery] CageFilterPagingRequest request)
         {
             if (!ModelState.IsValid)

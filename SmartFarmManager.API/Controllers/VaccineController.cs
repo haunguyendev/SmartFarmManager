@@ -172,7 +172,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("")]
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Vet, Admin Farm")]
         public async Task<IActionResult> GetVaccines([FromQuery] VaccineFilterRequest filterRequest)
         {
             if (!ModelState.IsValid)
