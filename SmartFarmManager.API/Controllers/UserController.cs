@@ -502,7 +502,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost("assign-staffFarm-cages")]
-        [Authorize(Roles = "Admin Farm")]
+        [Authorize(Roles = "Admin Farm, Admin")]
         public async Task<IActionResult> AssignCages([FromBody] AssignStaffToCagesRequest request)
         {
             try
