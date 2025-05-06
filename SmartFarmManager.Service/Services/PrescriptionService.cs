@@ -595,6 +595,19 @@ namespace SmartFarmManager.Service.Services
                     await _unitOfWork.GrowthStages.UpdateAsync(growStageActive);
                 }
             }
+            if (request.Status == PrescriptionStatusEnum.Stop)
+            {
+                //get list task by prescriptionId and status Pending and InProgress to change status to Cancel
+                var tasks = await _unitOfWork.Tasks.FindByCondition(t => t.PrescriptionId == prescriptionId && (t.Status == TaskStatusEnum.InProgress || t.Status == TaskStatusEnum.Pending)).ToListAsync();
+                if (tasks != null && tasks.Count > 0)
+                {
+                    foreach (var task in tasks)
+                    {
+                        task.Status = TaskStatusEnum.Cancelled;
+                        await _unitOfWork.Tasks.UpdateAsync(task);
+                    }
+                }
+            }
 
 
             // ✅ Lưu thay đổi
