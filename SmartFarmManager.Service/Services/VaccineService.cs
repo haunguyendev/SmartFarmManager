@@ -227,8 +227,8 @@ namespace SmartFarmManager.Service.Services
                 Price = vaccine.Price,
                 AgeStart = vaccine.AgeStart,
                 AgeEnd = vaccine.AgeEnd,
-                IsDeleted = vaccine.IsDeleted
-
+                IsDeleted = vaccine.IsDeleted,
+                PricePerDose = vaccine.PricePerDose
             };
         }
 
