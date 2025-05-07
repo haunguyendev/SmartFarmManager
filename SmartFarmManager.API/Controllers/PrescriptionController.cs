@@ -330,7 +330,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("vet")]
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Vet, Admin Farm")]
         public async Task<IActionResult> GetPrescriptions(
     [FromQuery] DateTime? startDate,
     [FromQuery] DateTime? endDate,
