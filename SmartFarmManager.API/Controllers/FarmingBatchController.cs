@@ -360,7 +360,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{farmingBatchId}")]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer, Staff Farm")]
         public async Task<IActionResult> GetFarmingBatchDetail(Guid farmingBatchId)
         {
             try
