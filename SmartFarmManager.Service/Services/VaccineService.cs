@@ -190,8 +190,8 @@ namespace SmartFarmManager.Service.Services
                     Price = v.Price,
                     AgeStart = v.AgeStart,
                     AgeEnd = v.AgeEnd,
-                    IsDeleted = v.IsDeleted
-
+                    IsDeleted = v.IsDeleted,
+                    TotalDose = v.TotalDose
                 })
                 .ToListAsync();
 
