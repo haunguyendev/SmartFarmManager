@@ -783,7 +783,18 @@ namespace SmartFarmManager.Service.Services
                         farmingBatch.DeadQuantity = farmingBatch.DeadQuantity + deadAnimal.Value;
                         await _unitOfWork.FarmingBatches.UpdateAsync(farmingBatch);
                         await _unitOfWork.GrowthStages.UpdateAsync(growStageActive);
+                        var newDeadLog = new DeadPoultryLog
+                        {
+                            Date = DateTimeUtils.GetServerTimeInVietnamTime(),
+                            Quantity = deadAnimal ?? 0,
+                            FarmingBatchId = farmingBatch.Id,
+                            Note = $"Chết vì bị bệnh"
+                        };
+                        await _unitOfWork.DeadPoultryLogs.CreateAsync(newDeadLog);
+
                     }
+
+
                 }
                 var tasksToUpdate = await _unitOfWork.Tasks
                 .FindByCondition(t =>
