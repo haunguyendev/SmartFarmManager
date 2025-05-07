@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Tls;
 using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Repository.Interfaces;
 using SmartFarmManager.Service.BusinessModels;
@@ -607,9 +608,54 @@ namespace SmartFarmManager.Service.Services
                         await _unitOfWork.Tasks.UpdateAsync(task);
                     }
                 }
+                var serverTime = DateTimeUtils.GetServerTimeInVietnamTime();
+                var currentSessionCheck = SessionTime.GetCurrentSession(serverTime.TimeOfDay);
+                int totalDosesTaken = 0;
+                decimal totalCost = 0;
+
+                foreach (var pm in prescription.PrescriptionMedications)
+                {
+                    int takenMorning = 0, takenNoon = 0, takenAfternoon = 0, takenEvening = 0;
+
+                    // ✅ Tính số liều đã uống theo từng session
+                    if (serverTime.Date > prescription.PrescribedDate.Value.Date)
+                    {
+                        // Đã qua ít nhất 1 ngày
+                        int fullDaysPassed = (serverTime.Date - prescription.PrescribedDate.Value.Date).Days;
+                        takenMorning = pm.Morning * fullDaysPassed;
+                        takenNoon = pm.Noon * fullDaysPassed;
+                        takenAfternoon = pm.Afternoon * fullDaysPassed;
+                        takenEvening = pm.Evening * fullDaysPassed;
+                    }
+
+                    // ✅ Tính số liều trong ngày hiện tại
+                    if (serverTime.Date == prescription.PrescribedDate.Value.Date || currentSessionCheck > 0)
+                    {
+                        if (currentSessionCheck >= 1) takenMorning += pm.Morning;
+                        if (currentSessionCheck >= 2) takenNoon += pm.Noon;
+                        if (currentSessionCheck >= 3) takenAfternoon += pm.Afternoon;
+                        if (currentSessionCheck >= 4) takenEvening += pm.Evening;
+                    }
+
+                    int totalDosesForMedication = takenMorning + takenNoon + takenAfternoon + takenEvening;
+                    totalDosesTaken += totalDosesForMedication;
+
+                    // ✅ Tính tổng tiền
+                    var medication = await _unitOfWork.Medication.GetByIdAsync(pm.MedicationId);
+                    if (medication?.PricePerDose != null)
+                    {
+                        totalCost += totalDosesForMedication * medication.PricePerDose.Value;
+                    }
+
+
+                    // 🔹 Cập nhật giá trị cho đơn thuốc cũ
+                    prescription.Status = PrescriptionStatusEnum.Stop;
+                    prescription.EndDate = serverTime;
+                    prescription.Price = totalCost;
+                    await _unitOfWork.Prescription.UpdateAsync(prescription);
+                }
+
             }
-
-
             // ✅ Lưu thay đổi
             await _unitOfWork.Prescription.UpdateAsync(prescription);
             await _unitOfWork.CommitAsync();
