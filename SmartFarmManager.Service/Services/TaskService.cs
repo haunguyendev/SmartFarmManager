@@ -1544,7 +1544,7 @@ namespace SmartFarmManager.Service.Services
                 (2, medication.Noon),
                 (3, medication.Afternoon),
                 (4, medication.Evening)
-            };
+            }; 
 
                     foreach (var sessionTask in sessionTasks.Where(t => t.Quantity > 0))
                     {
