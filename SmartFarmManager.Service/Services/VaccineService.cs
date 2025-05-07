@@ -98,6 +98,8 @@ namespace SmartFarmManager.Service.Services
                 Price = model.Price,
                 AgeStart = model.AgeStart,
                 AgeEnd = model.AgeEnd,
+                TotalDose = model.TotalDose,
+                PricePerDose = model.Price / model.TotalDose,
             };
 
             await _unitOfWork.Vaccines.CreateAsync(vaccine);
@@ -132,6 +134,8 @@ namespace SmartFarmManager.Service.Services
             vaccine.Price = model.Price ?? vaccine.Price;
             vaccine.AgeStart = model.AgeStart ?? vaccine.AgeStart;
             vaccine.AgeEnd = model.AgeEnd ?? vaccine.AgeEnd;
+            vaccine.TotalDose = model.TotalDose ?? vaccine.TotalDose;
+            vaccine.PricePerDose = (double)(model.Price ?? vaccine.Price / model.TotalDose ?? vaccine.TotalDose);
 
             await _unitOfWork.Vaccines.UpdateAsync(vaccine);
             await _unitOfWork.CommitAsync();

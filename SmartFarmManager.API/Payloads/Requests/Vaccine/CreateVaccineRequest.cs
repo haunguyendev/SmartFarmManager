@@ -22,6 +22,7 @@ namespace SmartFarmManager.API.Payloads.Requests.Vaccine
 
         [Required(ErrorMessage = "AgeEnd is required.")]
         public int AgeEnd { get; set; }
+        public int TotalDose { get; set; }
         public CreateVaccineModel MapToModel()
         {
             return new CreateVaccineModel
@@ -30,7 +31,8 @@ namespace SmartFarmManager.API.Payloads.Requests.Vaccine
                 Method = Method,
                 Price = Price,
                 AgeStart = AgeStart,
-                AgeEnd = AgeEnd
+                AgeEnd = AgeEnd,
+                TotalDose = TotalDose
             };
         }
     }

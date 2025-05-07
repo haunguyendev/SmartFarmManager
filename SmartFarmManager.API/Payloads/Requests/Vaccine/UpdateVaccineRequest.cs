@@ -14,6 +14,7 @@ namespace SmartFarmManager.API.Payloads.Requests.Vaccine
         public double? Price { get; set; }
         public int? AgeStart { get; set; }
         public int? AgeEnd { get; set; }
+        public int? TotalDose { get; set; }
         public VaccineUpdateModel MapToModel()
         {
             return new VaccineUpdateModel
@@ -22,7 +23,8 @@ namespace SmartFarmManager.API.Payloads.Requests.Vaccine
                 Method = Method,
                 Price = Price,
                 AgeStart = AgeStart,
-                AgeEnd = AgeEnd
+                AgeEnd = AgeEnd,
+                TotalDose = TotalDose
             };
         }
     }
