@@ -49,6 +49,7 @@ namespace SmartFarmManager.Service.Services
             await _taskService.UpdateAllTaskStatusesAsync();
             await _farmingBatchService.RunUpdateFarmingBatchesStatusAsync();
             await _taskService.ProcessUpcomingTaskNotificationAsync();
+            await _taskService.GenerateTreatmentTasksAsyncV2();
 
 
         }
