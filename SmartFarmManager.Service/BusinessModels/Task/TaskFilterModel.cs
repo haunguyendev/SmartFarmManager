@@ -19,7 +19,7 @@ namespace SmartFarmManager.Service.BusinessModels.Task
         public int? Session { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime? CreatedAt { get; set; }
-
+        public bool SortByDueDateDesc { get; set; } = false;
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
     }

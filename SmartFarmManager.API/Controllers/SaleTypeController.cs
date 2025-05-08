@@ -5,6 +5,7 @@ using SmartFarmManager.API.Payloads.Requests.SaleType;
 using SmartFarmManager.Service.BusinessModels.SaleType;
 using SmartFarmManager.Service.BusinessModels;
 using SmartFarmManager.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SmartFarmManager.API.Controllers
 {
@@ -19,6 +20,7 @@ namespace SmartFarmManager.API.Controllers
             _saleTypeService = saleTypeService;
         }
         [HttpGet]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetSaleTypes([FromQuery] SaleTypeFilterPagingRequest filterRequest)
         {
             if (!ModelState.IsValid)

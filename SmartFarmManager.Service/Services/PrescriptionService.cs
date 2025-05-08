@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Tls;
 using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Repository.Interfaces;
 using SmartFarmManager.Service.BusinessModels;
@@ -420,7 +421,7 @@ namespace SmartFarmManager.Service.Services
             return true;
         }
 
-        public async Task<bool> IsLastPrescriptionSessionAsync(Guid prescriptionId)
+        public async Task<bool> IsLastPrescriptionSessionAsync(Guid prescriptionId, Guid taskId)
         {
             //// 🔹 Tìm đơn thuốc theo ID và lấy luôn danh sách thuốc trong đơn
             //var prescription = await _unitOfWork.Prescription
@@ -444,33 +445,80 @@ namespace SmartFarmManager.Service.Services
             var hasAfternoonMedication = prescription.PrescriptionMedications.Any(m => m.Afternoon > 0);
             var hasEveningMedication = prescription.PrescriptionMedications.Any(m => m.Evening > 0);
 
-            // 🔹 Lấy thời gian hiện tại theo giờ server (Việt Nam)
             var now = DateTimeUtils.GetServerTimeInVietnamTime();
-            var currentTime = now.TimeOfDay;
-            var currentSession = SessionTime.GetCurrentSession(currentTime);
 
             // ✅ Nếu hôm nay không phải ngày cuối → return false
-            if (now.Date != prescription.EndDate.Value.Date)
+            if (now.Date < prescription.EndDate.Value.Date)
                 return false;
+            
 
-            // ✅ Kiểm tra xem có phải buổi cuối cùng không
-            var isLastSession = currentSession switch
+            //get task to check if task status is overdue
+            var task = await _unitOfWork.Tasks.FindByCondition(t => t.Id == taskId).FirstOrDefaultAsync();
+            if (task == null)
+                return false;
+            if (task.Status == TaskStatusEnum.Overdue)
             {
-                1 => !hasNoonMedication && !hasAfternoonMedication && !hasEveningMedication,  // Morning là buổi cuối
-                2 => !hasAfternoonMedication && !hasEveningMedication,                        // Noon là buổi cuối
-                3 => !hasEveningMedication,                                                  // Afternoon là buổi cuối
-                4 => true,                                                                   // Evening là buổi cuối
-                _ => false
-            };
-            if (isLastSession)
-            {
-                var checkListPrescription = await _unitOfWork.Prescription.FindByCondition(p => p.MedicalSymtomId == prescription.MedicalSymtomId && p.Status == PrescriptionStatusEnum.Active).CountAsync();
-                if (checkListPrescription > 1)
+                //check if prescription end date is before today
+                if (now.Date > prescription.EndDate.Value.Date)
+                    return true;
+                //check last session in one day 
+                int lastSessionInDay = -1;
+
+                if (hasEveningMedication)
+                {
+                    lastSessionInDay = 4;
+                }
+                else if (hasAfternoonMedication)
+                {
+                    lastSessionInDay = 3;
+                }
+                else if (hasNoonMedication)
+                {
+                    lastSessionInDay = 2;
+                }
+                else if (hasMorningMedication)
+                {
+                    lastSessionInDay = 1;
+                }
+                //check if last session in day > 
+                if (task.Session > lastSessionInDay)
+                {
+                    return true;
+                }
+                else
                 {
                     return false;
                 }
+
             }
-            return true;
+            else
+            {
+                // 🔹 Lấy thời gian hiện tại theo giờ server (Việt Nam)
+                var currentTime = now.TimeOfDay;
+                var currentSession = SessionTime.GetCurrentSession(currentTime);
+
+                // ✅ Kiểm tra xem có phải buổi cuối cùng không
+                var isLastSession = currentSession switch
+                {
+                    1 => !hasNoonMedication && !hasAfternoonMedication && !hasEveningMedication,  // Morning là buổi cuối
+                    2 => !hasAfternoonMedication && !hasEveningMedication,                        // Noon là buổi cuối
+                    3 => !hasEveningMedication,                                                  // Afternoon là buổi cuối
+                    4 => true,                                                                   // Evening là buổi cuối
+                    _ => false
+                };
+                if (isLastSession)
+                {
+                    //Check if more than 1 prescription active in the same time
+                    var checkListPrescription = await _unitOfWork.Prescription.FindByCondition(p => p.MedicalSymtomId == prescription.MedicalSymtomId && p.Status == PrescriptionStatusEnum.Active).CountAsync();
+                    if (checkListPrescription > 1)
+                    {
+                        return false;
+                    }
+                    return true;
+                }
+                return false;
+            }
+
         }
         public async Task<bool> UpdatePrescriptionStatusAsync(Guid prescriptionId, UpdatePrescriptionModel request)
         {
@@ -480,6 +528,7 @@ namespace SmartFarmManager.Service.Services
                 .Include(p => p.PrescriptionMedications)
                 .Include(p => p.MedicalSymtom)
                 .ThenInclude(ms => ms.FarmingBatch).ThenInclude(fb => fb.GrowthStages)
+                .Include(p => p.MedicalSymtom).ThenInclude(ms => ms.Disease)
                 .FirstOrDefaultAsync();
 
             // ❌ Kiểm tra nếu đơn thuốc không tồn tại
@@ -487,8 +536,8 @@ namespace SmartFarmManager.Service.Services
                 throw new ArgumentException("Prescription not found or not active or not completed.");
 
             // ❌ Kiểm tra nếu trạng thái không hợp lệ
-            if (request.Status != PrescriptionStatusEnum.Completed && request.Status != PrescriptionStatusEnum.Return)
-                throw new ArgumentException("Invalid status. Only 'Completed' or 'Return' are allowed.");
+            if (request.Status != PrescriptionStatusEnum.Completed && request.Status != PrescriptionStatusEnum.Return && request.Status != PrescriptionStatusEnum.Stop)
+                throw new ArgumentException("Invalid status. Only 'Completed' or 'Return' or  'Stop' are allowed.");
 
             // ✅ Kiểm tra số lượng vật nuôi bị ảnh hưởng
             if (request.Status == PrescriptionStatusEnum.Return)
@@ -500,7 +549,18 @@ namespace SmartFarmManager.Service.Services
                     throw new ArgumentException("Remaining quantity cannot exceed total affected animals.");
 
                 prescription.RemainingQuantity = request.RemainingQuantity;
+
             }
+            if (request.Status == PrescriptionStatusEnum.Stop)
+            {
+                if (request.RemainingQuantity == null)
+                    throw new ArgumentException("RemainingQuantity is required for status 'Stop'.");
+                if (request.RemainingQuantity > 0)
+                    throw new ArgumentException("Remaining quantity must be 0 in 'Stop' status");
+
+                prescription.RemainingQuantity = request.RemainingQuantity;
+            }
+
             //else if (request.Status == PrescriptionStatusEnum.Dead)
             //{
             //    prescription.RemainingQuantity = 0; // ✅ Nếu chết hết, RemainingQuantity = 0
@@ -508,7 +568,7 @@ namespace SmartFarmManager.Service.Services
 
             // ✅ Cập nhật trạng thái đơn thuốc
             prescription.Status = request.Status;
-            if(request.Status == PrescriptionStatusEnum.Return)
+            if (request.Status == PrescriptionStatusEnum.Return || request.Status == PrescriptionStatusEnum.Stop)
             {
                 // 🔹 Cập nhật số lượng bị ảnh hưởng trong **FarmingBatch**
                 var farmingBatch = prescription.MedicalSymtom?.FarmingBatch;
@@ -519,18 +579,83 @@ namespace SmartFarmManager.Service.Services
                     if (growStageActive != null)
                     {
                         growStageActive.DeadQuantity = growStageActive.DeadQuantity + prescription.QuantityAnimal - remainingQuantity;
-                        growStageActive.AffectedQuantity = growStageActive.AffectedQuantity - prescription.QuantityAnimal; //return là đã trả về hoặc đã chết nên trừ thẳng cho số con bị bệnh
+                        growStageActive.AffectedQuantity = growStageActive.AffectedQuantity - prescription.QuantityAnimal;
                     }
 
                     farmingBatch.DeadQuantity = farmingBatch.DeadQuantity + prescription.QuantityAnimal - remainingQuantity;
+                    var newDeadLog = new DeadPoultryLog
+                    {
+                        Date = DateTimeUtils.GetServerTimeInVietnamTime(),
+                        Quantity = prescription.QuantityAnimal - (int)request.RemainingQuantity,
+                        FarmingBatchId = prescription.MedicalSymtom.FarmingBatchId,
+                        Note = $"Chết vì bị bệnh"
+                    };
 
-
+                    await _unitOfWork.DeadPoultryLogs.CreateAsync(newDeadLog);
                     await _unitOfWork.FarmingBatches.UpdateAsync(farmingBatch);
                     await _unitOfWork.GrowthStages.UpdateAsync(growStageActive);
                 }
             }
+            if (request.Status == PrescriptionStatusEnum.Stop)
+            {
+                //get list task by prescriptionId and status Pending and InProgress to change status to Cancel
+                var tasks = await _unitOfWork.Tasks.FindByCondition(t => t.PrescriptionId == prescriptionId && (t.Status == TaskStatusEnum.InProgress || t.Status == TaskStatusEnum.Pending)).ToListAsync();
+                if (tasks != null && tasks.Count > 0)
+                {
+                    foreach (var task in tasks)
+                    {
+                        task.Status = TaskStatusEnum.Cancelled;
+                        await _unitOfWork.Tasks.UpdateAsync(task);
+                    }
+                }
+                var serverTime = DateTimeUtils.GetServerTimeInVietnamTime();
+                var currentSessionCheck = SessionTime.GetCurrentSession(serverTime.TimeOfDay);
+                int totalDosesTaken = 0;
+                decimal totalCost = 0;
+
+                foreach (var pm in prescription.PrescriptionMedications)
+                {
+                    int takenMorning = 0, takenNoon = 0, takenAfternoon = 0, takenEvening = 0;
+
+                    // ✅ Tính số liều đã uống theo từng session
+                    if (serverTime.Date > prescription.PrescribedDate.Value.Date)
+                    {
+                        // Đã qua ít nhất 1 ngày
+                        int fullDaysPassed = (serverTime.Date - prescription.PrescribedDate.Value.Date).Days;
+                        takenMorning = pm.Morning * fullDaysPassed;
+                        takenNoon = pm.Noon * fullDaysPassed;
+                        takenAfternoon = pm.Afternoon * fullDaysPassed;
+                        takenEvening = pm.Evening * fullDaysPassed;
+                    }
+
+                    // ✅ Tính số liều trong ngày hiện tại
+                    if (serverTime.Date == prescription.PrescribedDate.Value.Date || currentSessionCheck > 0)
+                    {
+                        if (currentSessionCheck >= 1) takenMorning += pm.Morning;
+                        if (currentSessionCheck >= 2) takenNoon += pm.Noon;
+                        if (currentSessionCheck >= 3) takenAfternoon += pm.Afternoon;
+                        if (currentSessionCheck >= 4) takenEvening += pm.Evening;
+                    }
+
+                    int totalDosesForMedication = takenMorning + takenNoon + takenAfternoon + takenEvening;
+                    totalDosesTaken += totalDosesForMedication;
+
+                    // ✅ Tính tổng tiền
+                    var medication = await _unitOfWork.Medication.GetByIdAsync(pm.MedicationId);
+                    if (medication?.PricePerDose != null)
+                    {
+                        totalCost += totalDosesForMedication * medication.PricePerDose.Value;
+                    }
 
 
+                    // 🔹 Cập nhật giá trị cho đơn thuốc cũ
+                    prescription.Status = PrescriptionStatusEnum.Stop;
+                    prescription.EndDate = serverTime;
+                    prescription.Price = totalCost;
+                    await _unitOfWork.Prescription.UpdateAsync(prescription);
+                }
+
+            }
             // ✅ Lưu thay đổi
             await _unitOfWork.Prescription.UpdateAsync(prescription);
             await _unitOfWork.CommitAsync();
@@ -563,7 +688,7 @@ namespace SmartFarmManager.Service.Services
                     .OrderByDescending(p => p.PrescribedDate)
                     .FirstOrDefault();
 
-                if(activePrescription.QuantityAnimal < request.Prescriptions.QuantityAnimal)
+                if (activePrescription.QuantityAnimal < request.Prescriptions.QuantityAnimal)
                 {
                     return false;
                 }
@@ -624,7 +749,7 @@ namespace SmartFarmManager.Service.Services
                                 : medicalSymptom.Notes + " -> " + request.Notes;
                     await _unitOfWork.MedicalSymptom.UpdateAsync(medicalSymptom);
                 }
-                if(activePrescription != null && activePrescription.Status == PrescriptionStatusEnum.Completed)
+                if (activePrescription != null && activePrescription.Status == PrescriptionStatusEnum.Completed)
                 {
                     activePrescription.Status = PrescriptionStatusEnum.FollowUp;
                     activePrescription.EndDate = serverTime;
@@ -641,7 +766,7 @@ namespace SmartFarmManager.Service.Services
                                 : medicalSymptom.Notes + " -> " + request.Notes;
                     await _unitOfWork.MedicalSymptom.UpdateAsync(medicalSymptom);
                 }
-                if(activePrescription != null && activePrescription.QuantityAnimal > request.Prescriptions.QuantityAnimal)
+                if (activePrescription != null && activePrescription.QuantityAnimal > request.Prescriptions.QuantityAnimal)
                 {
                     var deadAnimal = activePrescription.QuantityAnimal - request.Prescriptions.QuantityAnimal;
                     // 🔹 Cập nhật số lượng bị ảnh hưởng trong **FarmingBatch**
@@ -658,7 +783,18 @@ namespace SmartFarmManager.Service.Services
                         farmingBatch.DeadQuantity = farmingBatch.DeadQuantity + deadAnimal.Value;
                         await _unitOfWork.FarmingBatches.UpdateAsync(farmingBatch);
                         await _unitOfWork.GrowthStages.UpdateAsync(growStageActive);
+                        var newDeadLog = new DeadPoultryLog
+                        {
+                            Date = DateTimeUtils.GetServerTimeInVietnamTime(),
+                            Quantity = deadAnimal ?? 0,
+                            FarmingBatchId = farmingBatch.Id,
+                            Note = $"Chết vì bị bệnh"
+                        };
+                        await _unitOfWork.DeadPoultryLogs.CreateAsync(newDeadLog);
+
                     }
+
+
                 }
                 var tasksToUpdate = await _unitOfWork.Tasks
                 .FindByCondition(t =>
@@ -723,7 +859,7 @@ namespace SmartFarmManager.Service.Services
                 newPrescriptionId = newPrescription.Id;
                 //update affectedQuantity in farmingBatch
                 var symtom = await _unitOfWork.MedicalSymptom.FindByCondition(ms => ms.Id == request.Id).Include(ms => ms.FarmingBatch).FirstOrDefaultAsync();
-                
+
 
                 //create task in today and tomorow
                 // Lấy thời gian hiện tại và buổi hiện tại
@@ -1343,6 +1479,32 @@ namespace SmartFarmManager.Service.Services
                 Disease = p.MedicalSymtom.Diagnosis
             }).ToList();
         }
+
+
+        public async System.Threading.Tasks.Task UpdateCompletedPrescriptionsAsync()
+        {
+            var today = DateTimeUtils.GetServerTimeInVietnamTime().Date;
+
+            var prescriptionsToComplete = await _unitOfWork.Prescription
+                .FindByCondition(p =>
+                    p.Status == PrescriptionStatusEnum.Active &&
+                    p.EndDate.HasValue &&
+                    p.EndDate.Value.Date == today)
+                .ToListAsync();
+
+            foreach (var prescription in prescriptionsToComplete)
+            {
+                prescription.Status = PrescriptionStatusEnum.Completed;
+                await _unitOfWork.Prescription.UpdateAsync(prescription);
+            }
+
+            if (prescriptionsToComplete.Any())
+            {
+                await _unitOfWork.CommitAsync();
+                Console.WriteLine($"Updated {prescriptionsToComplete.Count} prescriptions to Completed.");
+            }
+        }
+
 
     }
 }

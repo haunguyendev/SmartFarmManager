@@ -21,7 +21,7 @@ public partial class FarmingBatch : EntityBase
     public int CleaningFrequency { get; set; }
     public int DeadQuantity { get; set; } = 0;
 
-    public int? Quantity { get; set; }
+    public int? Quantity { get; set; } = 0;
     public Guid FarmId { get; set; }
 
     public virtual ICollection<AnimalSale> AnimalSales { get; set; } = new List<AnimalSale>();
@@ -31,6 +31,7 @@ public partial class FarmingBatch : EntityBase
     public virtual ICollection<GrowthStage> GrowthStages { get; set; } = new List<GrowthStage>();
 
     public virtual ICollection<MedicalSymptom> MedicalSymptoms { get; set; } = new List<MedicalSymptom>();
+    public virtual ICollection<DeadPoultryLog> DeadPoultryLogs { get; set; } = new List<DeadPoultryLog>();
 
     public virtual AnimalTemplate Template { get; set; }
 }

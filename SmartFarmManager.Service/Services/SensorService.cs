@@ -60,10 +60,10 @@ namespace SmartFarmManager.Service.Services
                 .FindByCondition(e => e.SensorId == sensorId && e.CreatedDate.Date == date.Date)
                 .ToListAsync();
 
-            if (!logs.Any())
-            {
-                throw new Exception("No sensor data found for this sensor and date.");
-            }
+            //if (!logs.Any())
+            //{
+            //    throw new Exception("No sensor data found for this sensor and date.");
+            //}
 
             return logs.Select(log => new SensorDataInDayModel
             {
@@ -79,10 +79,10 @@ namespace SmartFarmManager.Service.Services
                 .FindByCondition(e => e.SensorId == sensorId && e.CreatedDate.Date >= startDate.Date && e.CreatedDate.Date <= endDate.Date)
                 .ToListAsync();
 
-            if (!logs.Any())
-            {
-                throw new Exception("No sensor data found in this date range.");
-            }
+            //if (!logs.Any())
+            //{
+            //    throw new Exception("No sensor data found in this date range.");
+            //}
 
             return logs.Select(log => new SensorDataInDayModel
             {
@@ -97,10 +97,10 @@ namespace SmartFarmManager.Service.Services
                 .FindByCondition(e => e.SensorId == sensorId && e.CreatedDate.Month == month && e.CreatedDate.Year == year)
                 .ToListAsync();
 
-            if (!logs.Any())
-            {
-                throw new Exception("No sensor data found for this month.");
-            }
+            //if (!logs.Any())
+            //{
+            //    throw new Exception("No sensor data found for this month.");
+            //}
 
             var groupedLogs = logs
                 .GroupBy(log => new { log.CreatedDate.Day })
@@ -127,10 +127,10 @@ namespace SmartFarmManager.Service.Services
                 .FindByCondition(e => e.SensorId == sensorId && e.CreatedDate.Year == year)
                 .ToListAsync();
 
-            if (!logs.Any())
-            {
-                throw new Exception("No sensor data found for this year.");
-            }
+            //if (!logs.Any())
+            //{
+            //    throw new Exception("No sensor data found for this year.");
+            //}
 
             var groupedLogs = logs
                 .GroupBy(log => new { log.CreatedDate.Month })

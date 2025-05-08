@@ -7,6 +7,7 @@ using SmartFarmManager.Service.BusinessModels.Medication;
 using SmartFarmManager.Service.BusinessModels;
 using SmartFarmManager.Service.Interfaces;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SmartFarmManager.API.Controllers
 {
@@ -22,6 +23,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost()]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> CreateMedication([FromBody] CreateMedicationRequest medication)
         {
             if (!ModelState.IsValid)
@@ -50,6 +52,7 @@ namespace SmartFarmManager.API.Controllers
 
         // GET: api/medications
         [HttpGet]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> GetMedications([FromQuery] MedicationFilterModel filter)
         {
             if (!ModelState.IsValid)
@@ -76,6 +79,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Vet, Customer")]
         public async Task<IActionResult> UpdateMedication(Guid id, [FromBody] UpdateMedicationRequest request)
         {
             if (!ModelState.IsValid)
@@ -134,6 +138,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> DeleteMedication(Guid id)
         {
             try

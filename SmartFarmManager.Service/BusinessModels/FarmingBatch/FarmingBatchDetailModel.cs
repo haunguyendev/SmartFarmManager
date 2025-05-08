@@ -1,4 +1,5 @@
-﻿using SmartFarmManager.Service.BusinessModels.MedicalSymptom;
+﻿using SmartFarmManager.Service.BusinessModels.DeadPoultryLog;
+using SmartFarmManager.Service.BusinessModels.MedicalSymptom;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace SmartFarmManager.Service.BusinessModels.FarmingBatch
         public string Status { get; set; }
         public int CleaningFrequency { get; set; }
         public int DeadQuantity { get; set; }
+        public int? CurrentQuantity { get; set; }
         public int? Quantity { get; set; }
         public Guid FarmId { get; set; }
         public Guid CageId { get; set; }
@@ -26,6 +28,7 @@ namespace SmartFarmManager.Service.BusinessModels.FarmingBatch
         public List<AnimalSaleDetaiInFarmingBatchlModel> AnimalSales { get; set; }
         public List<GrowthStageDetailInFarmingBactchModel> GrowthStages { get; set; }
         public List<MedicalSymptomInFarmingBatchModel> MedicalSymptoms { get; set; }
+        public List<DeadPoultryLogModel>? deadPoultryLogModels { get; set; }
         public string TemplateName { get; set; }
     }
 

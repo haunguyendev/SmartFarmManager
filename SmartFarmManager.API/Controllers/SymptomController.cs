@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.Symptom;
@@ -27,6 +28,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Vet, Staff Farm")]
         public async Task<IActionResult> GetSymptoms([FromQuery] SymptomFilterModel filter)
         {
             if (!ModelState.IsValid)
@@ -64,6 +66,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> CreateSymptom([FromBody] CreateSymptomRequest request)
         {
             if (!ModelState.IsValid)
@@ -77,6 +80,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> UpdateSymptom(Guid id, [FromBody] UpdateSymptomRequest request)
         {
             if (!ModelState.IsValid)
@@ -100,6 +104,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> DeleteSymptom(Guid id)
         {
             var result = await _symptomService.DeleteSymptomAsync(id);

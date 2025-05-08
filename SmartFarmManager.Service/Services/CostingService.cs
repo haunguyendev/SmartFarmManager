@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Repository.Interfaces;
+using SmartFarmManager.Service.BusinessModels.CostingReport;
+using SmartFarmManager.Service.BusinessModels;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
 using System;
@@ -19,6 +21,130 @@ namespace SmartFarmManager.Service.Services
         {
             _unitOfWork = unitOfWork;
         }
+
+        public async Task<PagedResult<CostingReportGroupModel>> GetGroupedCostingReportsAsync(CostingReportGroupFilterModel filter)
+        {
+            var query = _unitOfWork.CostingReports.FindAll(false).AsQueryable();
+
+            if (filter.Year.HasValue)
+            {
+                query = query.Where(x => x.ReportYear == filter.Year.Value);
+            }
+
+            var grouped = query
+                .GroupBy(x => new { x.ReportMonth, x.ReportYear })
+                .Select(g => new CostingReportGroupModel
+                {
+                    ReportMonth = g.Key.ReportMonth,
+                    ReportYear = g.Key.ReportYear,
+                    Electricity = g.Where(x => x.CostType == "Điện")
+                        .Select(x => new CostDetail { TotalQuantity = x.TotalQuantity, TotalCost = x.TotalCost })
+                        .FirstOrDefault(),
+                    Water = g.Where(x => x.CostType == "Nước")
+                        .Select(x => new CostDetail { TotalQuantity = x.TotalQuantity, TotalCost = x.TotalCost })
+                        .FirstOrDefault(),
+                    Food = g.Where(x => x.CostType == "Thức ăn")
+                        .Select(x => new CostDetail { TotalQuantity = x.TotalQuantity, TotalCost = x.TotalCost })
+                        .FirstOrDefault(),
+                    Vaccine = g.Where(x => x.CostType == "Vaccine")
+                        .Select(x => new CostDetail { TotalQuantity = x.TotalQuantity, TotalCost = x.TotalCost })
+                        .FirstOrDefault(),
+                    Medicine = g.Where(x => x.CostType == "Thuốc")
+                        .Select(x => new CostDetail { TotalQuantity = x.TotalQuantity, TotalCost = x.TotalCost })
+                        .FirstOrDefault(),
+                });
+
+            var totalItems = await grouped.CountAsync();
+
+            var items = await grouped
+                .OrderBy(g => g.ReportYear)
+                .ThenBy(g => g.ReportMonth)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<CostingReportGroupModel>
+            {
+                Items = items,
+                TotalItems = totalItems,
+                PageSize = filter.PageSize,
+                CurrentPage = filter.PageNumber,
+                TotalPages = (int)Math.Ceiling(totalItems / (double)filter.PageSize),
+                HasNextPage = filter.PageNumber * filter.PageSize < totalItems,
+                HasPreviousPage = filter.PageNumber > 1
+            };
+        }
+
+
+        public async Task<PagedResult<CostingReportItemModel>> GetCostingReportsAsync(CostingReportFilterModel filter)
+        {
+            var query = _unitOfWork.CostingReports
+                .FindAll(false)
+                .Include(r => r.Farm)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(filter.KeySearch))
+            {
+                query = query.Where(r =>
+                    r.Farm.Name.Contains(filter.KeySearch) ||
+                    r.CostType.Contains(filter.KeySearch));
+            }
+
+            if (filter.FarmId.HasValue)
+            {
+                query = query.Where(r => r.FarmId == filter.FarmId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(filter.CostType))
+            {
+                query = query.Where(r => r.CostType == filter.CostType);
+            }
+
+            if (filter.ReportMonth.HasValue)
+            {
+                query = query.Where(r => r.ReportMonth == filter.ReportMonth.Value);
+            }
+
+            if (filter.ReportYear.HasValue)
+            {
+                query = query.Where(r => r.ReportYear == filter.ReportYear.Value);
+            }
+
+            query = query.OrderByDescending(r => r.GeneratedAt);
+
+            var totalItems = await query.CountAsync();
+
+            var items = await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(r => new CostingReportItemModel
+                {
+                    Id = r.Id,
+                    FarmId = r.FarmId,
+                    FarmName = r.Farm.Name,
+                    CostType = r.CostType,
+                    TotalQuantity = r.TotalQuantity,
+                    TotalCost = r.TotalCost,
+                    ReportMonth = r.ReportMonth,
+                    ReportYear = r.ReportYear,
+                    GeneratedAt = r.GeneratedAt
+                })
+                .ToListAsync();
+
+            var result = new PaginatedList<CostingReportItemModel>(items, totalItems, filter.PageNumber, filter.PageSize);
+
+            return new PagedResult<CostingReportItemModel>
+            {
+                Items = result.Items,
+                TotalItems = result.TotalCount,
+                PageSize = result.PageSize,
+                CurrentPage = result.CurrentPage,
+                TotalPages = result.TotalPages,
+                HasNextPage = result.HasNextPage,
+                HasPreviousPage = result.HasPreviousPage
+            };
+        }
+
 
         public async System.Threading.Tasks.Task CalculateAndStoreDailyCostAsync()
         {
@@ -151,34 +277,7 @@ namespace SmartFarmManager.Service.Services
                 TotalCost = totalMedicineCost
             });
 
-            // 6️⃣ Doanh thu bán thịt
-            var meatSales = await _unitOfWork.AnimalSales
-                .FindByCondition(s => s.FarmingBatch.FarmId == farmId && s.SaleDate.Value.Date == date && s.SaleType.StageTypeName == "MeatSale")
-                .ToListAsync();
-
-            var totalMeatRevenue = meatSales.Sum(s => s.UnitPrice * s.Quantity);
-
-            costReports.Add(new CostingReport
-            {
-                CostType = "Doanh thu bán thịt",
-                TotalQuantity = meatSales.Sum(s => s.Quantity),
-                TotalCost = (decimal)totalMeatRevenue
-            });
-
-            // 7️⃣ Doanh thu bán trứng
-            var eggSales = await _unitOfWork.AnimalSales
-                .FindByCondition(s => s.FarmingBatch.FarmId == farmId && s.SaleDate.Value.Date == date && s.SaleType.StageTypeName == "EggSale")
-                .ToListAsync();
-
-            var totalEggRevenue = eggSales.Sum(s => s.UnitPrice * s.Quantity);
-
-            costReports.Add(new CostingReport
-            {
-                CostType = "Doanh thu bán trứng",
-                TotalQuantity = eggSales.Sum(s => s.Quantity),
-                TotalCost = (decimal)totalEggRevenue
-            });
-
+           
             return costReports;
         }
     }

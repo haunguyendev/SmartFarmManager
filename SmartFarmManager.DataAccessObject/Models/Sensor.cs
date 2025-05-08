@@ -7,6 +7,7 @@ namespace SmartFarmManager.DataAccessObject.Models;
 
 public partial class Sensor : EntityBase
 {
+    public Guid? ExternalId { get; set; } 
 
     public Guid SensorTypeId { get; set; }
 

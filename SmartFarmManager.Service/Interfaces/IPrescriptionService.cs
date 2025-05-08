@@ -18,11 +18,12 @@ namespace SmartFarmManager.Service.Interfaces
         Task<IEnumerable<PrescriptionModel>> GetActivePrescriptionsByCageIdAsync(Guid cageId);
         Task<bool> UpdatePrescriptionAsync(PrescriptionModel model);
 
-        Task<bool> IsLastPrescriptionSessionAsync(Guid prescriptionId);
+        Task<bool> IsLastPrescriptionSessionAsync(Guid prescriptionId, Guid taskId);
         Task<bool> UpdatePrescriptionStatusAsync(Guid prescriptionId, UpdatePrescriptionModel request);
         Task<bool> CreateNewPrescriptionAsync(UpdateMedicalSymptomModel request);
         Task<PagedResult<PrescriptionList>> GetPrescriptionsAsync(
     DateTime? startDate, DateTime? endDate, string? status, string? cageName, int pageNumber, int pageSize);
         Task<List<PrescriptionModel>> GetPrescriptionsHistoryAsync(Guid medicalSymptomId);
+        System.Threading.Tasks.Task UpdateCompletedPrescriptionsAsync();
         }
 }

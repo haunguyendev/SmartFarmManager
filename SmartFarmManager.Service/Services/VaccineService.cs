@@ -98,6 +98,8 @@ namespace SmartFarmManager.Service.Services
                 Price = model.Price,
                 AgeStart = model.AgeStart,
                 AgeEnd = model.AgeEnd,
+                TotalDose = model.TotalDose,
+                PricePerDose = model.Price / model.TotalDose,
             };
 
             await _unitOfWork.Vaccines.CreateAsync(vaccine);
@@ -132,6 +134,8 @@ namespace SmartFarmManager.Service.Services
             vaccine.Price = model.Price ?? vaccine.Price;
             vaccine.AgeStart = model.AgeStart ?? vaccine.AgeStart;
             vaccine.AgeEnd = model.AgeEnd ?? vaccine.AgeEnd;
+            vaccine.TotalDose = model.TotalDose ?? vaccine.TotalDose;
+            vaccine.PricePerDose = (double)(model.Price ?? vaccine.Price / model.TotalDose ?? vaccine.TotalDose);
 
             await _unitOfWork.Vaccines.UpdateAsync(vaccine);
             await _unitOfWork.CommitAsync();
@@ -190,8 +194,8 @@ namespace SmartFarmManager.Service.Services
                     Price = v.Price,
                     AgeStart = v.AgeStart,
                     AgeEnd = v.AgeEnd,
-                    IsDeleted = v.IsDeleted
-
+                    IsDeleted = v.IsDeleted,
+                    TotalDose = v.TotalDose
                 })
                 .ToListAsync();
 
@@ -227,8 +231,8 @@ namespace SmartFarmManager.Service.Services
                 Price = vaccine.Price,
                 AgeStart = vaccine.AgeStart,
                 AgeEnd = vaccine.AgeEnd,
-                IsDeleted = vaccine.IsDeleted
-
+                IsDeleted = vaccine.IsDeleted,
+                PricePerDose = vaccine.PricePerDose
             };
         }
 

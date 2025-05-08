@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.FoodStack;
@@ -22,6 +23,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> CreateFoodStack([FromBody] FoodStackCreateRequest foodStackCreateRequest)
         {
             if (!ModelState.IsValid)
@@ -59,6 +61,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> UpdateFoodStack(Guid id, [FromBody] UpdateFoodStackRequest request)
         {
             try
@@ -88,6 +91,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> DeleteFoodStack(Guid id)
         {
             try
@@ -108,6 +112,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet()]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetFoodStacks([FromQuery] FoodStackFilterPagingRequest filterRequest)
         {
             if (!ModelState.IsValid)

@@ -16,17 +16,19 @@ namespace SmartFarmManager.Service.Services
     public class FarmConfigService:IFarmConfigService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ITaskService _taskService; 
+        private readonly ITaskService _taskService;
+        private readonly IFarmingBatchService _farmingBatchService;
 
-        public FarmConfigService(IUnitOfWork unitOfWork, ITaskService taskService)
+        public FarmConfigService(IUnitOfWork unitOfWork, ITaskService taskService,IFarmingBatchService farmingBatchService)
         {
             _unitOfWork = unitOfWork;
             _taskService = taskService;
+            _farmingBatchService = farmingBatchService;
         }
 
-        public async Task UpdateFarmTimeDifferenceAsync(Guid farmId, DateTime newTime)
+        public async Task UpdateFarmTimeDifferenceAsync(DateTime newTime)
         {
-            var farmConfig = await _unitOfWork.FarmConfigs.FindByCondition(f => f.FarmId == farmId).FirstOrDefaultAsync();
+            var farmConfig = await _unitOfWork.FarmConfigs.FindAll().FirstOrDefaultAsync();
 
             if (farmConfig == null)
             {
@@ -45,12 +47,16 @@ namespace SmartFarmManager.Service.Services
 
             DateTimeUtils.SetTimeDifference(farmConfig.TimeDifferenceInMinutes);
             await _taskService.UpdateAllTaskStatusesAsync();
+            await _farmingBatchService.RunUpdateFarmingBatchesStatusAsync();
+            await _taskService.ProcessUpcomingTaskNotificationAsync();
+            await _taskService.GenerateTreatmentTasksAsyncV2();
+
 
         }
 
-        public async Task ResetTimeDifferenceAsync(Guid farmId)
+        public async Task ResetTimeDifferenceAsync()
         {
-            var farmConfig = await _unitOfWork.FarmConfigs.FindByCondition(f => f.FarmId == farmId).FirstOrDefaultAsync();
+            var farmConfig = await _unitOfWork.FarmConfigs.FindAll().FirstOrDefaultAsync();
             if (farmConfig == null)
             {
                 throw new Exception("Farm configuration not found.");
@@ -61,6 +67,16 @@ namespace SmartFarmManager.Service.Services
             await _unitOfWork.CommitAsync();
             DateTimeUtils.SetTimeDifference(farmConfig.TimeDifferenceInMinutes);
             
+        }
+
+        public async Task SyncTimeDifferenceAsync()
+        {
+            var farmConfig = await _unitOfWork.FarmConfigs.FindAll().FirstOrDefaultAsync();
+            if (farmConfig == null)
+            {
+                throw new Exception("Farm configuration not found.");
+            }
+            DateTimeUtils.SetTimeDifference(farmConfig.TimeDifferenceInMinutes);
         }
 
         public async Task<bool> UpdateFarmConfigAsync(Guid farmId, FarmConfigUpdateModel model)

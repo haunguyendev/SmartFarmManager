@@ -167,7 +167,7 @@ namespace SmartFarmManager.Service.Services
             // 4️⃣ Cập nhật VaccineSchedule
             vaccineSchedule.Status = VaccineScheduleStatusEnum.Completed;
             vaccineSchedule.Quantity = request.Quantity;
-            vaccineSchedule.ToltalPrice = request.Quantity * (decimal)vaccine.Price;
+            vaccineSchedule.ToltalPrice = request.Quantity * (decimal)vaccine.PricePerDose;
 
             
             await _unitOfWork.VaccineSchedules.UpdateAsync(vaccineSchedule);

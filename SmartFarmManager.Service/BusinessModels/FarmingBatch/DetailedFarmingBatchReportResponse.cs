@@ -1,5 +1,6 @@
 ﻿using SmartFarmManager.Service.BusinessModels.AnimalSale;
 using SmartFarmManager.Service.BusinessModels.DailyFoodUsageLog;
+using SmartFarmManager.Service.BusinessModels.DeadPoultryLog;
 using SmartFarmManager.Service.BusinessModels.GrowthStage;
 using SmartFarmManager.Service.BusinessModels.Prescription;
 using SmartFarmManager.Service.BusinessModels.Vaccine;
@@ -33,6 +34,8 @@ namespace SmartFarmManager.Service.BusinessModels.FarmingBatch
         public List<PrescriptionDetail> PrescriptionDetails { get; set; }
         public List<FoodUsageDetail> FoodUsageDetails { get; set; }
         public List<AnimalMeatSaleModel> AnimalMeatSales { get; set; }
+
+        public List<DeadPoultryLogModel>? DeadPoultryLogs { get; set; }
     }
 
 

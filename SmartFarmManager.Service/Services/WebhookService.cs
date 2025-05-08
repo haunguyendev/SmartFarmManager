@@ -23,14 +23,16 @@ namespace SmartFarmManager.Service.Services
         private IUnitOfWork _unitOfWork;
         private readonly NotificationService _notificationService;
         private readonly INotificationService _notificationUserService;
+        private readonly ISyncService _syncService;
         private readonly ILogger<WebhookService> _logger;
 
-        public WebhookService(ILogger<WebhookService> logger, IUnitOfWork unitOfWork,NotificationService notificationService, INotificationService notificationUserService)
+        public WebhookService(ILogger<WebhookService> logger, IUnitOfWork unitOfWork,NotificationService notificationService, INotificationService notificationUserService,ISyncService syncService)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
             _notificationService = notificationService;
             _notificationUserService = notificationUserService;
+            _syncService = syncService;
         }
 
         public async Task<bool> ValidateApiKeyAsync(string apiKey, string domain)
@@ -101,7 +103,22 @@ namespace SmartFarmManager.Service.Services
                         throw new ArgumentException("Sensor data không hợp lệ.");
                     }
                         break;
-                     
+                case "NotificationChangeOfFarm":
+                    var notifyData = JsonConvert.DeserializeObject<NotificationChangeOfFarmModel>(jsonRequest);
+                    if (notifyData != null)
+                    {
+                        _logger.LogInformation("📨 Nhận Notification thay đổi farm: {FarmId}, Log: {Log}", notifyData.FarmId, notifyData.Log);
+
+
+                        await _syncService.SyncFarmFromExternalAsync(notifyData.FarmId);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("❌ NotificationChangeOfFarm không hợp lệ: {Data}", jsonRequest);
+                        throw new ArgumentException("Notification data không hợp lệ.");
+                    }
+                    break;
+
                 default:
                     
                     _logger.LogWarning("❌ Datatype không hợp lệ: {Datatype}", dataType);

@@ -61,10 +61,10 @@ namespace SmartFarmManager.API.Controllers
                 // Lấy danh sách domains với phân trang
                 var pagedResult = await _whitelistDomainService.GetAllDomainsAsync(pageNumber, pageSize);
 
-                if (pagedResult.Items == null || pagedResult.TotalItems == 0)
-                {
-                    return NoContent();  // Trả về 204 nếu không có dữ liệu
-                }
+                // if (pagedResult.Items == null || pagedResult.TotalItems == 0)
+                // {
+                //     return Ok(ApiResult<PagedResult<WhiteListDomainItemModel>>.Succeed(pagedResult));  
+                // }
 
                 return Ok(ApiResult<PagedResult<WhiteListDomainItemModel>>.Succeed(pagedResult));
             }

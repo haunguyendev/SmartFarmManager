@@ -7,6 +7,7 @@ using SmartFarmManager.Service.BusinessModels.Farm;
 using SmartFarmManager.Service.BusinessModels.Users;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
+using SmartFarmManager.Service.Shared;
 using Sprache;
 using System;
 using System.Collections.Generic;
@@ -374,17 +375,17 @@ namespace SmartFarmManager.Service.Services
             await _unitOfWork.Users.UpdateAsync(user);
             return await _unitOfWork.CommitAsync() > 0;
         }
-
         public async Task<bool> UpdatePasswordAsync(Guid userId, PasswordUpdateModel request)
         {
             var user = await _unitOfWork.Users.FindByCondition(u => u.Id == userId).FirstOrDefaultAsync();
-            if (user == null) return false;
+            if (user == null)
+                throw new KeyNotFoundException("Người dùng không tồn tại.");
 
             if (user.PasswordHash != SecurityUtil.Hash(request.CurrentPassword))
-                throw new ArgumentException("Current password is incorrect.");
+                throw new ArgumentException("Mật khẩu hiện tại không chính xác.");
 
             if (!IsValidPassword(request.NewPassword))
-                throw new ArgumentException("Password must contain at least 8 characters, including uppercase, lowercase, number, and special character.");
+                throw new ArgumentException("Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
 
             user.PasswordHash = SecurityUtil.Hash(request.NewPassword);
             await _unitOfWork.Users.UpdateAsync(user);
@@ -621,7 +622,7 @@ namespace SmartFarmManager.Service.Services
             if (user == null)
                 throw new ArgumentException("Người dùng không tồn tại.");
 
-            if (user.Role.RoleName != "Staff Farm" || user.Role.RoleName != "Customer")
+            if (user.Role.RoleName != "Staff Farm" && user.Role.RoleName != "Customer")
                 throw new InvalidOperationException("Chỉ nhân viên trang trại mới được gán chuồng.");
 
             // 2. Lấy FarmConfig
@@ -636,6 +637,18 @@ namespace SmartFarmManager.Service.Services
             {
                 if (distinctNewCageIds.Count > maxCages)
                     throw new InvalidOperationException($"Vượt quá số chuồng tối đa cho phép ({maxCages}). Đã chọn {distinctNewCageIds.Count} chuồng.");
+                //get all task has status Pending and InProgress in list newCageIds request
+                var tasks = await _unitOfWork.Tasks.FindByCondition(t => distinctNewCageIds.Contains(t.CageId) && (t.Status == TaskStatusEnum.Pending || t.Status == TaskStatusEnum.InProgress)).ToListAsync();
+                //if (tasks.Count > 0) then assign staffId
+                if (tasks.Count > 0)
+                {
+                    foreach (var task in tasks)
+                    {
+                        task.AssignedToUserId = staffId;
+                        await _unitOfWork.Tasks.UpdateAsync(task);
+                    }
+                }
+
             }
 
             // 3. Xóa các chuồng cũ đã gán

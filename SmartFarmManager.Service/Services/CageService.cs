@@ -44,8 +44,10 @@ namespace SmartFarmManager.Service.Services
                 .ThenInclude(cs => cs.StaffFarm)
                 .ThenInclude(sf => sf.Role)
                 .AsQueryable();
-            if (!string.IsNullOrEmpty(request.RoleName)) { 
-            query = query.Where(c => c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == request.RoleName)); }
+            if (!string.IsNullOrEmpty(request.RoleName))
+            {
+                query = query.Where(c => c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == request.RoleName));
+            }
             // Áp dụng các bộ lọc
             if (!string.IsNullOrEmpty(request.PenCode))
             {
@@ -66,7 +68,7 @@ namespace SmartFarmManager.Service.Services
                     c.PenCode.Contains(request.SearchKey) ||
                     c.Name.Contains(request.SearchKey) ||
                     c.Location.Contains(request.SearchKey) ||
-                    c.CageStaffs.Select(c=>c.StaffFarm.FullName).Contains(request.SearchKey));
+                    c.CageStaffs.Select(c => c.StaffFarm.FullName).Contains(request.SearchKey));
             }
 
             if (request.HasFarmingBatch.HasValue)
@@ -104,12 +106,12 @@ namespace SmartFarmManager.Service.Services
                     BoardStatus = c.BoardStatus,
                     CreatedDate = c.CreatedDate,
                     CameraUrl = c.CameraUrl,
-                    CustomerId=c.CageStaffs.Where(c=>c.StaffFarm.Role.RoleName == "Customer").Select(c=>c.StaffFarmId).FirstOrDefault(),
+                    CustomerId = c.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Customer").Select(c => c.StaffFarmId).FirstOrDefault(),
                     CustomerName = c.CageStaffs.Where(cs => cs.StaffFarm.Role.RoleName == "Customer").Select(cs => cs.StaffFarm.FullName).FirstOrDefault(),
                     StaffId = c.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Staff Farm").Select(c => c.StaffFarmId).FirstOrDefault(),
                     StaffName = c.CageStaffs.Where(c => c.StaffFarm.Role.RoleName == "Staff Farm").Select(cs => cs.StaffFarm.FullName).FirstOrDefault(),
                     IsSolationCage = c.IsSolationCage,
-                    Sensors=c.Sensors.GroupBy(s => s.NodeId)
+                    Sensors = c.Sensors.GroupBy(s => s.NodeId)
                 .Select(g => new SensorGroupByNodeModel
                 {
                     NodeId = g.Key,
@@ -465,6 +467,70 @@ namespace SmartFarmManager.Service.Services
                 ChannelId = cage.ChannelId,
                 IsSolationCage = cage.IsSolationCage,
                 Prescriptions = prescriptions
+            };
+        }
+
+        public async Task<CageIsolateModel?> GetCageIsolatePrescriptionsWithDetailsAsync()
+        {
+            // Sửa lỗi 1: Thêm await cho ToListAsync() và tối ưu query
+            var cageIsolate = await _unitOfWork.Cages
+                .FindByCondition(c => c.IsSolationCage)
+                .Include(c => c.CageStaffs)
+                    .ThenInclude(cs => cs.StaffFarm)
+                    .ThenInclude(sf => sf.Role)
+                .Where(c => c.CageStaffs.Any(cs => cs.StaffFarm.Role.RoleName == "Staff Farm"))
+                .FirstOrDefaultAsync();
+
+            if (cageIsolate == null)
+                return null;
+
+            // Sửa lỗi 2: Thêm await và tối ưu query prescription
+            var listPrescription = await _unitOfWork.Prescription
+                .FindByCondition(p => p.Status == PrescriptionStatusEnum.Active ||
+                                     p.Status == PrescriptionStatusEnum.Completed)
+                .Include(p => p.MedicalSymtom)
+                    .ThenInclude(ms => ms.FarmingBatch)
+                        .ThenInclude(fb => fb.Cage)
+                .Include(p => p.PrescriptionMedications)
+                    .ThenInclude(pm => pm.Medication)
+                .OrderByDescending(p => p.PrescribedDate)
+                .Select(p => new PrescriptionIsolationCageModel // Sửa lỗi 3: Projection trong query
+                {
+                    Id = p.Id,
+                    PrescribedDate = p.PrescribedDate,
+                    EndDate = p.EndDate,
+                    Status = p.Status,
+                    QuantityAnimal = p.QuantityAnimal,
+                    Price = p.Price,
+                    Notes = p.Notes,
+                    MedicalSymptomId = p.MedicalSymtom.Id,
+                    Diagnosis = p.MedicalSymtom.Diagnosis,
+                    SymptomNotes = p.MedicalSymtom.Notes,
+                    CageId = p.MedicalSymtom.FarmingBatch.Cage.Id,
+                    CageName = p.MedicalSymtom.FarmingBatch.Cage.Name,
+                })
+                .ToListAsync();
+
+            // Sửa lỗi 4: Xử lý null cho CageStaffs
+            var firstStaff = cageIsolate.CageStaffs.FirstOrDefault();
+
+            return new CageIsolateModel
+            {
+                Id = cageIsolate.Id,
+                PenCode = cageIsolate.PenCode,
+                FarmId = cageIsolate.FarmId,
+                Name = cageIsolate.Name,
+                Area = cageIsolate.Area ?? 0, // Xử lý null
+                Location = cageIsolate.Location ?? "N/A",
+                Capacity = cageIsolate.Capacity ?? 0, // Xử lý null
+                BoardCode = cageIsolate.BoardCode,
+                BoardStatus = cageIsolate.BoardStatus ?? false,
+                CreatedDate = cageIsolate.CreatedDate,
+                ModifiedDate = cageIsolate.ModifiedDate,
+                CameraUrl = cageIsolate.CameraUrl,
+                StaffId = firstStaff?.StaffFarmId ?? Guid.Empty, // Xử lý null
+                StaffName = firstStaff?.StaffFarm?.FullName ?? "Unknown", // Xử lý null
+                prescriptionIsolationCageModels = listPrescription
             };
         }
 

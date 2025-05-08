@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.StandardPrescription;
@@ -21,6 +22,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{diseaseId:guid}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> GetStandardPrescriptionsByDiseaseId(Guid diseaseId)
         {
             try
@@ -40,6 +42,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPost]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> CreateStandardPrescription([FromBody] CreateStandardPrescriptionRequest request)
         {
             if (!ModelState.IsValid)
@@ -76,6 +79,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPut("{id}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> UpdateStandardPrescription(Guid id, [FromBody] UpdateStandardPrescriptionRequest request)
         {
             if (!ModelState.IsValid)
@@ -116,6 +120,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> DeleteStandardPrescription(Guid id)
         {
             try
@@ -139,6 +144,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> GetStandardPrescriptions([FromQuery] StandardPrescriptionFilterModel filter)
         {
             if (!ModelState.IsValid)
@@ -165,6 +171,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{id}/detail")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> GetStandardPrescriptionDetail(Guid id)
         {
             try

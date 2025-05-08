@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.FarmConfig;
@@ -28,7 +29,7 @@ namespace SmartFarmManager.API.Controllers
 
             try
             {
-                await _farmConfigService.UpdateFarmTimeDifferenceAsync(request.FarmId, request.NewTime);
+                await _farmConfigService.UpdateFarmTimeDifferenceAsync( request.NewTime);
                 return Ok(ApiResult<string>.Succeed("Time difference updated successfully."));
             }
             catch (Exception ex)
@@ -38,7 +39,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost("reset-time")]
-        public async Task<IActionResult> ResetTime([FromQuery] Guid farmId)
+        public async Task<IActionResult> ResetTime()
         {
             if (!ModelState.IsValid)
             {
@@ -47,7 +48,25 @@ namespace SmartFarmManager.API.Controllers
 
             try
             {
-                await _farmConfigService.ResetTimeDifferenceAsync(farmId);
+                await _farmConfigService.ResetTimeDifferenceAsync();
+                return Ok(ApiResult<string>.Succeed("Time difference updated successfully."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
+        [HttpPost("sync-time")]
+        public async Task<IActionResult> SyncTime()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResult<string>.Fail("Invalid request."));
+            }
+
+            try
+            {
+                await _farmConfigService.SyncTimeDifferenceAsync();
                 return Ok(ApiResult<string>.Succeed("Time difference updated successfully."));
             }
             catch (Exception ex)
@@ -57,6 +76,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPut("{farmId}")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> UpdateFarmConfig(Guid farmId, [FromBody] FarmConfigUpdateRequest request)
         {
             if (!ModelState.IsValid)
@@ -95,6 +115,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("{farmId}")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetFarmConfig(Guid farmId)
         {
             try

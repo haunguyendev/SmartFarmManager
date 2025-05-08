@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.Task;
@@ -16,11 +17,12 @@ namespace SmartFarmManager.API.Controllers
     {
         public readonly ITaskService _taskService;
 
-        public TaskController(ITaskService taskService)
+        public TaskController(ITaskService taskService) 
         {
             _taskService = taskService;
         }
         [HttpPost("create-recurring-task")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> CreateTaskRecurring([FromBody] CreateTaskRecurringRequest request)
         {
             if (!ModelState.IsValid)
@@ -63,6 +65,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> CreateTask([FromBody] CreateTaskRequest request)
         {
             if (!ModelState.IsValid)
@@ -151,6 +154,7 @@ namespace SmartFarmManager.API.Controllers
 
         //change status of task by task id and status id
         [HttpPut("{taskId}/status/{status}")]
+        [Authorize(Roles = "Admin Farm, Staff Farm")]
         public async Task<IActionResult> ChangeTaskStatus(Guid taskId, string status)
         {
             try
@@ -173,6 +177,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet]
+        [Authorize(Roles = "Admin Farm, Staff Farm")]
         public async Task<IActionResult> GetFilteredTasks([FromQuery] TaskFilterPagingRequest filterRequest)
         {
             try
@@ -192,6 +197,7 @@ namespace SmartFarmManager.API.Controllers
                     Session = filterRequest.Session,
                     CompletedAt = filterRequest.CompletedAt,
                     CreatedAt = filterRequest.CreatedAt,
+                    SortByDueDateDesc=filterRequest.SortByDueDateDesc,
                     PageNumber = filterRequest.PageNumber,
                     PageSize = filterRequest.PageSize,
                     
@@ -248,6 +254,48 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, ApiResult<string>.Fail(ex.Message));
             }
         }
+        [HttpPost("generate-notification-overdue-tasks")]
+        public async Task<IActionResult> GenerateNotificationOverdueTasksForToday()
+        {
+            try
+            {
+                 await _taskService.ProcessUpcomingTaskNotificationAsync();
+                              
+                return Ok(ApiResult<string>.Succeed("Notification successfully!"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpPost("sell-task")]
+        public async Task<IActionResult> CreateSaleTask([FromBody] CreateSaleTaskRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
+            }
+
+            try
+            {
+                var result = await _taskService.CreateSaleTaskAsync(request.MapToModel());
+                if (!result)
+                {
+                    throw new Exception("Error while creating sale task!");
+                }
+
+                return Ok(ApiResult<string>.Succeed("Task 'Bán vật nuôi' đã được tạo thành công."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
 
 
         [HttpGet("user-tasks-with-priority")]
@@ -258,6 +306,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("next-task")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetNextTask([FromQuery] Guid userId)
         {
             var task = await _taskService.GetNextTasksForCagesWithStatsAsync(userId);
@@ -270,6 +319,7 @@ namespace SmartFarmManager.API.Controllers
             return Ok(task);
         }
         [HttpGet("{taskId}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetTaskDetail(Guid taskId)
         {
             try
@@ -345,6 +395,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPut("{taskId}/set-treatment")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> MarkAsTreatmentTask(Guid taskId, [FromQuery]Guid medicalSymptomId)
         {
             var result = await _taskService.SetIsTreatmentTaskTrueAsync(taskId,medicalSymptomId);
@@ -356,6 +407,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{taskId}/logs")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetLogsByTaskId(Guid taskId)
         {
             try
@@ -383,5 +435,54 @@ namespace SmartFarmManager.API.Controllers
             }
         }
 
+        //api to request task id to update status task to Complete
+        [HttpPut("{taskId}/changeOverdueTask")]
+        public async Task<IActionResult> CompleteTask(Guid taskId)
+        {
+            try
+            {
+                var result = await _taskService.UpdateTaskToDone(taskId);
+                if (!result)
+                {
+                    throw new Exception("Do not have task or task status not overdue");
+                }
+                return Ok(ApiResult<string>.Succeed("Task completed successfully!"));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<string>.Fail(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
+
+        //REDO TASK 
+        [HttpPost("redo-task")]
+        public async Task<IActionResult> RedoTask([FromBody] RedoTaskRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
+            }
+            try
+            {
+                var result = await _taskService.RedoTask(request.TaskId, request.DueDate, request.Session);
+                if (!result)
+                {
+                    throw new Exception("Error while creating sale task!");
+                }
+                return Ok(ApiResult<string>.Succeed("Task đã được tạo thành công."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
+            }
+        }
     }
 }

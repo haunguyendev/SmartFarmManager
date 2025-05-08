@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.Service.BusinessModels.AnimalSale;
@@ -23,6 +24,7 @@ namespace SmartFarmManager.API.Controllers
         /// <param name="request">Dữ liệu AnimalSale cần tạo</param>
         /// <returns>Kết quả tạo AnimalSale</returns>
         [HttpPost]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> CreateAnimalSale([FromBody] CreateAnimalSaleRequest request)
         {
             try
@@ -44,6 +46,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("{taskId}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetAnimalSaleLogByTaskId(Guid taskId)
         {
             try

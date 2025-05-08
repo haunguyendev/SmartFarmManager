@@ -38,10 +38,19 @@ namespace SmartFarmManager.Service.Services
             await ScheduleJob<Jobs.UpdateTaskStatusesJob>("UpdateTaskStatusesJob-Afternoon", "0 0 14 * * ?", serverTimeZone, cancellationToken);
             await ScheduleJob<Jobs.UpdateTaskStatusesJob>("UpdateTaskStatusesJob-Evening", "0 0 18 * * ?", serverTimeZone, cancellationToken);
             await ScheduleJob<Jobs.UpdateTaskStatusesJob>("UpdateTaskStatusesJob-Night", "0 0 23 * * ?", serverTimeZone, cancellationToken);
+            await ScheduleJob<Jobs.CheckAndNotifyAdminForEndingFarmingBatchesJob>("CheckAndNotifyAdminForEndingFarmingBatchesJob", "0 0 1 * * ?", serverTimeZone, cancellationToken);
+            await ScheduleJob<Jobs.CheckAndNotifyAdminForUpcomingFarmingBatchesJob>("CheckAndNotifyAdminForUpcomingFarmingBatchesJob", "0 0 1 * * ?", serverTimeZone, cancellationToken);
             //await ScheduleJob<Jobs.UpdateEveningTaskStatusesJob>("UpdateEveningTaskStatusesJob", "0 0 23 * * ?", serverTimeZone, cancellationToken);
             //await ScheduleJob<Jobs.HelloWorldJob>("HelloWorldJob", "*/5 * * * * ?", serverTimeZone, cancellationToken);
             // Job tính toán chi phí hàng ngày, chạy lúc 11h đêm
             await ScheduleJob<Jobs.CalculateDailyCostJob>("CalculateDailyCostJob", "0 0 23 * * ?", serverTimeZone, cancellationToken);
+            await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Morning", "0 31 11 * * ?", serverTimeZone, cancellationToken); // 11:30 sáng
+            await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Noon", "0 31 13 * * ?", serverTimeZone, cancellationToken);    // 13:30 trưa
+            await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Afternoon", "0 31 17 * * ?", serverTimeZone, cancellationToken); // 17:30 chiều
+            await ScheduleJob<Jobs.UpcomingTaskReminderJob>("UpcomingTaskReminderJob-Evening", "0 31 22 * * ?", serverTimeZone, cancellationToken);
+            await ScheduleJob<Jobs.UpdateCompletedPrescriptionsJob>("UpdateCompletedPrescriptionsJob-Night", "0 0 23 * * ?", serverTimeZone, cancellationToken);
+
+
         }
 
         /// <summary>

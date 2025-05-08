@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using SmartFarmManager.DataAccessObject.Models;
 using SmartFarmManager.Service.BusinessModels.SensorDataLog;
@@ -32,15 +33,16 @@ namespace SmartFarmManager.API.Controllers
                     new TaskType { Id = Guid.Parse("F1124086-2B16-4D3F-B522-0AE43EB528AC"), TaskTypeName = "Bán vật nuôi", PriorityNum = 10 },
                     new TaskType { Id = Guid.Parse("468E7FDE-6DD4-48BD-9358-6168D2840FBD"), TaskTypeName = "Cho uống thuốc", PriorityNum = 3 },
                     new TaskType { Id = Guid.Parse("51C09974-49C9-4484-8620-63D0FAA3876B"), TaskTypeName = "Cân", PriorityNum = 6 },
-                    new TaskType { Id = Guid.Parse("CC9E8354-F0DF-481B-ADBB-694F810E68EA"), TaskTypeName = "Thu hoạch", PriorityNum = 7 },
-                    new TaskType { Id = Guid.Parse("6C5EF3C3-449B-431D-8996-76942057F936"), TaskTypeName = "Nhập vật nuôi", PriorityNum = 9 },
+                    //new TaskType { Id = Guid.Parse("CC9E8354-F0DF-481B-ADBB-694F810E68EA"), TaskTypeName = "Thu hoạch", PriorityNum = 7 },
+                    //new TaskType { Id = Guid.Parse("6C5EF3C3-449B-431D-8996-76942057F936"), TaskTypeName = "Nhập vật nuôi", PriorityNum = 9 },
                     new TaskType { Id = Guid.Parse("88F4EDE7-3AFC-45B1-83CC-77D2EBE43B64"), TaskTypeName = "Phun thuốc sát trùng", PriorityNum = 5 },
                     new TaskType { Id = Guid.Parse("5772F17E-088C-458D-8808-7CACB5E5103E"), TaskTypeName = "Cho ăn", PriorityNum = 1 },
                     new TaskType { Id = Guid.Parse("E01A648B-FCF3-4933-BBBA-80A1B71C8EF2"), TaskTypeName = "Nhập thức ăn", PriorityNum = 11 },
                     new TaskType { Id = Guid.Parse("646143A0-EB0A-42BF-A308-99896E3C6476"), TaskTypeName = "Dọn chuồng", PriorityNum = 4 },
-                    new TaskType { Id = Guid.Parse("6AD005A1-1764-4836-A70F-B589A095231C"), TaskTypeName = "Sửa chữa chuồng trại", PriorityNum = 8 },
-                    new TaskType { Id = Guid.Parse("A426BF57-E6F8-4FC5-BCE4-BE39BBFE9930"), TaskTypeName = "Bán trứng", PriorityNum = 12 },
-                    new TaskType { Id = Guid.Parse("23D4BEF2-D68C-4F8D-B9AA-D4AFB9FCCF4E"), TaskTypeName = "Tiêm vắc xin", PriorityNum = 2 }
+                    //new TaskType { Id = Guid.Parse("6AD005A1-1764-4836-A70F-B589A095231C"), TaskTypeName = "Sửa chữa chuồng trại", PriorityNum = 8 },
+                    //new TaskType { Id = Guid.Parse("A426BF57-E6F8-4FC5-BCE4-BE39BBFE9930"), TaskTypeName = "Bán trứng", PriorityNum = 12 },
+                    new TaskType { Id = Guid.Parse("23D4BEF2-D68C-4F8D-B9AA-D4AFB9FCCF4E"), TaskTypeName = "Tiêm vắc xin", PriorityNum = 2 },
+                    new TaskType { Id = Guid.NewGuid(), TaskTypeName = "Biếu gà", PriorityNum = 13 },
                 };
 
                 _context.TaskTypes.AddRange(taskTypes);
@@ -348,14 +350,14 @@ namespace SmartFarmManager.API.Controllers
                 var users = new List<User>
                 {
                     new User { Id = Guid.Parse("babc4332-d7d8-457b-af12-765a992c4314"), Username = "admin", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Admin User", Email = "admin@farm.com", PhoneNumber = "0123456789", Address = "Admin Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("3c1ef196-e428-4951-83e1-b640a08d3bfb") }, // Admin
-                    new User { Id = Guid.NewGuid(), Username = "staff", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff", Email = "staff@farm.com", PhoneNumber = "0987654321", Address = "Staff Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("70702de9-89bc-48e5-861e-f4c1a5ac01d8") }, // Staff
-                    new User { Id = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), Username = "staff_farm_3", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff 3", Email = "stafffarm3@farm.com", PhoneNumber = "0987654321", Address = "Staff Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff farm 3
-                    new User { Id = Guid.Parse("ad28b5ad-e1f4-4bf8-b7de-00859235a3f8"), Username = "vet_farm", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Veterinary Doctor", Email = "vet@farm.com", PhoneNumber = "0123987654", Address = "Vet Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("b833e6cd-6c06-4daa-aa6e-b5ed5f64dda0") }, // Vet
-                    new User { Id = Guid.Parse("a406f2a5-f7f7-4701-9c21-339b16c06f76"), Username = "admin_farm", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Admin", Email = "adminfarm@farm.com", PhoneNumber = "0123567890", Address = "Farm Admin Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("544865bf-c00d-4e6f-9d05-f32f9d9cc468") }, // Admin Farm
-                    new User { Id = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), Username = "staff_farm_1", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff 1", Email = "stafffarm1@farm.com", PhoneNumber = "0987123456", Address = "Staff Farm Address 1", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff Farm 1
-                    new User { Id = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), Username = "staff_farm_2", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff 2", Email = "stafffarm2@farm.com", PhoneNumber = "0978123456", Address = "Staff Farm Address 2", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff Farm 2
+                    //new User { Id = Guid.NewGuid(), Username = "staff", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff", Email = "staff@farm.com", PhoneNumber = "0987654321", Address = "Staff Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("70702de9-89bc-48e5-861e-f4c1a5ac01d8") }, // Staff
+                    new User { Id = Guid.Parse("ad28b5ad-e1f4-4bf8-b7de-00859235a3f8"), Username = "nghiald01", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Vet Nghia", Email = "nghialdse170198@fpt.edu.vn", PhoneNumber = "0123987654", Address = "Vet Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("b833e6cd-6c06-4daa-aa6e-b5ed5f64dda0") }, // Vet
+                    new User { Id = Guid.Parse("a406f2a5-f7f7-4701-9c21-339b16c06f76"), Username = "thinhnt01", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Admin Farm Thinh", Email = "thinhntse170224@fpt.edu.vn", PhoneNumber = "0123567890", Address = "Farm Admin Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("544865bf-c00d-4e6f-9d05-f32f9d9cc468") }, // Admin Farm
+                    new User { Id = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), Username = "thienhdb01", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Mr.Thien", Email = "thienhdbse170185@fpt.edu.vn", PhoneNumber = "0987123456", Address = "Staff Farm Address 1", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff Farm 1
+                    new User { Id = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), Username = "haunt01", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Mr.Hau", Email = "hauntse170203@fpt.edu.vn", PhoneNumber = "0987654321", Address = "Staff Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff farm 3
+                    //new User { Id = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), Username = "staff_farm_2", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Farm Staff 2", Email = "stafffarm2@farm.com", PhoneNumber = "0978123456", Address = "Staff Farm Address 2", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("63f38a5f-6a4c-4006-9e20-73a89c1d3940") }, // Staff Farm 2
                     new User { Id = Guid.NewGuid(), Username = "GOD_farm", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "GOD", Email = "GOD@farm.com", PhoneNumber = "09781245634", Address = "GOD Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = Guid.Parse("E8C551C1-F509-4191-91CE-764370E86278") }, // God
-                    new User { Id = Guid.NewGuid(), Username = "Customer", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Customer", Email = "Cusstomer@farm.com", PhoneNumber = "09781245464", Address = "Customer Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = idRoleCus.Id } // God
+                    new User { Id = Guid.NewGuid(), Username = "khanhmt01", PasswordHash = "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", FullName = "Mr.Khanh", Email = "Cusstomer@farm.com", PhoneNumber = "09781245464", Address = "Customer Address", IsActive = true, CreatedAt = DateTime.UtcNow, RoleId = idRoleCus.Id } // God
                 };
 
                 _context.Users.AddRange(users);
@@ -368,7 +370,8 @@ namespace SmartFarmManager.API.Controllers
                     new DataAccessObject.Models.NotificationType { Id = Guid.Parse("800bd31c-4fcb-4d4d-a462-55c4a70c1e7d"), NotiTypeName = "Alert" },
                     new DataAccessObject.Models.NotificationType { Id = Guid.Parse("4245669d-361d-4c8b-bc76-cfbd1961505b"), NotiTypeName = "MedicalSymptom" },
                     new DataAccessObject.Models.NotificationType { Id = Guid.Parse("05904def-aedc-421a-86cb-93226c2e08ad"), NotiTypeName = "Task" },
-                    new DataAccessObject.Models.NotificationType { Id = Guid.NewGuid(), NotiTypeName = "FarmingBatchSchedule" }
+                    new DataAccessObject.Models.NotificationType { Id = Guid.NewGuid(), NotiTypeName = "FarmingBatchSchedule" },
+                    new DataAccessObject.Models.NotificationType { Id = Guid.NewGuid(), NotiTypeName = "TaskOverdue" }
                 };
 
                 _context.NotificationTypes.AddRange(notificationTypes);
@@ -443,7 +446,7 @@ namespace SmartFarmManager.API.Controllers
                     new Cage { Id = Guid.Parse("80b4c7dd-31d6-4169-9c51-9f4ff368fd41"), PenCode = "Pen_02", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 2", Area = 11.5, Location = "Location 2", Capacity = 1000, BoardCode = "Board_02", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_2.example.com", ChannelId = 2, IsSolationCage = false },
                     new Cage { Id = Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387"), PenCode = "Pen_03", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 3", Area = 13, Location = "Location 3", Capacity = 1000, BoardCode = "Board_03", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_3.example.com", ChannelId = 3, IsSolationCage = false },
                     new Cage { Id = Guid.Parse("35050ff8-7822-49d8-8d3d-b1bd51f11891"), PenCode = "Pen_04", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 4", Area = 14.5, Location = "Location 4", Capacity = 1000, BoardCode = "Board_04", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_4.example.com", ChannelId = 4, IsSolationCage = false },
-                    new Cage { Id = Guid.Parse("fcaceb35-b3a0-4e7e-b479-19059aa7006c"), PenCode = "Pen_05", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 5", Area = 16, Location = "Location 5", Capacity = 1000, BoardCode = "Board_05", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_5.example.com", ChannelId = 5, IsSolationCage = false },
+                    //new Cage { Id = Guid.Parse("fcaceb35-b3a0-4e7e-b479-19059aa7006c"), PenCode = "Pen_05", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "Chuồng 5", Area = 16, Location = "Location 5", Capacity = 1000, BoardCode = "Board_05", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_5.example.com", ChannelId = 5, IsSolationCage = false },
                     new Cage { Id = Guid.Parse("a8cb5774-62a5-41e7-b854-cc2cfd2d33e5"), PenCode = "Pen_06", FarmId = Guid.Parse("7b0ad5a5-ca3e-45b1-9519-d42135d5bea4"), Name = "[CCL] Khu vực cách ly", Area = 10, Location = "Location 6", Capacity = 500, BoardCode = "Board_06", BoardStatus = true, CreatedDate = DateTime.Parse("2024-12-16T03:01:38.5500000"), CameraUrl = "http://camera_6.example.com", ChannelId = 1, IsSolationCage = true },
 
                 };
@@ -457,12 +460,13 @@ namespace SmartFarmManager.API.Controllers
                     new CageStaff { Id = Guid.NewGuid(), CageId = cages[0].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
                     new CageStaff { Id = Guid.NewGuid(), CageId = cages[1].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
                     new CageStaff { Id = Guid.NewGuid(), CageId = cages[2].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
-                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[3].Id, StaffFarmId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), AssignedDate = DateTime.UtcNow },
-                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[4].Id, StaffFarmId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), AssignedDate = DateTime.UtcNow },
-                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[5].Id, StaffFarmId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), AssignedDate = DateTime.UtcNow },
+                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[3].Id, StaffFarmId = Guid.Parse("b8a28787-9d97-4849-949a-56ebfc6d5de0"), AssignedDate = DateTime.UtcNow },
+                    //new CageStaff { Id = Guid.NewGuid(), CageId = cages[4].Id, StaffFarmId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"), AssignedDate = DateTime.UtcNow },
+                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[4].Id, StaffFarmId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), AssignedDate = DateTime.UtcNow },
                     new CageStaff { Id = Guid.NewGuid(), CageId = cages[0].Id, StaffFarmId = IdCus.Id, AssignedDate = DateTime.UtcNow },
                     new CageStaff { Id = Guid.NewGuid(), CageId = cages[1].Id, StaffFarmId = IdCus.Id, AssignedDate = DateTime.UtcNow },
                     new CageStaff { Id = Guid.NewGuid(), CageId = cages[2].Id, StaffFarmId = IdCus.Id, AssignedDate = DateTime.UtcNow },
+                    new CageStaff { Id = Guid.NewGuid(), CageId = cages[3].Id, StaffFarmId = IdCus.Id, AssignedDate = DateTime.UtcNow },
                 };
 
                 _context.CageStaffs.AddRange(cageStaffEntries);
@@ -499,8 +503,8 @@ namespace SmartFarmManager.API.Controllers
                     Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387")
                 };
 
-                var startDate = DateTime.UtcNow.AddDays(-50);
-                var endDate = DateTime.UtcNow;
+                var startDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-50);
+                var endDate = DateTimeUtils.GetServerTimeInVietnamTime();
 
                 var farmingBatches = new List<FarmingBatch>();
 
@@ -763,23 +767,23 @@ namespace SmartFarmManager.API.Controllers
                 var assignedUserIdSale = assignedStaffsSale.First(); // Chọn ngẫu nhiên 1 nhân viên Staff Farm
 
                 DateTime vietnamNowLastSale = DateTimeUtils.GetServerTimeInVietnamTime();
-                if (saleAnimalType != null)
-                {
-                    tasks.Add(new DataAccessObject.Models.Task
-                    {
-                        Id = Guid.NewGuid(),
-                        TaskTypeId = saleAnimalType.Id,
-                        CageId = cage3.Id,
-                        AssignedToUserId = assignedUserIdSale,
-                        TaskName = "Bán gà",
-                        PriorityNum = saleAnimalType.PriorityNum.Value,
-                        Description = $"Bán gà",
-                        DueDate = vietnamNowLastSale.Date.AddDays(1),
-                        Status = "Pending",
-                        Session = 3,
-                        CreatedAt = vietnamNowLastSale.Date
-                    });
-                }
+                //if (saleAnimalType != null)
+                //{
+                //    tasks.Add(new DataAccessObject.Models.Task
+                //    {
+                //        Id = Guid.NewGuid(),
+                //        TaskTypeId = saleAnimalType.Id,
+                //        CageId = cage3.Id,
+                //        AssignedToUserId = assignedUserIdSale,
+                //        TaskName = "Bán gà",
+                //        PriorityNum = saleAnimalType.PriorityNum.Value,
+                //        Description = $"Bán gà",
+                //        DueDate = vietnamNowLastSale.Date.AddDays(1),
+                //        Status = "Pending",
+                //        Session = 3,
+                //        CreatedAt = vietnamNowLastSale.Date
+                //    });
+                //}
                 _context.Tasks.AddRange(tasks);
                 _context.SaveChanges();
 
@@ -955,7 +959,7 @@ namespace SmartFarmManager.API.Controllers
                         Id = Guid.NewGuid(),
                         DiseaseId = disease.Id,
                         Notes = "Tuân thủ hướng dẫn điều trị, bổ sung vitamin và điện giải",
-                        RecommendDay = random.Next(3, 6)
+                        RecommendDay = 5
                     };
 
                     prescriptions.Add(prescription);
@@ -1156,8 +1160,8 @@ namespace SmartFarmManager.API.Controllers
                             Name = sensorType.Name,
                             PinCode = sensorType.DefaultPinCode, // Gán PinCode theo mặc định của SensorType
                             Status = true, // Giả sử cảm biến luôn hoạt động
-                            CreatedDate = DateTime.UtcNow,
-                            ModifiedDate = DateTime.UtcNow,
+                            CreatedDate = DateTimeUtils.GetServerTimeInVietnamTime(),
+                            ModifiedDate = DateTimeUtils.GetServerTimeInVietnamTime(),
                             IsDeleted = false,
                             NodeId = 1 // Gán NodeId mặc định (có thể thay đổi nếu có yêu cầu thêm về NodeId)
                         };
@@ -1308,6 +1312,367 @@ namespace SmartFarmManager.API.Controllers
                 _context.SaveChanges();
 
                 //tạo đơn thuốc cho chuồng 3 với ngày ngày kết thúc bằng với ngày chậy data full demo
+                // ID thực tế của disease cần test (ví dụ: Nhiễm trùng Adenovirus)
+                var diseaseId = _context.Diseases.FirstOrDefault(d => d.Name == "Nhiễm trùng Adenovirus")?.Id;
+                if (diseaseId == null) return BadRequest("Không tìm thấy bệnh");
+
+                // Lấy StandardPrescription mẫu
+                var standardPrescriptionCage3 = _context.StandardPrescriptions
+                    .Where(sp => sp.DiseaseId == diseaseId)
+                    .FirstOrDefault();
+
+                if (standardPrescriptionCage3 == null) return BadRequest("Không tìm thấy đơn thuốc mẫu");
+
+                //tạo đơn thuốc cho cage 3 để demo hoàn thành
+                var farmingBatchNewPrescriptionCage3 = _context.FarmingBatchs.Where(fb => fb.CageId == Guid.Parse("03eb1376-9197-4e77-bc17-4e4bf595e387")).Include(fb => fb.GrowthStages).FirstOrDefault();
+                // Tạo MedicalSymptom còn cho uống thuốc
+                var symptomNewPrescriptionCage3 = new MedicalSymptom
+                {
+                    Id = Guid.NewGuid(),
+                    FarmingBatchId = farmingBatchNewPrescriptionCage3.Id, // farming batch cụ thể
+                    Diagnosis = "Nhiễm trùng Adenovirus",
+                    Status = MedicalSymptomStatuseEnum.Prescribed,
+                    AffectedQuantity = 20,
+                    QuantityInCage = 200,
+                    IsEmergency = false,
+                    Notes = "Phát hiện nghi nhiễm dịch tả",
+                    CreateAt = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-3),
+                    DiseaseId = diseaseId,
+                    PrescriptionId = Guid.Parse("fcaceb35-b3a0-4e7e-b479-19059aa7006c")
+                };
+
+                // Tạo Prescription từ mẫu
+                var prescriptionNewPrescriptionCage3 = new Prescription
+                {
+                    Id = Guid.Parse("fcaceb35-b3a0-4e7e-b479-19059aa7006c"),
+                    MedicalSymtomId = symptomNewPrescriptionCage3.Id,
+                    CageId = Guid.Parse("F37F0727-435D-4D80-9C29-AE2F41B49C9D"),
+                    PrescribedDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-3 + 2),
+                    EndDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-2 + 3),
+                    Notes = "Đơn thuốc từ mẫu chuẩn",
+                    QuantityAnimal = 20,
+                    RemainingQuantity = 0,
+                    Status = PrescriptionStatusEnum.Active,
+                    DaysToTake = 3,
+                    Price = 0 // sẽ tính bên dưới
+                };
+
+                // Tạo danh sách PrescriptionMedications từ StandardPrescriptionMedications
+                var stdMeds = _context.StandardPrescriptionMedications
+                    .Where(m => m.PrescriptionId == standardPrescriptionCage3.Id)
+                    .ToList();
+
+                var prescriptionMeds = stdMeds.Select(m => new PrescriptionMedication
+                {
+                    Id = Guid.NewGuid(),
+                    PrescriptionId = prescriptionNewPrescriptionCage3.Id,
+                    MedicationId = m.MedicationId,
+                    Morning = m.Morning,
+                    Noon = m.Noon,
+                    Afternoon = m.Afternoon,
+                    Evening = m.Evening
+                }).ToList();
+
+                // Tính tổng giá đơn thuốc (nếu cần)
+                var medicationPrices = _context.Medications
+                    .Where(m => stdMeds.Select(x => x.MedicationId).Contains(m.Id))
+                    .ToDictionary(m => m.Id, m => m.PricePerDose ?? 0);
+
+                prescriptionNewPrescriptionCage3.Price = prescriptionMeds.Sum(pm => (medicationPrices.ContainsKey(pm.MedicationId) ? medicationPrices[pm.MedicationId] : 0) * prescriptionNewPrescriptionCage3.DaysToTake ?? 1);
+
+                var growStageActiveCage3 = farmingBatchNewPrescriptionCage3.GrowthStages.Where(gs => gs.Status == "Active").FirstOrDefault();
+                growStageActiveCage3.AffectedQuantity = prescriptionNewPrescriptionCage3.QuantityAnimal;
+                // Add vào DB
+                _context.MedicalSymptoms.Add(symptomNewPrescriptionCage3);
+                _context.Prescriptions.Add(prescriptionNewPrescriptionCage3);
+                _context.PrescriptionMedications.AddRange(prescriptionMeds);
+                _context.GrowthStages.Update(growStageActiveCage3);
+                _context.SaveChanges();
+
+                var symptomCage3_1 = _context.Symptoms.Where(s => s.SymptomName == "Ủ rũ, kém hoạt động").FirstOrDefault();
+                var medicalSymptomDetail1 = new MedicalSymtomDetail
+                {
+                    MedicalSymptomId = symptomNewPrescriptionCage3.Id,
+                    SymptomId = symptomCage3_1.Id
+                };
+                var symptomCage3_2 = _context.Symptoms.Where(s => s.SymptomName == "Giảm ăn, bỏ ăn").FirstOrDefault();
+                var medicalSymptomDetail2 = new MedicalSymtomDetail
+                {
+                    MedicalSymptomId = symptomNewPrescriptionCage3.Id,
+                    SymptomId = symptomCage3_2.Id
+                };
+                _context.MedicalSymtomDetails.Add(medicalSymptomDetail1);
+                _context.MedicalSymtomDetails.Add(medicalSymptomDetail2);
+                _context.SaveChanges();
+
+                // Tạo Mecalsymptom đã uống xong đã trở về chuồng
+                var symptomNewPrescription2Cage3 = new MedicalSymptom
+                {
+                    Id = Guid.NewGuid(),
+                    FarmingBatchId = farmingBatchNewPrescriptionCage3.Id, // farming batch cụ thể
+                    Diagnosis = "Nhiễm trùng Adenovirus",
+                    Status = MedicalSymptomStatuseEnum.Prescribed,
+                    AffectedQuantity = 20,
+                    QuantityInCage = 200,
+                    IsEmergency = false,
+                    Notes = "Phát hiện nghi nhiễm dịch tả",
+                    CreateAt = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-10),
+                    DiseaseId = diseaseId,
+                    PrescriptionId = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25")
+                };
+
+                // Tạo Prescription từ mẫu
+                var prescriptionNewPrescription2Cage3 = new Prescription
+                {
+                    Id = Guid.Parse("54da1a44-d865-4d41-bf65-f8fc3e939d25"),
+                    MedicalSymtomId = symptomNewPrescriptionCage3.Id,
+                    CageId = Guid.Parse("F37F0727-435D-4D80-9C29-AE2F41B49C9D"),
+                    PrescribedDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-10),
+                    EndDate = DateTimeUtils.GetServerTimeInVietnamTime().AddDays(-10 + 4),
+                    Notes = "Đơn thuốc từ mẫu chuẩn",
+                    QuantityAnimal = 15,
+                    RemainingQuantity = 15,
+                    Status = PrescriptionStatusEnum.Return,
+                    DaysToTake = 4,
+                    Price = 0 // sẽ tính bên dưới
+                };
+
+                // Tạo danh sách PrescriptionMedications từ StandardPrescriptionMedications
+                var stdMeds2 = _context.StandardPrescriptionMedications
+                    .Where(m => m.PrescriptionId == standardPrescriptionCage3.Id)
+                    .ToList();
+
+                var prescriptionMeds2 = stdMeds.Select(m => new PrescriptionMedication
+                {
+                    Id = Guid.NewGuid(),
+                    PrescriptionId = prescriptionNewPrescription2Cage3.Id,
+                    MedicationId = m.MedicationId,
+                    Morning = m.Morning,
+                    Noon = m.Noon,
+                    Afternoon = m.Afternoon,
+                    Evening = m.Evening
+                }).ToList();
+
+                // Tính tổng giá đơn thuốc (nếu cần)
+                var medicationPrices2 = _context.Medications
+                    .Where(m => stdMeds.Select(x => x.MedicationId).Contains(m.Id))
+                    .ToDictionary(m => m.Id, m => m.PricePerDose ?? 0);
+
+                prescriptionNewPrescription2Cage3.Price = prescriptionMeds.Sum(pm => (medicationPrices.ContainsKey(pm.MedicationId) ? medicationPrices[pm.MedicationId] : 0) * prescriptionNewPrescriptionCage3.DaysToTake ?? 1);
+
+                // Add vào DB
+                _context.MedicalSymptoms.Add(symptomNewPrescription2Cage3);
+                _context.Prescriptions.Add(prescriptionNewPrescription2Cage3);
+                _context.PrescriptionMedications.AddRange(prescriptionMeds2);
+                _context.SaveChanges();
+
+                var symptomCage3_1_2 = _context.Symptoms.Where(s => s.SymptomName == "Ủ rũ, kém hoạt động").FirstOrDefault();
+                var medicalSymptomDetail1_2 = new MedicalSymtomDetail
+                {
+                    MedicalSymptomId = symptomNewPrescriptionCage3.Id,
+                    SymptomId = symptomCage3_1.Id
+                };
+                var symptomCage3_2_2 = _context.Symptoms.Where(s => s.SymptomName == "Giảm ăn, bỏ ăn").FirstOrDefault();
+                var medicalSymptomDetail2_2 = new MedicalSymtomDetail
+                {
+                    MedicalSymptomId = symptomNewPrescriptionCage3.Id,
+                    SymptomId = symptomCage3_2.Id
+                };
+                _context.MedicalSymtomDetails.Add(medicalSymptomDetail1_2);
+                _context.MedicalSymtomDetails.Add(medicalSymptomDetail2_2);
+                _context.SaveChanges();
+                //Hoàn thành tạo đơn thuốc đã cho uống ở chuồng 2 và đã trả về chuồng cũ
+
+                // Bước 1: Lấy danh sách MedicationId
+                var medicationListIds = prescriptionMeds.Select(pm => pm.MedicationId).ToList();
+                var medicationIds = prescriptionMeds.Select(m => m.MedicationId).ToList();
+                // Bước 2: Truy vấn cơ sở dữ liệu để lấy MedicationName
+                var medicationsList = _context.Medications
+                    .Where(m => medicationIds.Contains(m.Id))
+                    .ToList();
+                var prescriptionMedicationsWithNames = prescriptionMeds.Select(pm => new
+                {
+                    pm.MedicationId,
+                    MedicationName = medicationsList.FirstOrDefault(m => m.Id == pm.MedicationId)?.Name,
+                    pm.Notes,
+                    pm.Morning,
+                    pm.Noon,
+                    pm.Afternoon,
+                    pm.Evening
+                }).ToList();
+
+                var sessionTasks = new Dictionary<int, List<(string MedicationName, int Quantity)>>();
+
+                sessionTasks[(int)SessionTypeEnum.Morning] = prescriptionMedicationsWithNames
+                    .Where(pm => pm.Morning > 0)
+                    .Select(pm => (pm.MedicationName, pm.Morning))
+                    .ToList();
+
+                sessionTasks[(int)SessionTypeEnum.Noon] = prescriptionMedicationsWithNames
+                    .Where(pm => pm.Noon > 0)
+                    .Select(pm => (pm.MedicationName, pm.Noon))
+                    .ToList();
+
+                sessionTasks[(int)SessionTypeEnum.Afternoon] = prescriptionMedicationsWithNames
+                    .Where(pm => pm.Afternoon > 0)
+                    .Select(pm => (pm.MedicationName, pm.Afternoon))
+                    .ToList();
+
+                sessionTasks[(int)SessionTypeEnum.Evening] = prescriptionMedicationsWithNames
+                    .Where(pm => pm.Evening > 0)
+                    .Select(pm => (pm.MedicationName, pm.Evening))
+                    .ToList();
+                var taskPrescriptionCage3 = new List<DataAccessObject.Models.Task>();
+                // Kiểm tra đơn thuốc có thuốc kê cho các buổi sáng, trưa, chiều, tối hay không
+                var hasMorningMedication = prescriptionMeds.Any(m => m.Morning > 0);
+                var hasNoonMedication = prescriptionMeds.Any(m => m.Noon > 0);
+                var hasAfternoonMedication = prescriptionMeds.Any(m => m.Afternoon > 0);
+                var hasEveningMedication = prescriptionMeds.Any(m => m.Evening > 0);
+
+                var taskType = _context.TaskTypes.Where(t => t.TaskTypeName == "Cho uống thuốc").FirstOrDefault();
+                // Kiểm tra và tạo task cho buổi sáng
+                for(int i = 1; i <= 3; i++)
+                {
+                    if (hasMorningMedication) // Buổi sáng
+                    {
+                        var morningMedications = sessionTasks[(int)SessionTypeEnum.Morning];
+                        var medicationDetails = string.Join(", ", morningMedications.Select(m => $"{m.MedicationName} (Số liều: {m.Quantity})"));
+
+
+                        taskPrescriptionCage3.Add(new DataAccessObject.Models.Task
+                        {
+
+                            TaskTypeId = taskType.Id,
+                            CageId = Guid.Parse("a8cb5774-62a5-41e7-b854-cc2cfd2d33e5"),
+                            AssignedToUserId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), // Sẽ gán sau
+                            CreatedByUserId = null,
+                            TaskName = "Uống thuốc (Sáng)",
+                            Description = $"Điều trị cho {prescriptionNewPrescriptionCage3.QuantityAnimal} con. Thuốc: {medicationDetails}.",
+                            PriorityNum = 1,
+                            DueDate = prescriptionNewPrescriptionCage3.PrescribedDate.Value.AddDays(i - 1),
+                            //Status = currentSession == 1 ? TaskStatusEnum.InProgress : TaskStatusEnum.Pending,
+                            Status = TaskStatusEnum.Pending,
+                            Session = (int)SessionTypeEnum.Morning,
+                            CreatedAt = prescriptionNewPrescriptionCage3.PrescribedDate.Value.AddDays(i - 1),
+                            PrescriptionId = prescriptionNewPrescriptionCage3.Id,
+                            IsTreatmentTask = true
+                        });
+                    }
+
+                    // Kiểm tra và tạo task cho buổi trưa
+                    if (hasNoonMedication) // Buổi trưa
+                    {
+                        var noonMedications = sessionTasks[(int)SessionTypeEnum.Noon];
+                        var medicationDetails = string.Join(", ", noonMedications.Select(m => $"{m.MedicationName} (Số liều: {m.Quantity})"));
+                        taskPrescriptionCage3.Add(new DataAccessObject.Models.Task
+                        {
+                            TaskTypeId = taskType.Id,
+                            CageId = Guid.Parse("a8cb5774-62a5-41e7-b854-cc2cfd2d33e5"),
+                            AssignedToUserId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), // Sẽ gán sau
+                            CreatedByUserId = null,
+                            TaskName = "Uống thuốc (Trưa)",
+                            Description = $"Điều trị cho {prescriptionNewPrescriptionCage3.QuantityAnimal} con. Thuốc: {medicationDetails}.",
+                            PriorityNum = 1,
+                            DueDate = prescriptionNewPrescriptionCage3.PrescribedDate.Value.AddDays(i - 1),
+                            Status = TaskStatusEnum.Pending,
+                            Session = (int)SessionTypeEnum.Noon,
+                            CreatedAt = prescriptionNewPrescriptionCage3.PrescribedDate.Value.AddDays(i - 1),
+                            PrescriptionId = prescriptionNewPrescriptionCage3.Id,
+                            IsTreatmentTask = true
+                        });
+                    }
+
+                    // Kiểm tra và tạo task cho buổi chiều
+                    if (hasAfternoonMedication) // Buổi chiều
+                    {
+                        var afternoonMedications = sessionTasks[(int)SessionTypeEnum.Afternoon];
+                        var medicationDetails = string.Join(", ", afternoonMedications.Select(m => $"{m.MedicationName} (Số liều: {m.Quantity})"));
+                        taskPrescriptionCage3.Add(new DataAccessObject.Models.Task
+                        {
+                            TaskTypeId = taskType.Id,
+                            CageId = Guid.Parse("a8cb5774-62a5-41e7-b854-cc2cfd2d33e5"),
+                            AssignedToUserId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), // Sẽ gán sau
+                            CreatedByUserId = null,
+                            TaskName = "Uống thuốc (Chiều)",
+                            Description = $"Điều trị cho {prescriptionNewPrescriptionCage3.QuantityAnimal} con. Thuốc: {medicationDetails}.",
+                            PriorityNum = 1,
+                            DueDate = prescriptionNewPrescriptionCage3.PrescribedDate.Value.AddDays(i - 1),
+                            Status = TaskStatusEnum.Pending,
+                            Session = (int)SessionTypeEnum.Afternoon,
+                            CreatedAt = prescriptionNewPrescriptionCage3.PrescribedDate.Value.AddDays(i - 1),
+                            PrescriptionId = prescriptionNewPrescriptionCage3.Id,
+                            IsTreatmentTask = true
+                        });
+                    }
+
+                    // Kiểm tra và tạo task cho buổi tối
+                    if (hasEveningMedication) // Buổi tối
+                    {
+                        var eveningMedications = sessionTasks[(int)SessionTypeEnum.Evening];
+                        var medicationDetails = string.Join(", ", eveningMedications.Select(m => $"{m.MedicationName} (Số liều: {m.Quantity})"));
+                        taskPrescriptionCage3.Add(new DataAccessObject.Models.Task
+                        {
+                            TaskTypeId = taskType.Id,
+                            CageId = Guid.Parse("a8cb5774-62a5-41e7-b854-cc2cfd2d33e5"),
+                            AssignedToUserId = Guid.Parse("8dac47e4-58b6-43ef-aac8-c9c4315bd4e0"), // Sẽ gán sau
+                            CreatedByUserId = null,
+                            TaskName = "Uống thuốc (Tối)",
+                            Description = $"Điều trị cho {prescriptionNewPrescriptionCage3.QuantityAnimal} con. Thuốc: {medicationDetails}.",
+                            PriorityNum = 1,
+                            DueDate = prescriptionNewPrescriptionCage3.PrescribedDate.Value.AddDays(i - 1),
+                            Status = TaskStatusEnum.Pending,
+                            Session = (int)SessionTypeEnum.Evening,
+                            CreatedAt = prescriptionNewPrescriptionCage3.PrescribedDate.Value.AddDays(i - 1),
+                            PrescriptionId = prescriptionNewPrescriptionCage3.Id,
+                            IsTreatmentTask = true
+                        });
+                    }
+                }
+                
+
+                //DateTime vietnamNow = DateTimeUtils.GetServerTimeInVietnamTime();
+                //int currentSession = SessionTime.GetCurrentSession(vietnamNow.TimeOfDay);
+                _context.Tasks.AddRange(taskPrescriptionCage3);
+                _context.SaveChanges();
+                // Lấy danh sách task cần xử lý
+                var tasksNewPrescription = _context.Tasks
+                    .Where(t => t.DueDate >= vietnamNow.Date) // Chỉ lấy task hôm nay trở đi
+                    .ToList();
+
+
+                foreach (var task in tasksNewPrescription)
+                {
+                    // Xác định trạng thái task
+                    if (task.DueDate.Value.Date == vietnamNow.Date)
+                    {
+                        if (task.Session < currentSession)
+                        {
+                            task.Status = "Done";
+                        }
+                        else if (task.Session == currentSession)
+                        {
+                            task.Status = "InProgress";
+                        }
+                        else
+                        {
+                            task.Status = "Pending";
+                        }
+                    }
+                    else // Task có DueDate > ngày hiện tại
+                    {
+                        task.Status = "Pending";
+                    }
+                }
+                // Lưu thay đổi Task
+                _context.SaveChanges();
+
+                //update task thành overdue giờ hiện tại với session là 1
+                var updateTaskSession1Now = _context.Tasks.Where(t => t.Session == 1 && t.DueDate.Value.Date == DateTimeUtils.GetServerTimeInVietnamTime().Date).ToList();
+                foreach(var taskSession1Status in updateTaskSession1Now){
+                    taskSession1Status.Status = TaskStatusEnum.Overdue;
+                }
+                _context.Tasks.UpdateRange(updateTaskSession1Now);
+                _context.SaveChanges();
 
 
                 return Ok("Dữ liệu đã được nhập vào thành công!");
@@ -1439,6 +1804,27 @@ namespace SmartFarmManager.API.Controllers
 
             // Chuyển đổi list các SensorRecordModel thành JSON
             return JsonConvert.SerializeObject(sensorRecords);
+        }
+
+        [HttpPost("updateTaskPrescription")]
+        public IActionResult UpdateTaskPrescription()
+        {
+            var updateTaskPrescription = _context.Tasks
+                    .Where(t => t.PrescriptionId == Guid.Parse("fcaceb35-b3a0-4e7e-b479-19059aa7006c")).ToList();
+            DateTime vietnamNow = DateTimeUtils.GetServerTimeInVietnamTime();
+            int currentSession = SessionTime.GetCurrentSession(vietnamNow.TimeOfDay);
+            foreach (var task in updateTaskPrescription)
+            {
+                if(task.Status != "Done")
+                {
+                    if(task.Session < currentSession)
+                    {
+                        task.Status = "Done";
+                        task.CompletedAt = vietnamNow.AddDays(1);
+                    }
+                }
+            }
+            return Ok("Dữ liệu đã được nhập vào thành công!");
         }
     }
 }

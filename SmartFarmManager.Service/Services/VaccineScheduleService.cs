@@ -4,6 +4,7 @@ using SmartFarmManager.Repository.Interfaces;
 using SmartFarmManager.Service.BusinessModels;
 using SmartFarmManager.Service.BusinessModels.VaccineSchedule;
 using SmartFarmManager.Service.BusinessModels.VaccineScheduleLog;
+using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
 using SmartFarmManager.Service.Shared;
 using System;
@@ -135,43 +136,134 @@ namespace SmartFarmManager.Service.Services
 
         public async Task<bool> CreateVaccineScheduleAsync(CreateVaccineScheduleModel model)
         {
-            // Kiểm tra Vaccine và GrowthStage có tồn tại không
-            var vaccine = await _unitOfWork.Vaccines
-                .FindByCondition(v => v.Id == model.VaccineId)
-                .FirstOrDefaultAsync();
+            var today = DateTimeUtils.GetServerTimeInVietnamTime().Date;
+            var tomorrow = today.AddDays(1);
 
+            if (!model.Date.HasValue || model.Date.Value.Date < today)
+            {
+                throw new ArgumentException("Ngày tiêm phải là hôm nay hoặc trong tương lai.");
+            }
+
+            var vaccine = await _unitOfWork.Vaccines.FindByCondition(v => v.Id == model.VaccineId).FirstOrDefaultAsync();
             if (vaccine == null)
             {
-                throw new ArgumentException($"Vaccine with ID {model.VaccineId} does not exist.");
+                throw new ArgumentException($"Vaccine với ID {model.VaccineId} không tồn tại.");
             }
 
-            var growthStage = await _unitOfWork.GrowthStages
-                .FindByCondition(g => g.Id == model.StageId)
+            var farmingBatch = await _unitOfWork.FarmingBatches
+                .FindByCondition(fb => fb.CageId == model.CageId && fb.Status == FarmingBatchStatusEnum.Active)
+                .Include(fb => fb.GrowthStages)
                 .FirstOrDefaultAsync();
 
+            if (farmingBatch == null)
+            {
+                throw new ArgumentException("Không tìm thấy lứa nuôi đang hoạt động trong chuồng đã chọn.");
+            }
+            var growthStage = farmingBatch.GrowthStages.FirstOrDefault(gs => gs.Status == GrowthStageStatusEnum.Active);
             if (growthStage == null)
             {
-                throw new ArgumentException($"Growth Stage with ID {model.StageId} does not exist.");
+                throw new ArgumentException("Không tìm thấy giai đoạn phát triển đang hoạt động trong chuồng.");
             }
-             
+
+            var duplicate = await _unitOfWork.VaccineSchedules
+                .FindByCondition(vs => vs.StageId == growthStage.Id &&
+                                       vs.Date.HasValue &&
+                                       vs.Date.Value.Date == model.Date.Value.Date &&
+                                       vs.Session == model.Session)
+                .AnyAsync();
+
+            if (duplicate)
+            {
+                throw new ArgumentException("Đã có lịch tiêm trong cùng ngày và buổi đã chọn.");
+            }
 
             var vaccineSchedule = new VaccineSchedule
             {
                 Id = Guid.NewGuid(),
                 VaccineId = model.VaccineId,
-                StageId = model.StageId,
+                StageId = growthStage.Id,
                 Date = model.Date,
-                Quantity = model.Quantity,
-                ApplicationAge = model.ApplicationAge,
-                ToltalPrice = model.ToltalPrice,
                 Session = model.Session,
-                Status = VaccineScheduleStatusEnum.Upcoming
+                Status = VaccineScheduleStatusEnum.Upcoming,
+                Quantity = 0,
+                ToltalPrice = 0,
             };
 
             await _unitOfWork.VaccineSchedules.CreateAsync(vaccineSchedule);
-            await _unitOfWork.CommitAsync();
 
+            if (model.Date.HasValue && (model.Date.Value.Date == today || model.Date.Value.Date == tomorrow))
+            {
+                var assignedStaff = await GetAssignedStaffForCage(model.CageId, model.Date.Value);
+                if (assignedStaff == null)
+                {
+                    throw new Exception("Không có nhân viên được gán cho chuồng này vào ngày đã chọn.");
+                }
+
+                var vaccineTaskTypeId = await GetTaskTypeIdByName("Tiêm vắc xin");
+                var vaccineTaskType = await _unitOfWork.TaskTypes.FindByCondition(tt => tt.Id == vaccineTaskTypeId).FirstOrDefaultAsync();
+
+                var task = new DataAccessObject.Models.Task
+                {
+                    Id = Guid.NewGuid(),
+                    TaskTypeId = vaccineTaskTypeId,
+                    CageId = model.CageId,
+                    AssignedToUserId = assignedStaff.Value,
+                    CreatedByUserId = (await GetAdminId()) ?? Guid.Empty,
+                    TaskName = $"Tiêm vắc xin: {vaccine.Name}",
+                    PriorityNum = (int)(vaccineTaskType?.PriorityNum ?? 1),
+                    Description = $"Tiêm vắc xin {vaccine.Name} cho giai đoạn {growthStage.Name}.",
+                    DueDate = model.Date.Value.Date + GetSessionEndTime(model.Session),
+                    Session = model.Session,
+                    Status = TaskStatusEnum.Pending,
+                    CreatedAt = DateTimeUtils.GetServerTimeInVietnamTime()
+                };
+
+                await _unitOfWork.Tasks.CreateAsync(task);
+            }
+
+            await _unitOfWork.CommitAsync();
             return true;
+        }
+        private async Task<Guid?> GetAssignedStaffForCage(Guid cageId, DateTime date)
+        {
+            return await _unitOfWork.CageStaffs
+                .FindByCondition(cs => cs.CageId == cageId && cs.StaffFarm.Role.RoleName == "Staff Farm")
+                .Include(cs => cs.StaffFarm)
+                .Select(cs => (Guid?)cs.StaffFarmId)
+                .FirstOrDefaultAsync();
+        }
+
+        private async Task<Guid?> GetAdminId()
+        {
+            return await _unitOfWork.Users
+                .FindByCondition(u => u.Role.RoleName == "Admin Farm")
+                .Select(u => (Guid?)u.Id)
+                .FirstOrDefaultAsync();
+        }
+
+        private async Task<Guid> GetTaskTypeIdByName(string taskTypeName)
+        {
+            var taskType = await _unitOfWork.TaskTypes
+                .FindByCondition(tt => tt.TaskTypeName == taskTypeName)
+                .FirstOrDefaultAsync();
+
+            if (taskType == null)
+                throw new ArgumentException($"Không tìm thấy loại nhiệm vụ '{taskTypeName}'");
+
+            return taskType.Id;
+        }
+
+        private TimeSpan GetSessionEndTime(int session)
+        {
+            return session switch
+            {
+                1 => SessionTime.Morning.End,
+                2 => SessionTime.Noon.End,
+                3 => SessionTime.Afternoon.End,
+                4 => SessionTime.Evening.End,
+                5 => SessionTime.Night.End,
+                _ => TimeSpan.FromHours(18)
+            };
         }
 
         public async Task<PagedResult<VaccineScheduleItemModel>> GetVaccineSchedulesAsync(VaccineScheduleFilterKeySearchModel filter)

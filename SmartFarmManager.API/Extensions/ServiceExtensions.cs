@@ -238,6 +238,7 @@ namespace SmartFarmManager.API.Extensions
             services.AddScoped<IEggHarvestRepository, EggHarvestRepository>();
             services.AddScoped<IFarmConfigRepository, FarmConfigRepository>();
             services.AddScoped<IStandardPrescriptionMedicationRepository, StandardPrescriptionMedicationRepository>();
+            services.AddScoped<IDeadPoultryLogRepository, DeadPoultryLogRepository>();
             return services;
         }
 
@@ -297,6 +298,7 @@ namespace SmartFarmManager.API.Extensions
             services.AddScoped<ISyncService, SyncService>();
             services.AddScoped<ExternalFarmApiClient>();
             services.AddSingleton<HttpClient>();
+            services.AddScoped<IDeadPoultryLogService, DeadPoultryLogService>();
 
             return services;
         }
@@ -348,6 +350,9 @@ namespace SmartFarmManager.API.Extensions
             services.AddTransient<SmartFarmManager.Service.Jobs.UpdateGrowthStagesStatusJob>();
             services.AddTransient<SmartFarmManager.Service.Jobs.CheckAndNotifyAdminForUpcomingFarmingBatchesJob>();
             services.AddTransient<SmartFarmManager.Service.Jobs.UpdateFarmingBatchStatusForTodayJob>();
+            services.AddTransient<SmartFarmManager.Service.Jobs.CheckAndNotifyAdminForEndingFarmingBatchesJob>();
+            services.AddTransient<SmartFarmManager.Service.Jobs.UpcomingTaskReminderJob>();
+            services.AddTransient<SmartFarmManager.Service.Jobs.UpdateCompletedPrescriptionsJob>();
             return services;
         }
 

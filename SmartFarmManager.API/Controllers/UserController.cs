@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using MimeKit.Utils;
@@ -173,6 +174,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateUser([FromBody] UserCreateModel request)
         {
             try
@@ -207,11 +209,36 @@ namespace SmartFarmManager.API.Controllers
         [HttpPut("{userId}/update-password")]
         public async Task<IActionResult> UpdatePassword(Guid userId, [FromBody] PasswordUpdateModel request)
         {
-            var success = await _userService.UpdatePasswordAsync(userId, request);
-            if (!success)
-                return BadRequest(ApiResult<object>.Fail("Password update failed."));
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
 
-            return Ok(ApiResult<object>.Succeed("Password updated successfully."));
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+                    { "Errors", errors.ToArray() }
+                }));
+            }
+
+            try
+            {
+                var success = await _userService.UpdatePasswordAsync(userId, request);
+                return Ok(ApiResult<string>.Succeed("Mật khẩu đã được cập nhật thành công."));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<string>.Fail(ex.Message));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<string>.Fail(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail("Đã xảy ra lỗi không mong muốn. Vui lòng liên hệ bộ phận hỗ trợ."));
+            }
         }
 
         [HttpDelete("{userId}")]
@@ -404,6 +431,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, Admin Farm")]
         public async Task<IActionResult> GetUsers([FromQuery] UserFilterModel filter)
         {
             var users = await _userService.GetUsersAsync(filter);
@@ -412,6 +440,7 @@ namespace SmartFarmManager.API.Controllers
 
 
         [HttpGet("/filter")]
+        [Authorize(Roles = "Admin, Admin Farm")]
         public async Task<IActionResult> GetUsers(
 
         [FromQuery] string? roleName,
@@ -473,6 +502,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost("assign-staffFarm-cages")]
+        [Authorize(Roles = "Admin Farm, Admin")]
         public async Task<IActionResult> AssignCages([FromBody] AssignStaffToCagesRequest request)
         {
             try
@@ -489,6 +519,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpPost("active-inactive/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ToggleUserStatus(Guid id)
         {
             try

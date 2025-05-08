@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SmartFarmManager.API.Common;
 using SmartFarmManager.API.Payloads.Requests.HealthLog;
@@ -21,6 +22,7 @@ namespace SmartFarmManager.API.Controllers
 
         // POST: api/healthlogs
         [HttpPost("{prescriptionId:guid}/health-log")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> CreateHealthLog(Guid prescriptionId, [FromBody] CreateHealthLogRequest request)
         {
             if (!ModelState.IsValid)
@@ -81,6 +83,7 @@ namespace SmartFarmManager.API.Controllers
             return Ok(ApiResult<IEnumerable<HealthLogResponse>>.Succeed(responses));
         }
         [HttpGet("task/{taskId:guid}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetHealthLogByTaskId(Guid taskId)
         {
             var healthLog = await _healthLogService.GetHealthLogByTaskIdAsync(taskId);

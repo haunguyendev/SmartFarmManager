@@ -32,6 +32,9 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                     b.Property<Guid>("FarmingBatchId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
@@ -134,6 +137,9 @@ namespace SmartFarmManager.DataAccessObject.Migrations
 
                     b.Property<DateTime?>("DeletedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ExternalId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("FarmId")
                         .HasColumnType("uniqueidentifier");
@@ -411,6 +417,33 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                     b.ToTable("DailyFoodUsageLogs");
                 });
 
+            modelBuilder.Entity("SmartFarmManager.DataAccessObject.Models.DeadPoultryLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("(newid())");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("FarmingBatchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FarmingBatchId");
+
+                    b.ToTable("DeadPoultryLogs");
+                });
+
             modelBuilder.Entity("SmartFarmManager.DataAccessObject.Models.Disease", b =>
                 {
                     b.Property<Guid>("Id")
@@ -519,6 +552,9 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                     b.Property<string>("Email")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid?>("ExternalId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("FarmCode")
                         .HasMaxLength(50)
@@ -1653,6 +1689,9 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                     b.Property<DateTime?>("DeletedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("ExternalId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -2516,6 +2555,17 @@ namespace SmartFarmManager.DataAccessObject.Migrations
                     b.Navigation("Stage");
                 });
 
+            modelBuilder.Entity("SmartFarmManager.DataAccessObject.Models.DeadPoultryLog", b =>
+                {
+                    b.HasOne("SmartFarmManager.DataAccessObject.Models.FarmingBatch", "FarmingBatch")
+                        .WithMany("DeadPoultryLogs")
+                        .HasForeignKey("FarmingBatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FarmingBatch");
+                });
+
             modelBuilder.Entity("SmartFarmManager.DataAccessObject.Models.EggHarvest", b =>
                 {
                     b.HasOne("SmartFarmManager.DataAccessObject.Models.GrowthStage", "growthStage")
@@ -3120,6 +3170,8 @@ namespace SmartFarmManager.DataAccessObject.Migrations
             modelBuilder.Entity("SmartFarmManager.DataAccessObject.Models.FarmingBatch", b =>
                 {
                     b.Navigation("AnimalSales");
+
+                    b.Navigation("DeadPoultryLogs");
 
                     b.Navigation("GrowthStages");
 

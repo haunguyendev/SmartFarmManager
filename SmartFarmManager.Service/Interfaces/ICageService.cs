@@ -20,5 +20,7 @@ namespace SmartFarmManager.Service.Interfaces
         Task<bool> UpdateCageAsync(Guid id, CageModel model);
         Task<bool> DeleteCageAsync(Guid id);
         Task<CageIsolationResponseModel> GetPrescriptionsWithTasksAsync();
+
+        Task<CageIsolateModel?> GetCageIsolatePrescriptionsWithDetailsAsync();
     }
 }

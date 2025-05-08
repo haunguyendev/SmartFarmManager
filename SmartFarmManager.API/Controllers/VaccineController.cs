@@ -6,6 +6,7 @@ using SmartFarmManager.API.Payloads.Responses.Vaccine;
 using SmartFarmManager.Service.BusinessModels.Vaccine;
 using SmartFarmManager.Service.BusinessModels;
 using SmartFarmManager.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SmartFarmManager.API.Controllers
 {
@@ -70,6 +71,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost()]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> CreateVaccine([FromBody] CreateVaccineRequest request)
         {
             if (!ModelState.IsValid)
@@ -106,6 +108,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> UpdateVaccine(Guid id, [FromBody] UpdateVaccineRequest request)
         {
             if (!ModelState.IsValid)
@@ -145,6 +148,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> DeleteVaccine(Guid id)
         {
             try
@@ -168,6 +172,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("")]
+        [Authorize(Roles = "Vet, Admin Farm")]
         public async Task<IActionResult> GetVaccines([FromQuery] VaccineFilterRequest filterRequest)
         {
             if (!ModelState.IsValid)
@@ -200,6 +205,7 @@ namespace SmartFarmManager.API.Controllers
             }
         }
         [HttpGet("{id}")]
+        [Authorize(Roles = "Staff Farm")]
         public async Task<IActionResult> GetVaccineDetail(Guid id)
         {
             try

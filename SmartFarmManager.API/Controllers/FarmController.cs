@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SmartFarmManager.API.Common;
@@ -60,7 +61,7 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
+                return StatusCode(500, ApiResult<string>.Fail($"Đã xảy ra lỗi: {ex.Message}"));
             }
         }
 
@@ -73,12 +74,13 @@ namespace SmartFarmManager.API.Controllers
                 var farmModel = await _farmService.GetFarmByIdAsync(id);
                 if (farmModel == null)
                 {
-                    return NotFound(ApiResult<string>.Fail("Farm not found."));
+                    return NotFound(ApiResult<string>.Fail("Không tìm thấy trang trại."));
                 }
 
                 var response = new FarmResponse
                 {
                     Id = farmModel.Id,
+                    ExternalId = farmModel.ExternalId,
                     Name = farmModel.Name,
                     Address = farmModel.Address,
                     Area = farmModel.Area,
@@ -90,11 +92,12 @@ namespace SmartFarmManager.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
+                return StatusCode(500, ApiResult<string>.Fail($"Đã xảy ra lỗi: {ex.Message}"));
             }
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetAllFarms([FromQuery] string? search)
         {
             try
@@ -105,6 +108,7 @@ namespace SmartFarmManager.API.Controllers
                 {
                     Id = f.Id,
                     Name = f.Name,
+                    ExternalId = f.ExternalId,
                     FarmCode = f.FarmCode,
                     Address = f.Address,
                     Area = f.Area,
@@ -120,39 +124,43 @@ namespace SmartFarmManager.API.Controllers
             }
         }
 
-        [HttpPut("{id:guid}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateFarm(Guid id, [FromBody] UpdateFarmRequest request)
         {
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values
-                                        .SelectMany(v => v.Errors)
-                                        .Select(e => e.ErrorMessage)
-                                        .ToList();
-                return BadRequest(ApiResult<List<string>>.Error(errors));
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+                    { "Có lỗi:", errors.ToArray() }
+                }));
             }
 
             try
             {
-                var updated = await _farmService.UpdateFarmAsync(id, new FarmModel
-                {
-                    Name = request.Name,
-                    Address = request.Address,
-                    Area =(double) request.Area,
-                    PhoneNumber = request.PhoneNumber,
-                    Email = request.Email
-                });
+                var model = request.MapToModel();
+                var result = await _farmService.UpdateFarmAsync(id, model);
 
-                if (!updated)
+                if (!result)
                 {
-                    return NotFound(ApiResult<string>.Fail("Farm not found."));
+                    throw new Exception("Có lỗi khi cập nhật trang trại");
                 }
 
-                return Ok(ApiResult<string>.Succeed("Farm successfully updated."));
+                return Ok(ApiResult<string>.Succeed("Cập nhật thông tin trang trại thành công"));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<string>.Fail(ex.Message));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResult<string>.Fail(ex.Message));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
+                return StatusCode(500, ApiResult<string>.Fail(ex.Message));
             }
         }
 
@@ -164,18 +172,19 @@ namespace SmartFarmManager.API.Controllers
                 var deleted = await _farmService.DeleteFarmAsync(id);
                 if (!deleted)
                 {
-                    return NotFound(ApiResult<string>.Fail("Farm not found."));
+                    return NotFound(ApiResult<string>.Fail("Không tìm thấy trang trại."));
                 }
 
-                return Ok(ApiResult<string>.Succeed("Farm successfully deleted."));
+                return Ok(ApiResult<string>.Succeed("Xóa trang trại thành công."));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
+                return StatusCode(500, ApiResult<string>.Fail($"Đã xảy ra lỗi: {ex.Message}"));
             }
         }
 
         [HttpGet("{farmId:guid}/users")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetUsersByFarmId(Guid farmId, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
@@ -184,14 +193,14 @@ namespace SmartFarmManager.API.Controllers
 
                 if (paginatedUsers == null || !paginatedUsers.Items.Any())
                 {
-                    return NotFound(ApiResult<string>.Fail("No users found for the given FarmId."));
+                    return NotFound(ApiResult<string>.Fail("Không tìm thấy người dùng nào cho trang trại này."));
                 }
 
-                 return Ok(ApiResult<PagedResult<UserModel>>.Succeed(paginatedUsers));
+                return Ok(ApiResult<PagedResult<UserModel>>.Succeed(paginatedUsers));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResult<string>.Fail($"An error occurred: {ex.Message}"));
+                return StatusCode(500, ApiResult<string>.Fail($"Đã xảy ra lỗi: {ex.Message}"));
             }
         }
 
@@ -201,9 +210,40 @@ namespace SmartFarmManager.API.Controllers
         [FromQuery] int? month,
         [FromQuery] int? year)
         {
-            var reports = await _farmService.GetCostingReportsByFarmAsync(farmId, month, year);
-            return Ok(ApiResult<IEnumerable<CostingReportModel>>.Succeed(reports));
+            try 
+            {
+                var reports = await _farmService.GetCostingReportsByFarmAsync(farmId, month, year);
+                return Ok(ApiResult<IEnumerable<CostingReportModel>>.Succeed(reports));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail($"Đã xảy ra lỗi: {ex.Message}"));
+            }
+        }
+
+        [HttpPatch("{id:guid}/external-id")]
+        public async Task<IActionResult> UpdateExternalId(Guid id, [FromBody] UpdateExternalIdRequest request)
+        {
+            if (request.ExternalId == null)
+            {
+                return BadRequest(ApiResult<string>.Fail("ExternalId không được để trống"));
+            }
+
+            try
+            {
+                var result = await _farmService.UpdateFarmExternalIdAsync(id, request.ExternalId.Value);
+                
+                if (!result)
+                {
+                    return NotFound(ApiResult<string>.Fail("Không tìm thấy trang trại."));
+                }
+
+                return Ok(ApiResult<string>.Succeed("Cập nhật ExternalId thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail($"Đã xảy ra lỗi: {ex.Message}"));
+            }
         }
     }
-
 }

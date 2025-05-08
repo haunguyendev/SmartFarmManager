@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -11,6 +12,7 @@ using SmartFarmManager.Service.BusinessModels.Prescription;
 using SmartFarmManager.Service.BusinessModels.Task;
 using SmartFarmManager.Service.Helpers;
 using SmartFarmManager.Service.Interfaces;
+using SmartFarmManager.Service.Services;
 using Sprache;
 
 namespace SmartFarmManager.API.Controllers
@@ -30,6 +32,7 @@ namespace SmartFarmManager.API.Controllers
         /// <param name="request">Filter and pagination parameters</param>
         /// <returns>Paginated list of cages</returns>
         [HttpGet]
+        [Authorize(Roles = "Admin Farm, Admin, Vet")]
         public async Task<IActionResult> GetAll([FromQuery] CageFilterPagingRequest request)
         {
             if (!ModelState.IsValid)
@@ -84,6 +87,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> CreateCage([FromBody] CreateCageRequest request)
         {
             if (!ModelState.IsValid)
@@ -117,6 +121,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("all")]
+        [Authorize(Roles = "Admin Farm")]
         public async Task<IActionResult> GetAllCages([FromQuery] string? search)
         {
             try
@@ -196,6 +201,7 @@ namespace SmartFarmManager.API.Controllers
         }
 
         [HttpGet("prescriptions/tasks")]
+        [Authorize(Roles = "Admin Farm, Vet")]
         public async Task<IActionResult> GetTasksForCage()
         {
             try
@@ -216,5 +222,20 @@ namespace SmartFarmManager.API.Controllers
                 return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
             }
         }
+        [HttpGet("IsolationCage")]
+        public async Task<IActionResult> GetIsolationCage()
+        {
+            try
+            {
+                var result = await _cageService.GetCageIsolatePrescriptionsWithDetailsAsync();
+
+                return Ok(ApiResult<CageIsolateModel>.Succeed(result));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail($"Error: {ex.Message}"));
+            }
+        }
+
     }
 }

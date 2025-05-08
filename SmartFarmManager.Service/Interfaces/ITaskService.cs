@@ -39,7 +39,11 @@ namespace SmartFarmManager.Service.Interfaces
         Task<bool> SetIsTreatmentTaskTrueAsync(Guid taskId,Guid MedicalSymptomId);
         Task<TaskLogResponse> GetLogsByTaskIdAsync(Guid taskId);
         Task<WeightAnimalLogModel> GetWeightAnimalLogByTaskId(Guid taskId);
+        Task<bool> CreateSaleTaskAsync(CreateSaleTaskModel model);
+        System.Threading.Tasks.Task ProcessUpcomingTaskNotificationAsync();
 
+        Task<bool> UpdateTaskToDone(Guid taskId);
 
+        Task<bool> RedoTask(Guid taskId, DateTime newDueDate, int session);
     }
 }

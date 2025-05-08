@@ -8,7 +8,7 @@ namespace SmartFarmManager.Service.BusinessModels.FarmSync
 {
     public class FarmSyncModel
     {
-        public string Id { get; set; }
+        public Guid Id { get; set; }
         public string FarmCode { get; set; }
         public string Name { get; set; }
         public string Address { get; set; }
